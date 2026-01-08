@@ -4,16 +4,24 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { auth } from "@/firebase.config";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { UserContext } from "@/contexts/UserContext";
 import Link from "next/link";
 // import ForgotPassword from "./ForgotPassword";
 
 function Login({ onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState("user"); // Default to 'user'
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { user, loading: userLoading } = useContext(UserContext);
+
+  useEffect(() => {
+    if (userLoading) return; // still loading, do nothing
+    if (user) {
+      router.replace("/pos"); // Redirect to home or appropriate page
+    }
+  }, [user, userLoading, router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,7 +36,6 @@ function Login({ onSuccess }) {
       if (user) {
         // Get the ID token result which includes custom claims (roles)
         const tokenResult = await user.getIdTokenResult();
-      } else {
       }
     } catch (error) {
       toast.error("Invalid credentials. Please try again.");

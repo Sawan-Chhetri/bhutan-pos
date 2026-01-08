@@ -146,24 +146,29 @@ function PosLayout() {
       {/* Mobile Checkout Modal */}
       {isCheckoutOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/40">
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl h-[85%] animate-slideUp overflow-y-auto">
-            <div className="p-4 border-b flex justify-between dark:border-gray-700">
-              <h2 className="font-semibold">Checkout</h2>
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl h-[85%] flex flex-col animate-slideUp">
+            {/* 🔒 Fixed Header */}
+            <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 border-b flex justify-between items-center dark:border-gray-700">
+              <h2 className="font-semibold text-lg">Checkout</h2>
               <button
                 onClick={() => setIsCheckoutOpen(false)}
-                className="text-gray-500 dark:text-gray-300 text-lg"
+                className="text-gray-500 dark:text-gray-300 text-xl"
               >
                 ✕
               </button>
             </div>
 
-            <Checkout
-              cartItems={cartItems}
-              subtotal={subtotal}
-              gst={gst}
-              total={total}
-              setCartItems={setCartItems}
-            />
+            {/* 📜 Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <Checkout
+                cartItems={cartItems}
+                subtotal={subtotal}
+                gst={gst}
+                total={total}
+                setCartItems={setCartItems}
+                hidePayButton // 👈 optional prop
+              />
+            </div>
           </div>
         </div>
       )}

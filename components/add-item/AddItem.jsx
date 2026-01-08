@@ -1,29 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function AddItem({ onAddItem, categories = [] }) {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [price, setPrice] = useState("");
-  const [isGSTExempt, setIsGSTExempt] = useState(false);
+export default function AddItem({
+  onAddItem,
+  onUpdateItem,
+  categories = [],
+  editingItem = null,
+}) {
+  // Initialize state directly from the prop
+  const [name, setName] = useState(editingItem?.name || "");
+  const [category, setCategory] = useState(editingItem?.category || "");
+  const [price, setPrice] = useState(editingItem?.price || "");
+  const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name || !category || !price) return;
 
-    onAddItem({
-      id: Date.now(),
+    const payload = {
+      id: editingItem ? editingItem.id : Date.now(),
       name,
       category,
       price: Number(price),
       isGSTExempt,
-    });
+    };
 
-    setName("");
-    setCategory("");
-    setPrice("");
-    setIsGSTExempt(false);
+    if (editingItem && onUpdateItem) {
+      onUpdateItem(payload);
+    } else {
+      onAddItem(payload);
+    }
+
+    // Reset form ONLY after add (optional but sensible)
+    if (!editingItem) {
+      setName("");
+      setCategory("");
+      setPrice("");
+      setIsGSTExempt(false);
+    }
   };
 
   return (
@@ -92,7 +107,7 @@ export default function AddItem({ onAddItem, categories = [] }) {
         type="submit"
         className="bg-amber-400 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition"
       >
-        Add Item
+        {editingItem ? "Update Item" : "Add Item"}
       </button>
     </form>
   );

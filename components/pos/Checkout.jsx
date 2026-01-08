@@ -1,6 +1,7 @@
 "use client";
-
+import { useState } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa";
+import CheckoutModal from "./CheckoutModal";
 
 export default function Checkout({
   cartItems,
@@ -9,6 +10,8 @@ export default function Checkout({
   total,
   setCartItems,
 }) {
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
   // Increment quantity
   const increment = (id) => {
     setCartItems((prev) =>
@@ -91,10 +94,26 @@ export default function Checkout({
         </div>
 
         {/* Pay button */}
-        <button className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-white font-semibold py-3 rounded-lg transition shadow-md">
-          Pay Now
+        <button
+          onClick={() => total > 0 && setIsCheckoutOpen(true)}
+          className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-white font-semibold py-3 rounded-lg transition shadow-md"
+        >
+          Pay
         </button>
       </div>
+
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        subtotal={subtotal}
+        gst={gst}
+        total={total}
+        onConfirm={(customerData) => {
+          console.log("Payment confirmed", customerData);
+          setIsCheckoutOpen(false);
+          // clear cart, save sale, navigate to invoice, etc.
+        }}
+      />
     </aside>
   );
 }

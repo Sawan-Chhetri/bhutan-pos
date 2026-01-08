@@ -2,10 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FiMenu } from "react-icons/fi";
+import useLogout from "@/hooks/useLogout";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef(null);
+  const logout = useLogout();
 
   // Close on outside click
   useEffect(() => {
