@@ -3,34 +3,50 @@
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
-export default function AddCategory({
-  onAddCategory,
-  setCategories,
-  categories,
-}) {
+export default function AddCategory({ setCategories, categories, idToken }) {
   const [categoryName, setCategoryName] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
 
-    const newCategory = {
-      id: Date.now(),
-      name: categoryName.trim(),
-    };
+    const res = await fetch("/api/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ name: categoryName.trim().toLowerCase() }),
+    });
 
-    // Add to local list
-    setCategories((prev) => [...prev, newCategory]);
+    const newCategory = await res.json();
 
-    // Callback to parent to store in DB
-    onAddCategory?.(newCategory);
-
+    setCategories((prev) => [
+      ...prev,
+      {
+        id: newCategory.id,
+        name: categoryName.trim().toLocaleString(),
+      },
+    ]);
     setCategoryName("");
   };
 
   // Remove category
-  const handleRemove = (id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
+  const handleRemove = async (categoryId) => {
+    setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
+    try {
+      await fetch(`/api/categories/${categoryId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      // Optimistically update UI
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   return (
@@ -60,7 +76,7 @@ export default function AddCategory({
 
       {/* Added Categories List */}
       {categories.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-2 max-h-20 overflow-y-auto ">
           {categories.map((cat) => (
             <div
               key={cat.id}

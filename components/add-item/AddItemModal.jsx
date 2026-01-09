@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddCategory from "./AddCategory";
 import AddItem from "./AddItem";
 
@@ -10,9 +10,35 @@ export default function AddItemModal({
   onAddItem,
   onUpdateItem,
   editingItem,
+  idToken,
 }) {
   const [activeTab, setActiveTab] = useState("item");
   const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          setCategories([]);
+          return;
+        }
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Fetch categories error:", err);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, [idToken]);
 
   if (!isOpen) return null;
 
@@ -52,6 +78,7 @@ export default function AddItemModal({
             <AddCategory
               categories={categories}
               setCategories={setCategories}
+              idToken={idToken}
             />
           )}
         </div>

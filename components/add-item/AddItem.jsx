@@ -1,6 +1,7 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
+import { UserContext } from "@/contexts/UserContext";
 
 export default function AddItem({
   onAddItem,
@@ -13,13 +14,16 @@ export default function AddItem({
   const [category, setCategory] = useState(editingItem?.category || "");
   const [price, setPrice] = useState(editingItem?.price || "");
   const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
+  const itemId = editingItem ? editingItem.id : null;
+  const { idToken } = useAuthStatus();
+  const { user, loading: userLoading } = useContext(UserContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !category || !price) return;
 
     const payload = {
-      id: editingItem ? editingItem.id : Date.now(),
+      id: itemId,
       name,
       category,
       price: Number(price),
@@ -28,8 +32,41 @@ export default function AddItem({
 
     if (editingItem && onUpdateItem) {
       onUpdateItem(payload);
+      // Upadte item on the DB here.
+      await fetch("/api/modify-items", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          itemId,
+          updates: {
+            name,
+            price,
+            category,
+            isGSTExempt,
+          },
+        }),
+      });
     } else {
       onAddItem(payload);
+      // Add item to the DB here.
+      await fetch("/api/modify-items", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          item: {
+            name,
+            price,
+            category,
+            isGSTExempt,
+          },
+        }),
+      });
     }
 
     // Reset form ONLY after add (optional but sensible)

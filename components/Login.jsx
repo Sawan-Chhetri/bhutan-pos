@@ -14,14 +14,6 @@ function Login({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const { user, loading: userLoading } = useContext(UserContext);
-
-  useEffect(() => {
-    if (userLoading) return; // still loading, do nothing
-    if (user) {
-      router.replace("/pos"); // Redirect to home or appropriate page
-    }
-  }, [user, userLoading, router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,11 +25,18 @@ function Login({ onSuccess }) {
         password
       );
       const user = userCredential.user;
+
       if (user) {
-        // Get the ID token result which includes custom claims (roles)
-        const tokenResult = await user.getIdTokenResult();
+        // 1. FORCE refresh the token to ensure the backend sees a valid one
+        // This "warms up" the auth state
+        await user.getIdToken(true);
+
+        // 2. Instead of waiting for the useEffect, you can trigger
+        // the redirect here or ensure the context is updated
+        router.push("/pos");
       }
     } catch (error) {
+      console.error("Login error:", error);
       toast.error("Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);

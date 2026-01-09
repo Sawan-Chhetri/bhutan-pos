@@ -1,11 +1,11 @@
 "use client";
-
 export default function DeleteModal({
   isOpen,
   onClose,
   onConfirm,
   title = "Delete Item",
   message = "Are you sure you want to delete this item? This action cannot be undone.",
+  deleteItem,
 }) {
   if (!isOpen) return null;
 
@@ -31,7 +31,7 @@ export default function DeleteModal({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(deleteItem.id)}
             className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold transition"
           >
             Delete

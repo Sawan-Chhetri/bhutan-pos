@@ -1,19 +1,47 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import AddItemModal from "./AddItemModal";
 import DeleteModal from "./DeleteModal";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
 export default function ItemScreen() {
-  const [items, setItems] = useState([
-    { id: 1, name: "Veg Pasta", category: "Pasta", price: 180 },
-    { id: 2, name: "Egg Sandwich", category: "Eggs", price: 120 },
-    { id: 3, name: "Cold Coffee", category: "Drinks", price: 90 },
-  ]);
+  const { user, idToken } = useAuthStatus();
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+
+  useEffect(() => {
+    if (!user || !idToken) return;
+
+    const fetchItems = async () => {
+      try {
+        const res = await fetch("/api/read-items", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          setItems([]);
+          return;
+        }
+
+        const data = await res.json();
+        setItems(data);
+      } catch (err) {
+        console.error("Fetch items error:", err);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, [user, idToken]);
 
   const onClose = () => {
     setIsModalOpen(false);
@@ -24,12 +52,31 @@ export default function ItemScreen() {
     setItems((prev) =>
       prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
     );
+    // Update item on the DB here.
     onClose();
   };
 
-  const confirmDelete = () => {
+  // const confirmDelete = () => {
+  //   setItems((prev) => prev.filter((i) => i.id !== deleteItem.id));
+  //   setDeleteItem(null);
+  // };
+
+  const confirmDelete = async (itemId) => {
     setItems((prev) => prev.filter((i) => i.id !== deleteItem.id));
     setDeleteItem(null);
+    try {
+      await fetch(`/api/modify-items/${itemId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      // Optimistically update UI
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   return (
@@ -98,9 +145,11 @@ export default function ItemScreen() {
         editingItem={editingItem}
         onAddItem={(newItem) => setItems((prev) => [...prev, newItem])}
         onUpdateItem={handleUpdateItem}
+        idToken={idToken}
       />
       {/* Delete Confirmation Modal */}
       <DeleteModal
+        deleteItem={deleteItem}
         isOpen={!!deleteItem}
         onClose={() => setDeleteItem(null)}
         onConfirm={confirmDelete}
