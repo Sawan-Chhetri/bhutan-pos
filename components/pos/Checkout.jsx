@@ -48,7 +48,7 @@ export default function Checkout({
                 {item.name}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                ₹{item.price} each
+                ₹{item.unitPrice} each
               </p>
             </div>
 
@@ -71,7 +71,7 @@ export default function Checkout({
 
             {/* Total for this item */}
             <p className="ml-4 font-semibold text-gray-800 dark:text-gray-100">
-              ₹{(item.qty * item.price).toFixed(2)}
+              ₹{(item.qty * item.unitPrice).toFixed(2)}
             </p>
           </div>
         ))}
@@ -105,12 +105,14 @@ export default function Checkout({
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
+        cartItems={cartItems}
+        setCartItems={setCartItems}
         subtotal={subtotal}
         gst={gst}
         total={total}
         onConfirm={(customerData) => {
-          console.log("Payment confirmed", customerData);
           setIsCheckoutOpen(false);
+          setCartItems([]);
           // clear cart, save sale, navigate to invoice, etc.
         }}
       />

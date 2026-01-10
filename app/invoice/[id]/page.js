@@ -2,43 +2,63 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
 export default function InvoicePage() {
   const { id } = useParams();
-  //   const [invoice, setInvoice] = useState(null);
+  const [invoice, setInvoice] = useState(null);
+  const { idToken } = useAuthStatus();
+  const [loading, setLoading] = useState(true);
 
-  // Mock business details (later from DB / settings)
-  const business = {
-    name: "Bhutan POS Store",
-    address: "Norzin Lam, Thimphu, Bhutan",
-    phone: "+975 17 123 456",
-  };
+  useEffect(() => {
+    if (!id || !idToken) return;
 
-  const mockData = {
-    id: 1,
-    order: "ORD-001",
-    customer: "John Doe",
-    date: "2026-01-07",
-    subtotal: 428.57,
-    gst: 21.43,
-    total: 450,
-    items: [
-      { name: "Veg Pasta", qty: 2, price: 180 },
-      { name: "Cold Coffee", qty: 1, price: 90 },
-    ],
-  };
-  const invoice = Number(id) === mockData.id ? mockData : null;
-  if (!invoice) {
-    return <div>Invoice not found</div>;
-  }
+    const fetchInvoice = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/sales/${id}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
 
-  if (!invoice) {
-    return (
-      <div className="p-6 text-gray-500 dark:text-gray-400">
-        Loading invoice...
-      </div>
-    );
-  }
+        if (!res.ok) throw new Error("Failed to fetch invoice");
+
+        const data = await res.json();
+
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        let saleDate = data.date;
+
+        // Firestore Timestamp
+        if (data.date?._seconds) {
+          const d = new Date(data.date._seconds * 1000);
+          saleDate = formatter.format(d); // 20 Aug 2026
+        }
+
+        saleDate = saleDate.replace(/ /g, " ");
+
+        setInvoice({
+          ...data,
+          date: saleDate,
+        });
+        console.log(invoice);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoice();
+  }, [id, idToken]);
+
+  if (loading) return <div>Loading invoice...</div>;
+  if (!invoice) return <div>Invoice not found</div>;
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen flex justify-center">
@@ -48,13 +68,13 @@ export default function InvoicePage() {
           {/* Business Info */}
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              {business.name}
+              {invoice.store.name}
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {business.address}
+              {invoice.store.address}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Phone: {business.phone}
+              Phone: {invoice.store.phone}
             </p>
           </div>
 
@@ -64,7 +84,7 @@ export default function InvoicePage() {
               Tax Invoice
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Order: {invoice.order}
+              Invoice #: {invoice.invoiceNumber}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Date: {invoice.date}
@@ -78,7 +98,7 @@ export default function InvoicePage() {
             Bill To
           </h3>
           <p className="text-gray-900 dark:text-white font-medium">
-            {invoice.customer}
+            {invoice.customer || "Walk-in Customer"}
           </p>
         </div>
 
@@ -106,9 +126,11 @@ export default function InvoicePage() {
                 <tr key={index} className="border-b dark:border-gray-700">
                   <td className="px-4 py-3">{item.name}</td>
                   <td className="px-4 py-3">{item.qty}</td>
-                  <td className="px-4 py-3">₹{item.price.toFixed(2)}</td>
+                  <td className="px-4 py-3">
+                    ₹{parseInt(item.unitPrice).toFixed(2)}
+                  </td>
                   <td className="px-4 py-3 font-medium">
-                    ₹{(item.qty * item.price).toFixed(2)}
+                    ₹{(item.qty * parseInt(item.unitPrice)).toFixed(2)}
                   </td>
                 </tr>
               ))}
@@ -123,7 +145,7 @@ export default function InvoicePage() {
             <span>₹{invoice.subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-gray-700 dark:text-gray-300">
-            <span>GST</span>
+            <span>GST (5%)</span>
             <span>₹{invoice.gst.toFixed(2)}</span>
           </div>
           <hr className="border-gray-300 dark:border-gray-600" />
@@ -135,7 +157,7 @@ export default function InvoicePage() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          Thank you for shopping with {business.name}
+          Thank you for shopping with {invoice.store.name}
         </div>
       </div>
     </div>

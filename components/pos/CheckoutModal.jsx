@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
 export default function CheckoutModal({
   isOpen,
@@ -9,11 +10,40 @@ export default function CheckoutModal({
   gst,
   total,
   onConfirm,
+  cartItems,
+  setCartItems,
 }) {
+  const { idToken } = useAuthStatus();
   const [customerName, setCustomerName] = useState("");
   const [contact, setContact] = useState("");
 
   if (!isOpen) return null;
+
+  const handleConfirm = async ({ customerName, contact }) => {
+    // Handle payment confirmation logic here
+    try {
+      await fetch("/api/sales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          cartItems,
+          subtotal,
+          gst,
+          total,
+          customerName,
+          contact,
+        }),
+      });
+
+      // ✅ Clear cart after successful sale
+      onConfirm?.();
+    } catch (err) {
+      console.error("Sale failed", err);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
@@ -85,12 +115,7 @@ export default function CheckoutModal({
             Cancel
           </button>
           <button
-            onClick={() =>
-              onConfirm({
-                customerName,
-                contact,
-              })
-            }
+            onClick={() => handleConfirm({ customerName, contact })}
             className="px-4 py-2 rounded-md bg-amber-400 hover:bg-amber-500 text-white font-semibold transition"
           >
             Confirm Payment

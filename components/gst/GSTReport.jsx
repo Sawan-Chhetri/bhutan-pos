@@ -1,50 +1,115 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
 export default function GSTReport({ month }) {
-  //   const [report, setReport] = useState(null);
+  const [report, setReport] = useState(null);
+  const [business, setBusiness] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { idToken } = useAuthStatus();
 
-  // Business details (later from settings / DB)
-  const business = {
-    name: "Bhutan POS Store",
-    address: "Norzin Lam, Thimphu, Bhutan",
-    phone: "+975 17 123 456",
-  };
+  useEffect(() => {
+    if (!idToken || !month) return;
 
-  //   useEffect(() => {
-  //     // Mock data – replace with API later
-  //     const mockReport = {
-  //       monthLabel: "January 2026",
-  //       generatedOn: "2026-01-31",
-  //       totalSales: 124560,
-  //       totalOrders: 342,
-  //       taxableSales: 118500,
-  //       gstCollected: 6228,
-  //     };
+    const fetchReport = async () => {
+      setLoading(true);
+      setError(null);
 
-  //     setReport(mockReport);
-  //   }, [month]);
+      try {
+        const res = await fetch(`/api/gst-reports/${month}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
 
-  // Mock data – replace with API later
-  const mockReport = {
-    monthLabel: "January 2026",
-    generatedOn: "2026-01-31",
-    totalSales: 124560,
-    totalOrders: 342,
-    taxableSales: 118500,
-    gstCollected: 6228,
-  };
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || "Failed to fetch GST report");
+        }
 
-  const report = mockReport;
+        const data = await res.json();
 
-  if (!report) {
+        // Format generated date
+        const generatedOn = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date());
+
+        // setReport({
+        //   ...data,
+        //   monthLabel: data.month,
+        //   generatedOn,
+        // });
+        // Parse year and month from API (format: "YYYY-MM")
+        const [year, monthNum] = data.month.split("-").map(Number);
+
+        // Get start of month
+        const startDate = new Date(year, monthNum - 1, 1);
+
+        // Get end of month (or today if current month)
+        const now = new Date();
+        let endDate;
+        if (year === now.getFullYear() && monthNum === now.getMonth() + 1) {
+          endDate = now; // current month → use today
+        } else {
+          // last day of month
+          endDate = new Date(year, monthNum, 0); // day 0 of next month → last day
+        }
+
+        // Format dates as "DD MMM YYYY"
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        const monthLabel = `${formatter.format(startDate)} - ${formatter.format(
+          endDate
+        )}`;
+
+        setReport({
+          ...data,
+          monthLabel,
+          generatedOn,
+        });
+
+        setBusiness({
+          name: data.business?.name || "-",
+          phone: data.business?.phone || "-",
+          address: data.business?.address || "-",
+        });
+      } catch (err) {
+        console.error("GST report fetch error:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [month, idToken]);
+
+  if (loading)
     return (
-      <div className="p-6 text-gray-500 dark:text-gray-400">
+      <div className="p-6 text-gray-500 dark:text-gray-400 text-center">
         Loading GST report...
       </div>
     );
-  }
+  if (error)
+    return (
+      <div className="p-6 text-red-500 dark:text-red-400 text-center">
+        {error}
+      </div>
+    );
+  if (!report || !business)
+    return (
+      <div className="p-6 text-gray-500 dark:text-gray-400 text-center">
+        No report found.
+      </div>
+    );
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen flex justify-center">
@@ -62,7 +127,6 @@ export default function GSTReport({ month }) {
               Phone: {business.phone}
             </p>
           </div>
-
           <div className="text-right">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               GST Summary Report
@@ -83,8 +147,10 @@ export default function GSTReport({ month }) {
             value={`₹${report.totalSales.toLocaleString()}`}
           />
           <SummaryRow
-            label="Total Sales Count"
-            value={`${report.totalOrders} Orders`}
+            label="Total Orders"
+            value={`${report.totalOrders} Order${
+              report.totalOrders > 1 ? "s" : ""
+            }`}
           />
           <SummaryRow
             label="Taxable Sales"

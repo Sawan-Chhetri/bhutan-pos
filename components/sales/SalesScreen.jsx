@@ -1,39 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
+
+const ITEMS_PER_PAGE = 15;
 
 export default function SalesScreen() {
-  const [sales, setSales] = useState([
-    {
-      id: 1,
-      order: "ORD-001",
-      customer: "John Doe",
-      date: "2026-01-07",
-      total: 450,
-      subtotal: 428.57,
-      gst: 21.43,
-      items: 3,
-    },
-    {
-      id: 2,
-      order: "ORD-002",
-      customer: "Jane Smith",
-      date: "2026-01-07",
-      total: 230,
-      subtotal: 219.05,
-      gst: 10.95,
-      items: 2,
-    },
-  ]);
+  const [sales, setSales] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { idToken } = useAuthStatus();
+  const [loading, setLoading] = useState(true);
+
+  const fetchSales = async (page) => {
+    if (!idToken) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `/api/sales?page=${page}&limit=${ITEMS_PER_PAGE}`,
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch sales");
+
+      const data = await res.json();
+      const formatter = new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+
+      const formatted = data.sales.map((sale) => {
+        let saleDate = sale.date;
+        if (sale.date?._seconds) {
+          const d = new Date(sale.date._seconds * 1000);
+          saleDate = formatter.format(d).replace(/ /g, " ");
+        }
+        return { ...sale, date: saleDate };
+      });
+
+      setSales(formatted);
+      setTotalPages(Math.ceil(data.totalCount / ITEMS_PER_PAGE));
+    } catch (err) {
+      console.error("Error fetching sales:", err);
+      setSales([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSales(currentPage);
+  }, [idToken, currentPage]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-gray-700 dark:text-gray-300">
+        Loading sales...
+      </div>
+    );
+  }
+
+  if (!sales.length) {
+    return (
+      <div className="p-6 text-center text-gray-700 dark:text-gray-300">
+        No sales found.
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white text-center">
         Sales
       </h1>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto flex-1">
         <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
@@ -61,10 +108,12 @@ export default function SalesScreen() {
                 className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
               >
                 <td className="px-4 py-3 text-sm text-amber-500 dark:text-amber-400 font-medium">
-                  <Link href={`/invoice/${sale.id}`}>{sale.order}</Link>
+                  <Link href={`/invoice/${sale.id}`} target="_blank">
+                    {sale.invoiceNumber}
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
-                  {sale.customer}
+                  {sale.customer || "Walk-in Customer"}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
                   {sale.date}
@@ -73,12 +122,29 @@ export default function SalesScreen() {
                   ₹{sale.total.toFixed(2)}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
-                  {sale.items}
+                  {sale.items.length}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-4 flex justify-center flex-wrap gap-2">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`px-3 py-1 rounded-full border transition ${
+              page === currentPage
+                ? "bg-amber-400 text-white border-amber-400"
+                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
       </div>
     </div>
   );

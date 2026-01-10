@@ -24,8 +24,8 @@ export default function AddItem({
 
     const payload = {
       id: itemId,
-      name,
-      category,
+      name: name.trim().toLowerCase(),
+      category: category.trim().toLowerCase(),
       price: Number(price),
       isGSTExempt,
     };
@@ -42,9 +42,9 @@ export default function AddItem({
         body: JSON.stringify({
           itemId,
           updates: {
-            name,
+            name: payload.name,
             price,
-            category,
+            category: payload.category,
             isGSTExempt,
           },
         }),
@@ -60,9 +60,9 @@ export default function AddItem({
         },
         body: JSON.stringify({
           item: {
-            name,
+            name: payload.name,
             price,
-            category,
+            category: payload.category,
             isGSTExempt,
           },
         }),

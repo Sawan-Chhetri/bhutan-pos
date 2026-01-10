@@ -8,7 +8,6 @@ export async function GET(request) {
     if (!authHeader?.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const idToken = authHeader.split("Bearer ")[1];
     const decoded = await admin.auth().verifyIdToken(idToken);
     const uid = decoded.uid;
@@ -26,8 +25,22 @@ export async function GET(request) {
       return NextResponse.json({ error: "Store not linked" }, { status: 400 });
     }
 
-    // 3. Fetch items for THIS store only
-    const itemsSnap = await db.collection(`stores/${storeId}/items`).get();
+    // 3. Category filter from query param
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category")?.trim();
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "Category is required" },
+        { status: 400 }
+      );
+    }
+
+    const itemsRef = db
+      .collection(`stores/${storeId}/items`)
+      .where("category", "==", category); // exact match
+
+    const itemsSnap = await itemsRef.get();
 
     const items = itemsSnap.docs.map((doc) => ({
       id: doc.id,

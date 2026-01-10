@@ -1,29 +1,53 @@
 "use client";
 
-const categories = [
-  "All",
-  "Food",
-  "Drinks",
-  "Pasta",
-  "Eggs",
-  "Snacks",
-  "Desserts",
-];
+import { useEffect, useState } from "react";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
-export default function Menu({ active, onChange }) {
+export default function Menu({ active, onChange, isSearching }) {
+  const [categories, setCategories] = useState([]);
+  const { idToken } = useAuthStatus();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+
+        if (!res.ok) {
+          setCategories([]);
+          return;
+        }
+
+        const data = await res.json(); // expected: [{ id, name }, ...]
+        setCategories(data);
+
+        // Automatically select first category
+        if (data.length > 0) {
+          onChange(data[0].name);
+        }
+      } catch (err) {
+        console.error("Fetch categories error:", err);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, [idToken, onChange]);
+
   return (
     <div className="flex lg:flex-col gap-2">
       {categories.map((category) => (
         <button
-          key={category}
-          onClick={() => onChange(category)}
+          key={category.id}
+          onClick={() => onChange(category.name)}
           className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition ${
-            active === category
-              ? "bg-amber-400 text-white"
+            !isSearching && active === category.name
+              ? "bg-amber-400 text-white" // active highlight only if not searching
               : "bg-gray-100 text-gray-700 hover:bg-amber-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-amber-500"
           }`}
         >
-          {category}
+          {category.name.toUpperCase()}
         </button>
       ))}
     </div>

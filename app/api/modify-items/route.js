@@ -30,13 +30,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "Store not linked" }, { status: 400 });
     }
 
-    await db.collection(`stores/${storeId}/items`).add({
+    const itemRef = db.collection(`stores/${storeId}/items`).doc();
+
+    await itemRef.set({
       ...item,
       isActive: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ id: itemRef.id });
   } catch (err) {
     console.error("modify-items POST error:", err);
     return NextResponse.json(

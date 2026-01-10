@@ -12,7 +12,7 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
               key={product.id}
               onClick={() => onAddToCart(product)}
               className={`
-                flex flex-col justify-center items-center p-4 rounded-lg
+                relative flex flex-col justify-center items-center p-4 rounded-lg
                 border transition-all duration-150
                 text-center
                 ${
@@ -22,9 +22,19 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
                 }
               `}
             >
+              {/* GST Exempt Indicator */}
+              {product.isGSTExempt && (
+                <span
+                  className="absolute top-2 right-2 w-30 h-30 rounded-full bg-green-500"
+                  title="GST Exempt"
+                ></span>
+              )}
+
               {/* Product Name */}
               <p className="font-semibold text-gray-800 dark:text-gray-100 truncate w-full">
-                {product.name}
+                {product.name
+                  .toLocaleString("en-US")
+                  .replace(/^./, (str) => str.toUpperCase())}
               </p>
 
               {/* Price */}
@@ -37,7 +47,7 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
                 className="mt-2 text-xs px-2 py-0.5 rounded-full 
                 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               >
-                {product.category}
+                {product.category.toUpperCase()}
               </span>
             </button>
           );
