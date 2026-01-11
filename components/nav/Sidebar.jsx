@@ -79,7 +79,7 @@ export default function Sidebar() {
 
           {/* Overlay */}
           <div
-            className="flex-1 bg-black/20"
+            className="flex-1 bg-black/20 cursor-pointer"
             onClick={() => setIsOpen(false)}
           />
         </div>

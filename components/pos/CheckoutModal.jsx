@@ -116,7 +116,7 @@ export default function CheckoutModal({
           </button>
           <button
             onClick={() => handleConfirm({ customerName, contact })}
-            className="px-4 py-2 rounded-md bg-amber-400 hover:bg-amber-500 text-white font-semibold transition"
+            className="px-4 py-2 rounded-md btn-primary transition"
           >
             Confirm Payment
           </button>

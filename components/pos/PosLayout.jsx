@@ -164,7 +164,7 @@ function PosLayout() {
       {/* Mobile Checkout Button */}
       <button
         onClick={() => setIsCheckoutOpen(true)}
-        className="lg:hidden fixed bottom-4 left-4 right-4 bg-amber-400 text-white font-semibold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2"
+        className="lg:hidden fixed bottom-4 left-4 right-4 btn-primary font-semibold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2"
       >
         View Cart
         <span className="bg-white text-black rounded-full px-2 py-1 text-xs font-bold">

@@ -98,7 +98,7 @@ export default function InvoicePage() {
             Bill To
           </h3>
           <p className="text-gray-900 dark:text-white font-medium">
-            {invoice.customer || "Walk-in Customer"}
+            {invoice.customerName || "Walk-in Customer"}
           </p>
         </div>
 

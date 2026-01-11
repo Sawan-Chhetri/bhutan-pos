@@ -107,13 +107,17 @@ export default function SalesScreen() {
                 key={sale.id}
                 className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
               >
-                <td className="px-4 py-3 text-sm text-amber-500 dark:text-amber-400 font-medium">
-                  <Link href={`/invoice/${sale.id}`} target="_blank">
+                <td className="px-4 py-3 text-sm text-brand-pink dark:text-brand-pink font-medium">
+                  <Link
+                    href={`/invoice/${sale.id}`}
+                    target="_blank"
+                    className="hover:underline"
+                  >
                     {sale.invoiceNumber}
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
-                  {sale.customer || "Walk-in Customer"}
+                  {sale.customerName || "Walk-in Customer"}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
                   {sale.date}
@@ -138,7 +142,7 @@ export default function SalesScreen() {
             onClick={() => setCurrentPage(page)}
             className={`px-3 py-1 rounded-full border transition ${
               page === currentPage
-                ? "bg-amber-400 text-white border-amber-400"
+                ? "bg-brand-pink text-white border-brand-pink"
                 : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >

@@ -56,14 +56,14 @@ export default function Checkout({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => decrement(item.id)}
-                className="flex items-center justify-center w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                className="flex items-center justify-center w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
               >
                 <FaMinus size={12} />
               </button>
               <span className="w-5 text-center font-medium">{item.qty}</span>
               <button
                 onClick={() => increment(item.id)}
-                className="flex items-center justify-center w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                className="flex items-center justify-center w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
               >
                 <FaPlus size={12} />
               </button>
@@ -96,7 +96,7 @@ export default function Checkout({
         {/* Pay button */}
         <button
           onClick={() => total > 0 && setIsCheckoutOpen(true)}
-          className="w-full mt-4 bg-amber-400 hover:bg-amber-500 text-white font-semibold py-3 rounded-lg transition shadow-md"
+          className="w-full mt-4 h-12 btn-primary transition shadow-md cursor-pointer"
         >
           Pay
         </button>

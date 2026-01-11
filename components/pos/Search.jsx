@@ -104,7 +104,7 @@ export default function Search({
     //         value={value}
     //         onChange={(e) => onChange(e.target.value)}
     //         onKeyDown={handleKeyDown}
-    //         className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-300"
+    //         className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus-ring-pink"
     //       />
     //     </div>
     //   </div>
@@ -157,12 +157,12 @@ export default function Search({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-20 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-300"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-20 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus-ring-pink"
           />
           {/* Desktop Search Button */}
           <button
             onClick={(e) => handleKeyDown({ key: "Enter" })}
-            className="absolute right-2 bg-amber-400 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-amber-500 transition"
+            className="absolute right-2 btn-primary px-3 py-1 rounded-lg text-sm font-medium transition"
           >
             Search
           </button>

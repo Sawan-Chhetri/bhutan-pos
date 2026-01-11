@@ -1,84 +1,62 @@
-// import { useEffect, useState, useRef } from "react";
-// import { onAuthStateChanged } from "firebase/auth";
-// import { auth } from "../firebase.config";
+// import { useEffect, useState } from "react";
+// import { getAuth, onIdTokenChanged } from "firebase/auth";
 
-// export const useAuthStatus = () => {
-//   const [loggedIn, setLoggedIn] = useState(false);
-//   const [checkingStatus, setCheckingStatus] = useState(true);
-//   const [user, setUser] = useState(null);
+// export default function useAuthStatus() {
 //   const [idToken, setIdToken] = useState(null);
-//   const isMounted = useRef(true);
+//   const [user, setUser] = useState(null);
 
 //   useEffect(() => {
-//     // Mark as mounted
-//     isMounted.current = true;
+//     const auth = getAuth();
 
-//     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-//       if (!isMounted.current) return;
-//       if (user) {
-//         setLoggedIn(true);
-//         setUser(user);
-//         const token = await user.getIdToken();
-//         setIdToken(token);
-//       } else {
-//         setLoggedIn(false);
+//     const unsubscribe = onIdTokenChanged(auth, async (user) => {
+//       if (!user) {
 //         setUser(null);
 //         setIdToken(null);
+//       } else {
+//         setUser(user);
+//         const token = await user.getIdToken(); // auto refreshed
+//         setIdToken(token);
 //       }
-//       setCheckingStatus(false);
 //     });
 
-//     return () => {
-//       isMounted.current = false;
-//       unsubscribe();
-//     };
+//     return unsubscribe;
 //   }, []);
 
-//   return { loggedIn, checkingStatus, user, idToken };
-// };
+//   return { user, idToken };
+// }
 
-// export default useAuthStatus;
-
-import { useEffect, useRef, useState } from "react";
-import { onIdTokenChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { getAuth, onIdTokenChanged } from "firebase/auth";
 import { auth } from "@/firebase.config";
 
-export const useAuthStatus = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
-  const [user, setUser] = useState(null);
+export default function useAuthStatus() {
   const [idToken, setIdToken] = useState(null);
-  const isMounted = useRef(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    isMounted.current = true;
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
 
-    const unsubscribe = onIdTokenChanged(auth, async (user) => {
-      if (!isMounted.current) return;
-
-      if (user) {
-        setLoggedIn(true);
-        setUser(user);
-
-        // 🔑 Always fresh token
-        const token = await user.getIdToken();
+        // Get a fresh token
+        const token = await firebaseUser.getIdToken(true); // force refresh
         setIdToken(token);
+
+        // Refresh token automatically before it expires (every 50 min)
+        const interval = setInterval(async () => {
+          const freshToken = await firebaseUser.getIdToken(true);
+          setIdToken(freshToken);
+        }, 50 * 60 * 1000);
+
+        return () => clearInterval(interval);
       } else {
-        setLoggedIn(false);
         setUser(null);
         setIdToken(null);
       }
-
-      setCheckingStatus(false);
     });
 
-    return () => {
-      isMounted.current = false;
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
-  return { loggedIn, checkingStatus, user, idToken };
-};
-
-export default useAuthStatus;
+  return { user, idToken };
+}

@@ -17,6 +17,10 @@ export default function AddItemModal({
 
   useEffect(() => {
     const fetchCategories = async () => {
+      if (!idToken) {
+        setCategories([]);
+        return;
+      }
       try {
         const res = await fetch("/api/categories", {
           headers: {
@@ -46,10 +50,10 @@ export default function AddItemModal({
     <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-start pt-20 px-2">
       <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-lg shadow-lg">
         {/* Tabs */}
-        <div className="flex border-b">
+        <div className="flex">
           <button
             className={`flex-1 py-3 ${
-              activeTab === "item" ? "border-b-2 border-amber-400" : ""
+              activeTab === "item" ? "border-b-2 border-brand-pink" : ""
             }`}
             onClick={() => setActiveTab("item")}
           >
@@ -57,7 +61,7 @@ export default function AddItemModal({
           </button>
           <button
             className={`flex-1 py-3 ${
-              activeTab === "category" ? "border-b-2 border-amber-400" : ""
+              activeTab === "category" ? "border-b-2 border-brand-pink" : ""
             }`}
             onClick={() => setActiveTab("category")}
           >

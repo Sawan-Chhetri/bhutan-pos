@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Brand palette provided by the user */
+  --brand-pink: #ee4b6a; /* primary */
+  --brand-blue: #5db7de; /* accent */
+  --brand-cream: #f1e9db; /* soft background */
 }
 
 @theme inline {
@@ -23,6 +28,85 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Utility helpers for our brand — small, focused and intentionally simple so
+   they work alongside Tailwind classes without changing config. */
+.bg-brand-cream {
+  background-color: var(--brand-cream) !important;
+}
+.bg-brand-pink {
+  background-color: var(--brand-pink) !important;
+}
+.bg-brand-blue {
+  background-color: var(--brand-blue) !important;
+}
+.text-brand-pink {
+  color: var(--brand-pink) !important;
+}
+.text-brand-blue {
+  color: var(--brand-blue) !important;
+}
+.border-brand-pink {
+  border-color: var(--brand-pink) !important;
+}
+.border-brand-blue {
+  border-color: var(--brand-blue) !important;
+}
+
+.btn-primary {
+  background: var(--brand-pink);
+  color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 20px rgba(238, 75, 106, 0.12);
+}
+.btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.focus-ring-pink:focus {
+  outline: none;
+  box-shadow: 0 0 0 6px rgba(238, 75, 106, 0.12);
+  border-color: var(--brand-pink);
+}
+
+.product-hover:hover {
+  background: rgba(93, 183, 222, 0.06);
+}
+
+.product-selected {
+  background: linear-gradient(
+    135deg,
+    var(--brand-pink),
+    rgba(238, 75, 106, 0.88)
+  );
+  color: white;
+}
+
+.category-badge {
+  background: var(--brand-cream);
+  color: var(--brand-blue);
+  font-weight: 600;
+}
+
+.gst-exempt-badge {
+  background: var(--brand-cream);
+  color: var(--brand-green, #34a853);
+  font-weight: 600;
+}
+
+/* Make clickable UI consistently show the pointer cursor.
+   This covers native interactive elements and a few helpers we use.
+   Using attribute selectors helps catch elements with JS handlers. */
+[onclick],
+[role="button"],
+button,
+a,
+.btn-primary,
+.btn,
+.clickable,
+.product-hover {
+  cursor: pointer;
 }
 
 @keyframes slideUp {

@@ -9,6 +9,7 @@ export default function Menu({ active, onChange, isSearching }) {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      if (!idToken) return;
       try {
         const res = await fetch("/api/categories", {
           headers: { Authorization: `Bearer ${idToken}` },
@@ -41,10 +42,10 @@ export default function Menu({ active, onChange, isSearching }) {
         <button
           key={category.id}
           onClick={() => onChange(category.name)}
-          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition ${
+          className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition cursor-pointer ${
             !isSearching && active === category.name
-              ? "bg-amber-400 text-white" // active highlight only if not searching
-              : "bg-gray-100 text-gray-700 hover:bg-amber-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-amber-500"
+              ? "bg-brand-pink text-white"
+              : "bg-gray-100 text-gray-700 hover:product-hover dark:bg-gray-700 dark:text-gray-200"
           }`}
         >
           {category.name.toUpperCase()}

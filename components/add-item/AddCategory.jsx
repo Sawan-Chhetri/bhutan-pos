@@ -66,17 +66,14 @@ export default function AddCategory({ setCategories, categories, idToken }) {
           />
         </div>
 
-        <button
-          type="submit"
-          className="bg-amber-400 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition"
-        >
+        <button type="submit" className="btn-primary px-4 py-2 font-semibold">
           Add Category
         </button>
       </form>
 
       {/* Added Categories List */}
       {categories.length > 0 && (
-        <div className="mt-4 space-y-2 max-h-20 overflow-y-auto ">
+        <div className="mt-4 space-y-2 max-h-80 overflow-y-auto ">
           {categories.map((cat) => (
             <div
               key={cat.id}

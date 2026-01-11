@@ -128,7 +128,7 @@ export default function AddItem({
           type="button"
           onClick={() => setIsGSTExempt(!isGSTExempt)}
           className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
-            isGSTExempt ? "bg-amber-400" : "bg-gray-300 dark:bg-gray-600"
+            isGSTExempt ? "bg-brand-pink" : "bg-gray-300 dark:bg-gray-600"
           }`}
         >
           <span
@@ -140,10 +140,7 @@ export default function AddItem({
       </div>
 
       {/* Submit */}
-      <button
-        type="submit"
-        className="bg-amber-400 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition"
-      >
+      <button type="submit" className="btn-primary px-4 py-2 font-semibold">
         {editingItem ? "Update Item" : "Add Item"}
       </button>
     </form>

@@ -70,7 +70,7 @@
 //       <div className="flex justify-end">
 //         <button
 //           onClick={() => router.push(`/gst-reports/${selectedMonth}`)}
-//           className="bg-amber-400 hover:bg-amber-500 text-white font-semibold px-6 py-3 rounded-lg shadow transition"
+//           className="btn-primary px-6 py-3 font-semibold"
 //         >
 //           View GST Report
 //         </button>
@@ -215,7 +215,7 @@ export default function GSTReports() {
       <div className="flex justify-end">
         <button
           onClick={() => window.open(`/gst-reports/${selectedMonth}`, "_blank")}
-          className="bg-amber-400 hover:bg-amber-500 text-white font-semibold px-6 py-3 rounded-lg shadow transition"
+          className="btn-primary px-6 py-3 font-semibold"
         >
           View GST Report
         </button>
