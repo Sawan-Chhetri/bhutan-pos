@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import Link from "next/link";
 import { FiMenu } from "react-icons/fi";
 import useLogout from "@/hooks/useLogout";
+import { UserContext } from "@/contexts/UserContext";
 
 export default function Sidebar() {
+  const { user } = useContext(UserContext);
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef(null);
   const logout = useLogout();
@@ -23,12 +25,41 @@ export default function Sidebar() {
   }, [isOpen]);
 
   const links = [
-    { href: `/pos`, label: "Dashboard" },
-    { href: `/add-items`, label: "Add Items" },
-    { href: `/sales`, label: "Sales" },
-    { href: "/gst-reports", label: "GST Report" },
-    { href: "#", label: "Log Out", isLogout: true },
+    {
+      href: "/pos",
+      label: "Dashboard",
+      roles: ["pos", "admin"],
+    },
+    {
+      href: "/add-items",
+      label: "Add Items",
+      roles: ["pos", "admin"],
+    },
+    {
+      href: "/invoice",
+      label: "Create Invoice",
+      roles: ["admin", "other"],
+    },
+    {
+      href: "/sales",
+      label: "Sales",
+      roles: ["admin", "other", "pos"],
+    },
+    {
+      href: "/gst-reports",
+      label: "GST Report",
+      roles: ["admin", "other", "pos"],
+    },
+    {
+      label: "Log Out",
+      isLogout: true,
+      roles: ["pos", "admin", "other"],
+    },
   ];
+
+  const visibleLinks = links.filter(
+    (link) => !link.roles || link.roles.includes(user?.type)
+  );
 
   return (
     <>
@@ -51,15 +82,15 @@ export default function Sidebar() {
               Bhutan POS
             </h2>
             <nav className="space-y-3">
-              {links.map((link) =>
+              {visibleLinks.map((link) =>
                 link.isLogout ? (
                   <button
                     key={link.label}
                     onClick={() => {
                       setIsOpen(false);
-                      logout?.(); // your logout function
+                      logout?.();
                     }}
-                    className="block text-left w-full text-gray-700 hover:text-primary transition cursor-pointer"
+                    className="block text-left w-full text-gray-700 hover:text-primary"
                   >
                     {link.label}
                   </button>
@@ -67,8 +98,8 @@ export default function Sidebar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block text-gray-700 hover:text-primary transition"
                     onClick={() => setIsOpen(false)}
+                    className="block text-gray-700 hover:text-primary"
                   >
                     {link.label}
                   </Link>
