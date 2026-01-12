@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { auth } from "@/firebase.config";
@@ -14,6 +14,16 @@ function Login({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.type === "pos") {
+      router.push("/pos");
+    } else {
+      router.push("/invoice");
+    }
+  }, [user, router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,7 +43,7 @@ function Login({ onSuccess }) {
 
         // 2. Instead of waiting for the useEffect, you can trigger
         // the redirect here or ensure the context is updated
-        router.push("/pos");
+        // router.push("/pos");
       }
     } catch (error) {
       console.error("Login error:", error);

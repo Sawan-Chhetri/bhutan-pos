@@ -22,8 +22,16 @@ export async function POST(request) {
     /* =====================================================
      * 2️⃣ REQUEST BODY VALIDATION
      * ===================================================== */
-    const { cartItems, subtotal, gst, total, customerName, contact } =
-      await request.json();
+    const {
+      cartItems,
+      subtotal,
+      gst,
+      total,
+      customerName,
+      contact,
+      customerId,
+      customerAddress,
+    } = await request.json();
 
     if (!cartItems?.length) {
       return NextResponse.json({ error: "Empty cart" }, { status: 400 });
@@ -60,6 +68,7 @@ export async function POST(request) {
     const gstReportRef = db.doc(`stores/${storeId}/gstReports/${monthKey}`);
 
     let invoiceNumber;
+    let saleId;
 
     /* =====================================================
      * 6️⃣ TRANSACTION (CRITICAL SECTION)
@@ -94,18 +103,29 @@ export async function POST(request) {
           gstCollected += lineTotal * GST_RATE;
         }
 
+        // return {
+        //   itemId: item.id,
+        //   name: item.name,
+        //   unitPrice: item.unitPrice,
+        //   qty: item.qty,
+        //   lineTotal,
+        //   isGSTExempt: item.isGSTExempt ?? false,
+        // };
         return {
           itemId: item.id,
-          name: item.name,
-          unitPrice: item.unitPrice,
-          qty: item.qty,
+          name: item.name || item.description, // fallback
+          unitPrice: Number(item.unitPrice ?? item.rate ?? 0),
+          qty: Number(item.qty || 0),
           lineTotal,
           isGSTExempt: item.isGSTExempt ?? false,
+          customerName: customerName || null,
+          cusAddress: customerAddress || null,
+          cusId: customerId || null,
         };
       });
 
       const saleDocRef = salesRef.doc();
-
+      saleId = saleDocRef.id;
       /* ---------------------------------------------
        * D) WRITE EVERYTHING (AFTER ALL READS)
        * --------------------------------------------- */
@@ -126,7 +146,7 @@ export async function POST(request) {
         total,
         taxableSales,
         customerName: customerName || null,
-        contact: contact || null,
+        contact: contact || customerAddress,
         date: now,
         createdBy: uid,
       });
@@ -156,6 +176,7 @@ export async function POST(request) {
      * 7️⃣ SUCCESS RESPONSE
      * ===================================================== */
     return NextResponse.json({
+      saleId,
       success: true,
       invoiceNumber,
     });
