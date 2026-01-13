@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState, useContext, use } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { auth } from "@/firebase.config";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { UserContext } from "@/contexts/UserContext";
 import Link from "next/link";
-// import ForgotPassword from "./ForgotPassword";
+import ForgotPassword from "./ForgotPassword";
 
 function Login({ onSuccess }) {
   const [email, setEmail] = useState("");
@@ -14,6 +14,7 @@ function Login({ onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const { user } = useContext(UserContext);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ function Login({ onSuccess }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg("");
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -35,18 +37,11 @@ function Login({ onSuccess }) {
         password
       );
       const user = userCredential.user;
-
       if (user) {
-        // 1. FORCE refresh the token to ensure the backend sees a valid one
-        // This "warms up" the auth state
         await user.getIdToken(true);
-
-        // 2. Instead of waiting for the useEffect, you can trigger
-        // the redirect here or ensure the context is updated
-        // router.push("/pos");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      setErrorMsg("Invalid credentials. Please try again.");
       toast.error("Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
@@ -56,77 +51,81 @@ function Login({ onSuccess }) {
   return (
     <>
       {!showForgotPassword && (
-        <div className="min-h-80 md:min-h-96 flex items-center justify-center bg-gray-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#5DB7DE] via-[#F1E9DB] to-[#EE4B6A]">
+          <div className="bg-white/90 p-8 rounded-2xl shadow-2xl w-full max-w-md mx-2">
+            <h2 className="text-3xl font-bold text-center mb-8 text-[#EE4B6A] tracking-tight drop-shadow">
+              Welcome Back
+            </h2>
 
-            {/* User Type Toggle */}
-            <div className="flex justify-between mb-6"></div>
+            {errorMsg && (
+              <div className="mb-4 text-center text-red-500 font-medium bg-red-50 border border-red-200 rounded p-2">
+                {errorMsg}
+              </div>
+            )}
 
-            {/* Login Form */}
-            <form onSubmit={handleLogin}>
-              <div className="mb-4">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Email
                 </label>
                 <input
                   type="email"
                   id="email"
-                  className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 bg-gray-50"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="username"
                 />
               </div>
 
-              <div className="mb-6">
-                <div className="flex justify-between items-center">
+              <div>
+                <div className="flex justify-between items-center mb-1">
                   <label
                     htmlFor="password"
                     className="block text-sm font-medium text-gray-700"
                   >
                     Password
                   </label>
-                  <div className="text-center">
-                    <a
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-gray-400 hover:text-gray-700 cursor-pointer"
-                    >
-                      Forgot Password?
-                    </a>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-gray-400 hover:text-gray-700 cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
                 </div>
-
                 <input
                   type="password"
                   id="password"
-                  className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 bg-gray-50"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                 />
               </div>
 
               <button
                 type="submit"
-                // className="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300"
                 className="btn bg-[#696FC7] text-white px-6 py-3 rounded-full w-full hover:bg-[#585EB5] transition"
+                disabled={isLoading}
               >
-                Log In
+                {isLoading ? "Logging in..." : "Log In"}
               </button>
             </form>
           </div>
         </div>
       )}
-      {/* {showForgotPassword && (
+      {showForgotPassword && (
         <ForgotPassword
           setShowForgotPassword={setShowForgotPassword}
           onSuccess={onSuccess}
-        /> // Render the Forgot Password component
-      )} */}
+        />
+      )}
     </>
   );
 }

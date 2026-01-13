@@ -41,7 +41,7 @@ export default function Sidebar() {
       roles: ["admin", "other"],
     },
     {
-      href: "/sales",
+      href: "/invoices",
       label: "Sales",
       roles: ["admin", "other", "pos"],
     },

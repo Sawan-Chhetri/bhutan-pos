@@ -308,7 +308,7 @@ export default function ItemScreen() {
               Category: {item.category}
             </p>
             <p className="mt-2 font-medium text-gray-900 dark:text-white">
-              ₹{item.price}
+              Nu. {item.price}
             </p>
           </div>
         ))}

@@ -1,9 +1,6 @@
-import Login from "@/components/Login";
-
-export default function Home() {
-  return (
-    <>
-      <Login />
-    </>
-  );
+import LandingPage from "@/components/LandingPage";
+function page() {
+  return <LandingPage />;
 }
+
+export default page;

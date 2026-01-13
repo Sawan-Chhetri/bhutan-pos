@@ -54,13 +54,13 @@ export default function InvoicePreview({ invoice }) {
               <td className="py-2">{it.description || "-"}</td>
               <td className="py-2 text-right">{it.qty}</td>
               <td className="py-2 text-right">
-                ₹{Number(it.rate || 0).toFixed(2)}
+                Nu. {Number(it.rate || 0).toFixed(2)}
               </td>
               <td className="py-2 text-right">
                 {it.isGSTExempt ? "Exempt" : `${it.gstPercent * 100}%`}
               </td>
               <td className="py-2 text-right">
-                ₹{(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
+                Nu. {(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
               </td>
             </tr>
           ))}
@@ -69,11 +69,11 @@ export default function InvoicePreview({ invoice }) {
 
       <div className="mt-4 text-right">
         <div className="text-sm">
-          Subtotal: ₹{Number(subtotal || 0).toFixed(2)}
+          Subtotal: Nu. {Number(subtotal || 0).toFixed(2)}
         </div>
-        <div className="text-sm">GST: ₹{Number(gst || 0).toFixed(2)}</div>
+  <div className="text-sm">GST: Nu. {Number(gst || 0).toFixed(2)}</div>
         <div className="text-lg font-semibold">
-          Total: ₹{Number(total || 0).toFixed(2)}
+          Total: Nu. {Number(total || 0).toFixed(2)}
         </div>
       </div>
 

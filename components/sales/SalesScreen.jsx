@@ -123,7 +123,7 @@ export default function SalesScreen() {
                   {sale.date}
                 </td>
                 <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                  ₹{sale.total.toFixed(2)}
+                  Nu. {sale.total.toFixed(2)}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
                   {sale.items.length}

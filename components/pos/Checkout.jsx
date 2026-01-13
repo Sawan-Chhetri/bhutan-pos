@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa";
 import CheckoutModal from "./CheckoutModal";
+import PrintReceiptModal from "./PrintReceiptModal";
 
 export default function Checkout({
   cartItems,
@@ -11,6 +12,8 @@ export default function Checkout({
   setCartItems,
 }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [saleId, setSaleId] = useState(null);
 
   // Increment quantity
   const increment = (id) => {
@@ -48,7 +51,7 @@ export default function Checkout({
                 {item.name}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                ₹{item.unitPrice} each
+                Nu. {item.unitPrice} each
               </p>
             </div>
 
@@ -71,7 +74,7 @@ export default function Checkout({
 
             {/* Total for this item */}
             <p className="ml-4 font-semibold text-gray-800 dark:text-gray-100">
-              ₹{(item.qty * item.unitPrice).toFixed(2)}
+              Nu. {(item.qty * item.unitPrice).toFixed(2)}
             </p>
           </div>
         ))}
@@ -81,16 +84,16 @@ export default function Checkout({
       <div className="border-t p-4 space-y-3 dark:border-gray-700">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-          <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+          <span className="font-medium">Nu. {subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-500 dark:text-gray-400">GST (5%)</span>
-          <span className="font-medium">₹{gst.toFixed(2)}</span>
+          <span className="font-medium">Nu. {gst.toFixed(2)}</span>
         </div>
         <hr className="border-gray-300 dark:border-gray-600" />
         <div className="flex justify-between text-lg font-semibold">
           <span>Total</span>
-          <span>₹{total.toFixed(2)}</span>
+          <span>Nu. {total.toFixed(2)}</span>
         </div>
 
         {/* Pay button */}
@@ -110,12 +113,23 @@ export default function Checkout({
         subtotal={subtotal}
         gst={gst}
         total={total}
+        showPrintModal={showPrintModal}
+        setShowPrintModal={setShowPrintModal}
+        saleId={saleId}
+        setSaleId={setSaleId}
         onConfirm={(customerData) => {
           setIsCheckoutOpen(false);
           setCartItems([]);
           // clear cart, save sale, navigate to invoice, etc.
         }}
       />
+      {showPrintModal && (
+        <PrintReceiptModal
+          isOpen={showPrintModal}
+          onClose={() => setShowPrintModal(false)}
+          saleId={saleId}
+        />
+      )}
     </aside>
   );
 }

@@ -141,7 +141,7 @@ export default function GSTReport({ month }) {
         <div className="space-y-4 mb-6">
           <SummaryRow
             label="Total Sales"
-            value={`₹${report.totalSales.toLocaleString()}`}
+            value={`Nu. ${report.totalSales.toLocaleString()}`}
           />
           <SummaryRow
             label="Total Orders"
@@ -151,11 +151,11 @@ export default function GSTReport({ month }) {
           />
           <SummaryRow
             label="Taxable Sales"
-            value={`₹${report.taxableSales.toLocaleString()}`}
+            value={`Nu. ${report.taxableSales.toLocaleString()}`}
           />
           <SummaryRow
             label="GST Collected"
-            value={`₹${report.gstCollected.toLocaleString()}`}
+            value={`Nu. ${report.gstCollected.toLocaleString()}`}
           />
         </div>
 
@@ -166,7 +166,7 @@ export default function GSTReport({ month }) {
               GST Owed for {report.monthLabel}
             </p>
             <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              ₹{report.gstCollected.toLocaleString()}
+              Nu. {report.gstCollected.toLocaleString()}
             </p>
           </div>
         </div>

@@ -36,7 +36,7 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
 
               {/* Price */}
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                ₹{product.price}
+                Nu. {product.price}
               </p>
 
               {/* Category Badge */}

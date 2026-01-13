@@ -80,6 +80,7 @@ export default function AddItemModal({
               categories={categories}
               setCategories={setCategories}
               idToken={idToken}
+              onUpdateItem={onUpdateItem}
             />
           )}
         </div>

@@ -209,26 +209,6 @@ export default function InvoiceBuilder() {
             placeholder="Customer Address"
           />
         </div>
-
-        {/* <div>
-          <label className="block text-sm font-medium mb-1">GSTIN</label>
-          <input
-            className="w-full px-3 py-2 rounded border border-gray-200"
-            value={gstNumber}
-            onChange={(e) => setGstNumber(e.target.value)}
-            placeholder="GST number (optional)"
-          />
-        </div> */}
-
-        {/* <div>
-          <label className="block text-sm font-medium mb-1">Notes</label>
-          <input
-            className="w-full px-3 py-2 rounded border border-gray-200"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional notes"
-          />
-        </div> */}
       </div>
 
       <div className="mt-6">
@@ -236,9 +216,12 @@ export default function InvoiceBuilder() {
 
         <div className="space-y-2">
           {items.map((it, idx) => (
-            <div key={it.id} className="grid grid-cols-12 gap-2 items-center">
+            <div
+              key={it.id}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded border border-gray-100 bg-white/50"
+            >
               <input
-                className="col-span-5 px-2 py-1 rounded border border-gray-200"
+                className="flex-1 min-w-0 px-2 py-1 rounded border border-gray-200"
                 placeholder="Description"
                 value={it.description}
                 onChange={(e) =>
@@ -248,7 +231,7 @@ export default function InvoiceBuilder() {
 
               <input
                 type="number"
-                className="col-span-1 px-2 py-1 rounded border border-gray-200"
+                className="w-full sm:w-20 px-2 py-1 rounded border border-gray-200"
                 value={it.qty}
                 min={0}
                 onChange={(e) =>
@@ -258,7 +241,7 @@ export default function InvoiceBuilder() {
 
               <input
                 type="number"
-                className="col-span-2 px-2 py-1 rounded border border-gray-200"
+                className="w-full sm:w-28 px-2 py-1 rounded border border-gray-200"
                 value={it.rate}
                 step="0.01"
                 min={0}
@@ -267,16 +250,7 @@ export default function InvoiceBuilder() {
                 }
               />
 
-              {/* <input
-                type="number"
-                className="col-span-1 px-2 py-1 rounded border border-gray-200"
-                value={it.gstPercent}
-                onChange={(e) =>
-                  updateItem(idx, { gstPercent: Number(e.target.value) })
-                }
-              /> */}
-
-              <label className="col-span-1 inline-flex items-center gap-2">
+              <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={it.isGSTExempt}
@@ -287,12 +261,12 @@ export default function InvoiceBuilder() {
                 <span className="text-xs">Exempt</span>
               </label>
 
-              <div className="col-span-1 text-right text-sm">
-                ₹{(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
+              <div className="ml-auto text-right text-sm w-full sm:w-auto">
+                Nu. {(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
               </div>
 
               <button
-                className="col-span-1 text-sm text-red-500"
+                className="text-sm text-red-500 mt-1 sm:mt-0 sm:ml-2"
                 onClick={() => removeItem(idx)}
               >
                 Remove
@@ -301,9 +275,9 @@ export default function InvoiceBuilder() {
           ))}
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col sm:flex-row gap-2">
           <button
-            className="btn-primary px-3 py-2 mr-2"
+            className="btn-primary px-3 py-2 w-full sm:w-auto"
             onClick={addItem}
             type="button"
           >
@@ -311,7 +285,7 @@ export default function InvoiceBuilder() {
           </button>
 
           <button
-            className="px-3 py-2 border rounded"
+            className="px-3 py-2 border rounded w-full sm:w-auto"
             onClick={() => setShowPreview((s) => !s)}
             type="button"
           >
@@ -321,25 +295,25 @@ export default function InvoiceBuilder() {
       </div>
 
       <div className="mt-6 p-4 border rounded bg-white dark:bg-gray-800">
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
+          <div className="mb-2 sm:mb-0">
             <div className="text-sm text-gray-600">Subtotal</div>
-            <div className="text-lg font-medium">₹{subtotal.toFixed(2)}</div>
+            <div className="text-lg font-medium">Nu. {subtotal.toFixed(2)}</div>
           </div>
 
-          <div>
+          <div className="mb-2 sm:mb-0">
             <div className="text-sm text-gray-600">GST</div>
-            <div className="text-lg font-medium">₹{gstTotal.toFixed(2)}</div>
+            <div className="text-lg font-medium">Nu. {gstTotal.toFixed(2)}</div>
           </div>
 
-          <div>
+          <div className="mb-2 sm:mb-0">
             <div className="text-sm text-gray-600">Total</div>
-            <div className="text-xl font-semibold">₹{total.toFixed(2)}</div>
+            <div className="text-xl font-semibold">Nu. {total.toFixed(2)}</div>
           </div>
 
-          <div>
+          <div className="w-full sm:w-auto">
             <button
-              className="btn-primary px-4 py-2"
+              className="btn-primary px-4 py-2 w-full sm:w-auto"
               onClick={handleSave}
               disabled={saving}
             >

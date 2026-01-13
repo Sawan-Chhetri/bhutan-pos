@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
-export default function AddCategory({ setCategories, categories, idToken }) {
+export default function AddCategory({
+  setCategories,
+  categories,
+  idToken,
+  onUpdateItem,
+}) {
   const [categoryName, setCategoryName] = useState("");
 
   const handleSubmit = async (e) => {
@@ -45,9 +50,6 @@ export default function AddCategory({ setCategories, categories, idToken }) {
         { method: "DELETE" },
         idToken
       );
-
-      // Optimistically update UI
-      setItems((prev) => prev.filter((item) => item.id !== itemId));
     } catch (err) {
       console.error("Delete failed", err);
     }

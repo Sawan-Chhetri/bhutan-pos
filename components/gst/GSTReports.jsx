@@ -191,7 +191,7 @@ export default function GSTReports() {
             Total Sales
           </p>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-            ₹{currentData.totalSales.toLocaleString()}
+            Nu. {currentData.totalSales.toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-gray-400">For selected month</p>
         </div>
@@ -202,7 +202,7 @@ export default function GSTReports() {
             GST Collected
           </p>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-            ₹{currentData.gstCollected.toLocaleString()}
+            Nu. {currentData.gstCollected.toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-gray-400">Taxable sales only</p>
         </div>
