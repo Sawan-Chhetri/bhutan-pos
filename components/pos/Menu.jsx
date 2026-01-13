@@ -11,7 +11,9 @@ export default function Menu({ active, onChange, isSearching }) {
     const fetchCategories = async () => {
       if (!idToken) return;
       try {
-        const res = await (await import("@/lib/authFetch")).default("/api/categories", { headers: {} }, idToken);
+        const res = await (
+          await import("@/lib/authFetch")
+        ).default("/api/categories", { headers: {} }, idToken);
 
         if (!res.ok) {
           setCategories([]);

@@ -18,7 +18,11 @@ export function UserProvider({ children }) {
       }
 
       try {
-        const res = await authFetch(`/api/user/${user.uid}`, { headers: {} }, idToken);
+        const res = await authFetch(
+          `/api/user/${user.uid}`,
+          { headers: {} },
+          idToken
+        );
 
         if (!res.ok) {
           // If user not found, don't keep retrying

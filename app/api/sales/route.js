@@ -10,13 +10,23 @@ export async function POST(request) {
      * 1️⃣ AUTHENTICATION (debug logs added)
      * ===================================================== */
     const authHeader = request.headers.get("authorization");
-    console.debug("DEBUG /api/sales - auth header:", authHeader ? `${authHeader.slice(0,10)}...(${authHeader.length})` : authHeader);
+    console.debug(
+      "DEBUG /api/sales - auth header:",
+      authHeader
+        ? `${authHeader.slice(0, 10)}...(${authHeader.length})`
+        : authHeader
+    );
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const debugToken = authHeader.split("Bearer ")[1];
       try {
-        console.debug("DEBUG /api/sales - token parts:", debugToken ? debugToken.split(".").length : "no token");
+        console.debug(
+          "DEBUG /api/sales - token parts:",
+          debugToken ? debugToken.split(".").length : "no token"
+        );
       } catch (e) {
-        console.debug("DEBUG /api/sales - token present but could not inspect parts");
+        console.debug(
+          "DEBUG /api/sales - token present but could not inspect parts"
+        );
       }
     }
 

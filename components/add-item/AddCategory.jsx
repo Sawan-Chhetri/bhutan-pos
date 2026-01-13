@@ -40,7 +40,11 @@ export default function AddCategory({ setCategories, categories, idToken }) {
     setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
     try {
       const authFetch = (await import("@/lib/authFetch")).default;
-      await authFetch(`/api/categories/${categoryId}`, { method: "DELETE" }, idToken);
+      await authFetch(
+        `/api/categories/${categoryId}`,
+        { method: "DELETE" },
+        idToken
+      );
 
       // Optimistically update UI
       setItems((prev) => prev.filter((item) => item.id !== itemId));

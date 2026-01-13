@@ -235,7 +235,11 @@ export default function ItemScreen() {
     setItems((prev) => prev.filter((i) => i.id !== itemId));
 
     try {
-      await authFetch(`/api/modify-items/${itemId}`, { method: "DELETE" }, idToken);
+      await authFetch(
+        `/api/modify-items/${itemId}`,
+        { method: "DELETE" },
+        idToken
+      );
     } catch (err) {
       console.error("Delete failed", err);
     }
