@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { UserContext } from "@/contexts/UserContext";
+import PaymentStatusModal from "./PaymentStatusModal";
 import useAuthStatus from "@/hooks/useAuthStatus";
 
 const ITEMS_PER_PAGE = 15;
@@ -12,6 +14,30 @@ export default function SalesScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const { idToken } = useAuthStatus();
   const [loading, setLoading] = useState(true);
+  const { user } = useContext(UserContext) || {};
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState(null);
+  const [paidStatus, setPaidStatus] = useState({}); // { [saleId]: true/false }
+
+  // PATCH handler to update payment status in backend
+  const handleTogglePaid = async (saleId, newPaid) => {
+    if (!idToken) return;
+    try {
+      const res = await fetch(`/api/sales/${saleId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ isPaid: newPaid }),
+      });
+      if (res.ok) {
+        setPaidStatus((prev) => ({ ...prev, [saleId]: newPaid }));
+      }
+    } catch (err) {
+      console.error("Failed to update payment status", err);
+    }
+  };
 
   useEffect(() => {
     const fetchSales = async (page) => {
@@ -46,6 +72,12 @@ export default function SalesScreen() {
 
         setSales(formatted);
         setTotalPages(Math.ceil(data.totalCount / ITEMS_PER_PAGE));
+        // Initialize paidStatus from backend isPaid values
+        const paidStatusFromBackend = {};
+        formatted.forEach((sale) => {
+          paidStatusFromBackend[sale.id] = !!sale.isPaid;
+        });
+        setPaidStatus(paidStatusFromBackend);
       } catch (err) {
         console.error("Error fetching sales:", err);
         setSales([]);
@@ -96,9 +128,20 @@ export default function SalesScreen() {
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
                 Total
               </th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Items
-              </th>
+              {user?.type === "other" ? (
+                <>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    Payment Stat
+                  </th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    Toggle
+                  </th>
+                </>
+              ) : (
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Items
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -125,14 +168,56 @@ export default function SalesScreen() {
                 <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
                   Nu. {sale.total.toFixed(2)}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
-                  {sale.items.length}
-                </td>
+                {user?.type === "other" ? (
+                  <>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        className={`px-3 py-1 rounded-full font-semibold text-xs transition-all ${
+                          paidStatus[sale.id]
+                            ? "bg-green-100 text-green-700 border border-green-400"
+                            : "bg-yellow-100 text-yellow-700 border border-yellow-400"
+                        } hover:shadow`}
+                        onClick={() => {
+                          setSelectedSaleId(sale.id);
+                          setModalOpen(true);
+                        }}
+                      >
+                        {paidStatus[sale.id] ? "Paid" : "Unpaid"}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="form-checkbox h-5 w-5 text-green-600"
+                          checked={!!paidStatus[sale.id]}
+                          onChange={() =>
+                            handleTogglePaid(sale.id, !paidStatus[sale.id])
+                          }
+                        />
+                        <span className="ml-2 text-sm">
+                          {paidStatus[sale.id] ? "Paid" : "Unpaid"}
+                        </span>
+                      </label>
+                    </td>
+                  </>
+                ) : (
+                  <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-100">
+                    {sale.items.length}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <PaymentStatusModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        paid={!!paidStatus[selectedSaleId]}
+        onToggle={(val) => handleTogglePaid(selectedSaleId, val)}
+      />
 
       {/* Pagination */}
       <div className="mt-4 flex justify-center flex-wrap gap-2">

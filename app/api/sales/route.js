@@ -34,6 +34,7 @@ export async function POST(request) {
       contact,
       customerId,
       customerAddress,
+      isPaid,
     } = await request.json();
 
     if (!cartItems?.length) {
@@ -124,6 +125,7 @@ export async function POST(request) {
           customerName: customerName || null,
           cusAddress: customerAddress || null,
           cusId: customerId || null,
+          isPaid: isPaid ?? true,
         };
       });
 
@@ -152,6 +154,7 @@ export async function POST(request) {
         contact: contact || customerAddress,
         date: now,
         createdBy: uid,
+        isPaid: isPaid ?? true,
       });
 
       // Update GST monthly report

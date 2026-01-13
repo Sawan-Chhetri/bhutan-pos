@@ -71,7 +71,7 @@ export default function InvoicePreview({ invoice }) {
         <div className="text-sm">
           Subtotal: Nu. {Number(subtotal || 0).toFixed(2)}
         </div>
-  <div className="text-sm">GST: Nu. {Number(gst || 0).toFixed(2)}</div>
+        <div className="text-sm">GST: Nu. {Number(gst || 0).toFixed(2)}</div>
         <div className="text-lg font-semibold">
           Total: Nu. {Number(total || 0).toFixed(2)}
         </div>

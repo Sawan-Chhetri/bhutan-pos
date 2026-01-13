@@ -102,6 +102,7 @@ export default function InvoiceBuilder() {
         customerName,
         customerAddress,
         customerId,
+        isPaid: false,
       };
 
       const res = await authFetch(

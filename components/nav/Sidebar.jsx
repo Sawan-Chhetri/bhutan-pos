@@ -42,7 +42,7 @@ export default function Sidebar() {
     },
     {
       href: "/invoices",
-      label: "Sales",
+      label: "Invoices",
       roles: ["admin", "other", "pos"],
     },
     {
