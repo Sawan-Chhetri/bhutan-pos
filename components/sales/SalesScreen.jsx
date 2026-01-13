@@ -13,48 +13,48 @@ export default function SalesScreen() {
   const { idToken } = useAuthStatus();
   const [loading, setLoading] = useState(true);
 
-  const fetchSales = async (page) => {
-    if (!idToken) return;
-    setLoading(true);
-
-    try {
-      const res = await fetch(
-        `/api/sales?page=${page}&limit=${ITEMS_PER_PAGE}`,
-        {
-          headers: { Authorization: `Bearer ${idToken}` },
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to fetch sales");
-
-      const data = await res.json();
-      const formatter = new Intl.DateTimeFormat("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-
-      const formatted = data.sales.map((sale) => {
-        let saleDate = sale.date;
-        if (sale.date?._seconds) {
-          const d = new Date(sale.date._seconds * 1000);
-          saleDate = formatter.format(d).replace(/ /g, " ");
-        }
-        return { ...sale, date: saleDate };
-      });
-
-      setSales(formatted);
-      setTotalPages(Math.ceil(data.totalCount / ITEMS_PER_PAGE));
-    } catch (err) {
-      console.error("Error fetching sales:", err);
-      setSales([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchSales = async (page) => {
+      if (!idToken) return;
+      setLoading(true);
+
+      try {
+        const authFetch = (await import("@/lib/authFetch")).default;
+        const res = await authFetch(
+          `/api/sales?page=${page}&limit=${ITEMS_PER_PAGE}`,
+          {},
+          idToken
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch sales");
+
+        const data = await res.json();
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        const formatted = data.sales.map((sale) => {
+          let saleDate = sale.date;
+          if (sale.date?._seconds) {
+            const d = new Date(sale.date._seconds * 1000);
+            saleDate = formatter.format(d).replace(/ /g, " ");
+          }
+          return { ...sale, date: saleDate };
+        });
+
+        setSales(formatted);
+        setTotalPages(Math.ceil(data.totalCount / ITEMS_PER_PAGE));
+      } catch (err) {
+        console.error("Error fetching sales:", err);
+        setSales([]);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchSales(currentPage);
   }, [idToken, currentPage]);
 

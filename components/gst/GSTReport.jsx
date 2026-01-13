@@ -18,11 +18,8 @@ export default function GSTReport({ month }) {
       setError(null);
 
       try {
-        const res = await fetch(`/api/gst-reports/${month}`, {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const authFetch = (await import("@/lib/authFetch")).default;
+        const res = await authFetch(`/api/gst-reports/${month}`, {}, idToken);
 
         if (!res.ok) {
           const errData = await res.json();

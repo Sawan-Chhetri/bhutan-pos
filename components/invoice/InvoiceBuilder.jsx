@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 import InvoicePreview from "./InvoicePreview";
 import { toast } from "react-toastify";
 
@@ -103,14 +104,15 @@ export default function InvoiceBuilder() {
         customerId,
       };
 
-      const res = await fetch("/api/sales", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+      const res = await authFetch(
+        "/api/sales",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-      });
+        idToken
+      );
 
       const json = await res.json();
 
@@ -158,13 +160,11 @@ export default function InvoiceBuilder() {
   }
 
   useEffect(() => {
-    // Fetch store details
+    // Fetch store details (only when idToken available)
+    if (!idToken) return;
+
     const fetchStoreDetails = async () => {
-      const res = await fetch("/api/read-company-details", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const res = await authFetch("/api/read-company-details", {}, idToken);
       const data = await res.json();
       if (res.ok) {
         // Populate form fields with fetched data

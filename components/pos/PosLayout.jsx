@@ -7,6 +7,7 @@ import Checkout from "@/components/pos/Checkout";
 import PosScreen from "@/components/pos/PosScreen";
 import { UserContext } from "@/contexts/UserContext";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 
 const bhutanGST = 0.05; // 5% GST
 
@@ -74,13 +75,12 @@ function PosLayout() {
 
     const fetchItemsForCategory = async () => {
       try {
-        const res = await fetch(
+        const res = await authFetch(
           `/api/readItemsByCategory?category=${encodeURIComponent(
             activeCategory
           )}`,
-          {
-            headers: { Authorization: `Bearer ${idToken}` },
-          }
+          {},
+          idToken
         );
 
         if (!res.ok) return;

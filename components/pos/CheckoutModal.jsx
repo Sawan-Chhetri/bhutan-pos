@@ -22,21 +22,23 @@ export default function CheckoutModal({
   const handleConfirm = async ({ customerName, contact }) => {
     // Handle payment confirmation logic here
     try {
-      await fetch("/api/sales", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+      const authFetch = (await import("@/lib/authFetch")).default;
+      await authFetch(
+        "/api/sales",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cartItems,
+            subtotal,
+            gst,
+            total,
+            customerName,
+            contact,
+          }),
         },
-        body: JSON.stringify({
-          cartItems,
-          subtotal,
-          gst,
-          total,
-          customerName,
-          contact,
-        }),
-      });
+        idToken
+      );
 
       // ✅ Clear cart after successful sale
       onConfirm?.();

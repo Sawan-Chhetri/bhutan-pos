@@ -21,7 +21,7 @@
 //       try {
 //         const res = await fetch("/api/read-items", {
 //           headers: {
-//             Authorization: `Bearer ${idToken}`,
+//             // Authorization header removed in favor of authFetch helper
 //           },
 //         });
 
@@ -68,7 +68,7 @@
 //       await fetch(`/api/modify-items/${itemId}`, {
 //         method: "DELETE",
 //         headers: {
-//           Authorization: `Bearer ${idToken}`,
+//           // Authorization header removed in favor of authFetch helper
 //         },
 //       });
 
@@ -166,6 +166,7 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import AddItemModal from "./AddItemModal";
 import DeleteModal from "./DeleteModal";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -191,13 +192,10 @@ export default function ItemScreen() {
     const fetchItems = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
+        const res = await authFetch(
           `/api/read-items?page=${currentPage}&limit=${ITEMS_PER_PAGE}`,
-          {
-            headers: {
-              Authorization: `Bearer ${idToken}`,
-            },
-          }
+          {},
+          idToken
         );
 
         if (!res.ok) throw new Error("Failed to fetch items");
@@ -237,12 +235,7 @@ export default function ItemScreen() {
     setItems((prev) => prev.filter((i) => i.id !== itemId));
 
     try {
-      await fetch(`/api/modify-items/${itemId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      await authFetch(`/api/modify-items/${itemId}`, { method: "DELETE" }, idToken);
     } catch (err) {
       console.error("Delete failed", err);
     }

@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 
 export default function InvoicePage() {
   const { id } = useParams();
@@ -16,11 +17,7 @@ export default function InvoicePage() {
     const fetchInvoice = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/sales/${id}`, {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const res = await authFetch(`/api/sales/${id}`, {}, idToken);
 
         if (!res.ok) throw new Error("Failed to fetch invoice");
 
@@ -46,7 +43,6 @@ export default function InvoicePage() {
           ...data,
           date: saleDate,
         });
-        console.log(invoice);
       } catch (err) {
         console.error(err);
       } finally {

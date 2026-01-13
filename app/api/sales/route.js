@@ -7,9 +7,18 @@ const GST_RATE = 0.05;
 export async function POST(request) {
   try {
     /* =====================================================
-     * 1️⃣ AUTHENTICATION
+     * 1️⃣ AUTHENTICATION (debug logs added)
      * ===================================================== */
     const authHeader = request.headers.get("authorization");
+    console.debug("DEBUG /api/sales - auth header:", authHeader ? `${authHeader.slice(0,10)}...(${authHeader.length})` : authHeader);
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const debugToken = authHeader.split("Bearer ")[1];
+      try {
+        console.debug("DEBUG /api/sales - token parts:", debugToken ? debugToken.split(".").length : "no token");
+      } catch (e) {
+        console.debug("DEBUG /api/sales - token present but could not inspect parts");
+      }
+    }
 
     if (!authHeader?.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

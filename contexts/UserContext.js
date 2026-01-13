@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useState, useEffect } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 export const UserContext = createContext();
 
 export function UserProvider({ children }) {
@@ -17,9 +18,7 @@ export function UserProvider({ children }) {
       }
 
       try {
-        const res = await fetch(`/api/user/${user.uid}`, {
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
+        const res = await authFetch(`/api/user/${user.uid}`, { headers: {} }, idToken);
 
         if (!res.ok) {
           // If user not found, don't keep retrying

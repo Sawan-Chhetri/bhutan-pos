@@ -84,6 +84,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 
 export default function GSTReports() {
   const router = useRouter();
@@ -100,11 +101,7 @@ export default function GSTReports() {
     const fetchGstReports = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/gst-reports", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const res = await authFetch("/api/gst-reports", {}, idToken);
 
         if (!res.ok) {
           console.error("Failed to fetch GST reports");

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import authFetch from "@/lib/authFetch";
 import { UserContext } from "@/contexts/UserContext";
 
 export default function AddItem({
@@ -33,40 +34,42 @@ export default function AddItem({
     if (editingItem && onUpdateItem) {
       onUpdateItem(payload);
       // Upadte item on the DB here.
-      await fetch("/api/modify-items", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+      await authFetch(
+        "/api/modify-items",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itemId,
+            updates: {
+              name: payload.name,
+              price,
+              category: payload.category,
+              isGSTExempt,
+            },
+          }),
         },
-        body: JSON.stringify({
-          itemId,
-          updates: {
-            name: payload.name,
-            price,
-            category: payload.category,
-            isGSTExempt,
-          },
-        }),
-      });
+        idToken
+      );
     } else {
       onAddItem(payload);
       // Add item to the DB here.
-      await fetch("/api/modify-items", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+      await authFetch(
+        "/api/modify-items",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            item: {
+              name: payload.name,
+              price,
+              category: payload.category,
+              isGSTExempt,
+            },
+          }),
         },
-        body: JSON.stringify({
-          item: {
-            name: payload.name,
-            price,
-            category: payload.category,
-            isGSTExempt,
-          },
-        }),
-      });
+        idToken
+      );
     }
 
     // Reset form ONLY after add (optional but sensible)

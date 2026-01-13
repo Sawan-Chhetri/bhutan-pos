@@ -22,11 +22,8 @@ export default function AddItemModal({
         return;
       }
       try {
-        const res = await fetch("/api/categories", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const authFetch = (await import("@/lib/authFetch")).default;
+        const res = await authFetch("/api/categories", {}, idToken);
 
         if (!res.ok) {
           setCategories([]);

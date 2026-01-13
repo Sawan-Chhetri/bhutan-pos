@@ -88,7 +88,7 @@ export async function PATCH(request) {
     }
 
     // 4. Whitelist allowed fields
-    const allowedFields = ["name", "price", "categoryId", "isGSTExempt"];
+    const allowedFields = ["name", "price", "category", "isGSTExempt"];
     const safeUpdates = {};
 
     for (const key of allowedFields) {

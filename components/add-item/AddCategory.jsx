@@ -10,14 +10,18 @@ export default function AddCategory({ setCategories, categories, idToken }) {
     e.preventDefault();
     if (!categoryName.trim()) return;
 
-    const res = await fetch("/api/categories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
+    const authFetch = (await import("@/lib/authFetch")).default;
+    const res = await authFetch(
+      "/api/categories",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: categoryName.trim().toLowerCase() }),
       },
-      body: JSON.stringify({ name: categoryName.trim().toLowerCase() }),
-    });
+      idToken
+    );
 
     const newCategory = await res.json();
 
@@ -35,12 +39,8 @@ export default function AddCategory({ setCategories, categories, idToken }) {
   const handleRemove = async (categoryId) => {
     setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
     try {
-      await fetch(`/api/categories/${categoryId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const authFetch = (await import("@/lib/authFetch")).default;
+      await authFetch(`/api/categories/${categoryId}`, { method: "DELETE" }, idToken);
 
       // Optimistically update UI
       setItems((prev) => prev.filter((item) => item.id !== itemId));
