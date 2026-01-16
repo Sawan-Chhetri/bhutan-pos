@@ -231,12 +231,13 @@ const LandingPage = () => {
           Built for Bhutanese Businesses <span className="text-2xl">🇧🇹</span>
         </div>
         <h1 className="text-5xl md:text-[5.5rem] font-black tracking-tight text-slate-950 mb-8 leading-[1]">
-          Managing GST shouldn't <br />
+          Managing GST shouldn&apos;t <br />
           <span className="text-[#EE4B6A]">cost this much.</span>
         </h1>
         <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
-          You're either overpaying for bloated "Enterprise" software or losing
-          hours to manual GST math. **SwiftGST is the simple solution.**
+          You&apos;re either overpaying for bloated &quot;Enterprise&quot;
+          software or losing hours to manual GST math. **SwiftGST is the simple
+          solution.**
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a
@@ -333,7 +334,7 @@ const LandingPage = () => {
             </h3>
             <p className="text-slate-400 mb-8 font-medium text-lg leading-relaxed">
               Stop sending ugly Word documents. Send professional, GST-ready
-              invoices that prove you're a serious business.
+              invoices that prove you&apos;re a serious business.
             </p>
             <div className="space-y-4">
               {[
