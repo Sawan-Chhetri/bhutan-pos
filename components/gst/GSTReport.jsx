@@ -1,7 +1,14 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import {
+  FiShield,
+  FiFileText,
+  FiPrinter,
+  FiBriefcase,
+  FiArrowLeft,
+} from "react-icons/fi";
+import Link from "next/link";
 
 export default function GSTReport({ month }) {
   const [report, setReport] = useState(null);
@@ -16,7 +23,6 @@ export default function GSTReport({ month }) {
     const fetchReport = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const authFetch = (await import("@/lib/authFetch")).default;
         const res = await authFetch(`/api/gst-reports/${month}`, {}, idToken);
@@ -27,36 +33,20 @@ export default function GSTReport({ month }) {
         }
 
         const data = await res.json();
-
-        // Format generated date
         const generatedOn = new Intl.DateTimeFormat("en-GB", {
           day: "2-digit",
           month: "short",
           year: "numeric",
         }).format(new Date());
 
-        // setReport({
-        //   ...data,
-        //   monthLabel: data.month,
-        //   generatedOn,
-        // });
-        // Parse year and month from API (format: "YYYY-MM")
         const [year, monthNum] = data.month.split("-").map(Number);
-
-        // Get start of month
         const startDate = new Date(year, monthNum - 1, 1);
-
-        // Get end of month (or today if current month)
         const now = new Date();
-        let endDate;
-        if (year === now.getFullYear() && monthNum === now.getMonth() + 1) {
-          endDate = now; // current month → use today
-        } else {
-          // last day of month
-          endDate = new Date(year, monthNum, 0); // day 0 of next month → last day
-        }
+        let endDate =
+          year === now.getFullYear() && monthNum === now.getMonth() + 1
+            ? now
+            : new Date(year, monthNum, 0);
 
-        // Format dates as "DD MMM YYYY"
         const formatter = new Intl.DateTimeFormat("en-GB", {
           day: "2-digit",
           month: "short",
@@ -67,124 +57,212 @@ export default function GSTReport({ month }) {
           endDate
         )}`;
 
-        setReport({
-          ...data,
-          monthLabel,
-          generatedOn,
-        });
-
+        setReport({ ...data, monthLabel, generatedOn });
         setBusiness({
-          name: data.business?.name || "-",
+          name: data.business?.name || "Bhutan POS Enterprise",
           phone: data.business?.phone || "-",
           address: data.business?.address || "-",
         });
       } catch (err) {
-        console.error("GST report fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchReport();
   }, [month, idToken]);
 
   if (loading)
     return (
-      <div className="p-6 text-gray-500 dark:text-gray-400 text-center">
-        Loading GST report...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="p-6 text-red-500 dark:text-red-400 text-center">
-        {error}
-      </div>
-    );
-  if (!report || !business)
-    return (
-      <div className="p-6 text-gray-500 dark:text-gray-400 text-center">
-        No report found.
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="text-center font-black uppercase tracking-[0.3em] text-gray-400">
+          Verifying Records...
+        </div>
       </div>
     );
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen flex justify-center">
-      <div className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-lg shadow-lg p-6">
-        {/* Header */}
-        <div className="flex justify-between items-start border-b pb-4 mb-6 dark:border-gray-700">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              {business.name}
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {business.address}
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Phone: {business.phone}
+    <div className="p-4 md:p-12 bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col items-center">
+      {/* --- INJECTED PRINT ENGINE --- */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0.8cm; /* Removes Browser Headers/URL */
+          }
+          body {
+            background: white !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .no-print {
+            display: none !important;
+          }
+
+          /* Tighten Vertical Spacing for 1-Page fit */
+          .report-card {
+            box-shadow: none !important;
+            border: 1px solid #eee !important;
+            margin: 0 !important;
+            padding: 1.5rem !important; /* Reduced from 4rem */
+          }
+          .section-spacing {
+            margin-bottom: 1.5rem !important;
+          }
+          .grid-spacing {
+            gap: 1rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          .liability-card {
+            padding: 1.5rem !important;
+          }
+          .print-no-break {
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+
+      {/* Action Header (Hidden on Print) */}
+      <div className="w-full max-w-3xl flex justify-between items-center mb-8 no-print">
+        <Link
+          href="/gst-reports"
+          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-pink transition-colors"
+        >
+          <FiArrowLeft /> Back to Analytics
+        </Link>
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 bg-white dark:bg-gray-900 px-6 py-2.5 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-widest hover:text-brand-pink transition-all active:scale-95"
+        >
+          <FiPrinter size={16} /> Print Official Report
+        </button>
+      </div>
+
+      {/* Main Document Body */}
+      <div className="report-card bg-white dark:bg-gray-900 w-full max-w-3xl rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden relative">
+        {/* Document Header Bar */}
+        <div className="h-3 bg-gray-900 dark:bg-brand-pink w-full" />
+
+        <div className="p-8 md:p-14">
+          {/* Header Section */}
+          <div className="section-spacing flex flex-col md:flex-row justify-between items-start gap-8 mb-10 pb-8 border-b border-gray-50 dark:border-gray-800">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gray-900 text-white rounded-2xl">
+                  <FiBriefcase size={20} />
+                </div>
+                <div>
+                  <h1 className="text-xl font-black tracking-tighter uppercase dark:text-white leading-none">
+                    {business.name}
+                  </h1>
+                  <p className="text-[9px] font-bold text-brand-pink uppercase tracking-widest mt-1">
+                    Merchant GST Summary
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-left md:text-right">
+              <h2 className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white uppercase mb-1">
+                GST Summary
+              </h2>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                {report.monthLabel}
+              </p>
+            </div>
+          </div>
+
+          {/* Compliance Shield */}
+          <div className="section-spacing flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl mb-8 border border-gray-100 dark:border-gray-700 print-no-break">
+            <FiShield size={18} className="text-green-500 shrink-0" />
+            <p className="text-[8px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              Certified System Record: This document validates tax collection
+              for the specified period.
             </p>
           </div>
-          <div className="text-right">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              GST Summary Report
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Month: {report.monthLabel}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Generated on: {report.generatedOn}
+
+          {/* Financial Breakdown Grid */}
+          <div className="grid-spacing grid grid-cols-2 gap-4 mb-8 print-no-break">
+            <SummaryItem label="Gross Sales" value={report.totalSales} isBold />
+            <SummaryItem
+              label="Total Orders"
+              value={report.totalOrders}
+              isRaw
+            />
+            <SummaryItem label="Taxable Base" value={report.taxableSales} />
+            <SummaryItem
+              label="GST Collected"
+              value={report.gstCollected}
+              isPink
+            />
+          </div>
+
+          {/* Total Owed Section */}
+          <div className="liability-card relative bg-gray-900 dark:bg-gray-950 rounded-3xl p-8 overflow-hidden print-no-break">
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <h3 className="text-[9px] font-black text-brand-pink uppercase tracking-[0.4em] mb-2">
+                Net Tax Liability
+              </h3>
+              <p className="text-4xl font-black text-white tracking-tighter font-mono">
+                Nu.{" "}
+                {report.gstCollected.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+              <p className="mt-3 text-[8px] font-black text-white/40 uppercase tracking-widest">
+                Remit to Bhutan Ministry of Finance
+              </p>
+            </div>
+          </div>
+
+          {/* Footer Ledger */}
+          <div className="mt-12 text-center print-no-break">
+            <div className="flex justify-center gap-16 mb-4">
+              <div className="w-24 border-b border-gray-100 dark:border-gray-800 pt-6" />
+              <div className="w-24 border-b border-gray-100 dark:border-gray-800 pt-6" />
+            </div>
+            <div className="flex justify-center gap-16 text-[7px] font-black text-gray-300 uppercase tracking-widest">
+              <span>Authorized</span>
+              <span>Audit Stamp</span>
+            </div>
+            <p className="text-[8px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-[0.4em] mt-10">
+              Generated via Bhutan POS • {report.generatedOn}
             </p>
           </div>
-        </div>
-
-        {/* Summary */}
-        <div className="space-y-4 mb-6">
-          <SummaryRow
-            label="Total Sales"
-            value={`Nu. ${report.totalSales.toLocaleString()}`}
-          />
-          <SummaryRow
-            label="Total Orders"
-            value={`${report.totalOrders} Order${
-              report.totalOrders > 1 ? "s" : ""
-            }`}
-          />
-          <SummaryRow
-            label="Taxable Sales"
-            value={`Nu. ${report.taxableSales.toLocaleString()}`}
-          />
-          <SummaryRow
-            label="GST Collected"
-            value={`Nu. ${report.gstCollected.toLocaleString()}`}
-          />
-        </div>
-
-        {/* GST Owed */}
-        <div className="border-t pt-6 dark:border-gray-700">
-          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              GST Owed for {report.monthLabel}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              Nu. {report.gstCollected.toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          This is a system-generated GST summary report.
         </div>
       </div>
     </div>
   );
 }
 
-function SummaryRow({ label, value }) {
+function SummaryItem({ label, value, isBold, isPink, isRaw }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="font-medium text-gray-900 dark:text-white">{value}</span>
+    <div className="p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl">
+      <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">
+        {label}
+      </p>
+      <div className="flex items-baseline gap-1">
+        {!isRaw && (
+          <span
+            className={`text-[9px] font-black ${
+              isPink ? "text-brand-pink" : "text-gray-300"
+            }`}
+          >
+            Nu.
+          </span>
+        )}
+        <span
+          className={`text-xl font-black font-mono tracking-tighter ${
+            isBold
+              ? "text-gray-900 dark:text-white"
+              : isPink
+              ? "text-brand-pink"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          {isRaw
+            ? value
+            : value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </span>
+      </div>
     </div>
   );
 }

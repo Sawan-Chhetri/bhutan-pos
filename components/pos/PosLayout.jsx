@@ -1,5 +1,212 @@
-"use client";
+// "use client";
 
+// import { useEffect, useState, useContext } from "react";
+// import Search from "@/components/pos/Search";
+// import Menu from "@/components/pos/Menu";
+// import Checkout from "@/components/pos/Checkout";
+// import PosScreen from "@/components/pos/PosScreen";
+// import { UserContext } from "@/contexts/UserContext";
+// import useAuthStatus from "@/hooks/useAuthStatus";
+// import authFetch from "@/lib/authFetch";
+
+// const bhutanGST = 0.05; // 5% GST
+
+// function PosLayout() {
+//   const [cartItems, setCartItems] = useState([]);
+//   const [activeCategory, setActiveCategory] = useState(); // will be set by Menu
+//   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+//   const { idToken } = useAuthStatus();
+//   const { user } = useContext(UserContext);
+
+//   const [itemsByCategory, setItemsByCategory] = useState({});
+
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [searchResults, setSearchResults] = useState([]);
+//   const [isSearching, setIsSearching] = useState(false);
+
+//   // Display items for active category
+//   const displayedProducts = activeCategory
+//     ? itemsByCategory[activeCategory] || []
+//     : [];
+
+//   // Add to cart
+//   const handleAddToCart = (product) => {
+//     const existing = cartItems.find((item) => item.id === product.id);
+//     if (existing) {
+//       setCartItems((prev) =>
+//         prev.map((item) =>
+//           item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+//         )
+//       );
+//     } else {
+//       setCartItems((prev) => [
+//         ...prev,
+//         {
+//           id: product.id,
+//           name: product.name,
+//           unitPrice: product.price,
+//           qty: 1,
+//           isGSTExempt: product.isGSTExempt || false,
+//         },
+//       ]);
+//     }
+//   };
+
+//   // Totals
+//   // Subtotal for all items (same as before)
+//   const subtotal = cartItems.reduce(
+//     (sum, item) => sum + item.qty * item.unitPrice,
+//     0
+//   );
+
+//   // GST only on items that are not GST exempt
+//   const gst = cartItems.reduce((sum, item) => {
+//     if (item.isGSTExempt) return sum; // skip exempt items
+//     return sum + item.qty * item.unitPrice * bhutanGST;
+//   }, 0);
+
+//   // Total = subtotal + GST
+//   const total = subtotal + gst;
+
+//   // Fetch items for the active category if not already fetched
+//   useEffect(() => {
+//     if (!activeCategory || !idToken) return;
+//     if (itemsByCategory[activeCategory]) return; // already fetched
+
+//     const fetchItemsForCategory = async () => {
+//       try {
+//         const res = await authFetch(
+//           `/api/readItemsByCategory?category=${encodeURIComponent(
+//             activeCategory
+//           )}`,
+//           {},
+//           idToken
+//         );
+
+//         if (!res.ok) return;
+
+//         const data = await res.json();
+//         setItemsByCategory((prev) => ({
+//           ...prev,
+//           [activeCategory]: data,
+//         }));
+//         console.log(data);
+//       } catch (err) {
+//         console.error("Fetch items error:", err);
+//       }
+//     };
+
+//     fetchItemsForCategory();
+//   }, [activeCategory, idToken, itemsByCategory]);
+
+//   // Update when searchQuery changes
+//   useEffect(() => {
+//     setIsSearching(searchQuery.trim().length > 0);
+//   }, [searchQuery]);
+
+//   return (
+//     <div className="h-screen flex flex-col dark:bg-gray-900 dark:text-white">
+//       {/* Search */}
+//       <div className="p-4 border-b dark:border-gray-700">
+//         <Search
+//           value={searchQuery}
+//           onChange={setSearchQuery}
+//           itemsByCategory={itemsByCategory}
+//           activeCategory={activeCategory}
+//           user={user}
+//           onSearchResult={(results) => {
+//             setSearchResults(results);
+//           }}
+//         />
+//       </div>
+
+//       {/* Mobile Menu */}
+//       <div className="lg:hidden p-2 border-b overflow-x-auto flex gap-2 dark:border-gray-700">
+//         <Menu active={activeCategory} onChange={setActiveCategory} />
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="flex flex-1 overflow-hidden">
+//         {/* Desktop Menu */}
+//         <div className="hidden lg:block overflow-y-auto border-r w-48 p-4 dark:border-gray-700">
+//           <Menu
+//             active={activeCategory}
+//             onChange={setActiveCategory}
+//             isSearching={isSearching}
+//           />
+//         </div>
+
+//         {/* POS Screen */}
+//         <div className="flex-1 overflow-y-auto">
+//           <PosScreen
+//             products={
+//               searchQuery
+//                 ? searchResults
+//                 : itemsByCategory[activeCategory] || []
+//             }
+//             // products={displayedProducts}
+//             cartItems={cartItems}
+//             onAddToCart={handleAddToCart}
+//           />
+//         </div>
+
+//         {/* Desktop Checkout */}
+//         <div className="hidden lg:block w-96 border-l dark:border-gray-700">
+//           <Checkout
+//             cartItems={cartItems}
+//             subtotal={subtotal}
+//             gst={gst}
+//             total={total}
+//             setCartItems={setCartItems}
+//           />
+//         </div>
+//       </div>
+
+//       {/* Mobile Checkout Button */}
+//       <button
+//         onClick={() => setIsCheckoutOpen(true)}
+//         className="lg:hidden fixed bottom-4 left-4 right-4 btn-primary font-semibold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2"
+//       >
+//         View Cart
+//         <span className="bg-white text-black rounded-full px-2 py-1 text-xs font-bold">
+//           {cartItems.length}
+//         </span>
+//       </button>
+
+//       {/* Mobile Checkout Modal */}
+//       {isCheckoutOpen && (
+//         <div className="lg:hidden fixed inset-0 z-50 bg-black/40">
+//           <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl h-[85%] flex flex-col animate-slideUp">
+//             <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 border-b flex justify-between items-center dark:border-gray-700">
+//               <h2 className="font-semibold text-lg">Checkout</h2>
+//               <button
+//                 onClick={() => setIsCheckoutOpen(false)}
+//                 className="text-gray-500 dark:text-gray-300 text-xl"
+//               >
+//                 ✕
+//               </button>
+//             </div>
+
+//             <div className="flex-1 overflow-y-auto">
+//               <Checkout
+//                 cartItems={cartItems}
+//                 subtotal={subtotal}
+//                 gst={gst}
+//                 total={total}
+//                 setCartItems={setCartItems}
+//                 hidePayButton
+//               />
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// export default PosLayout;
+
+"use client";
 import { useEffect, useState, useContext } from "react";
 import Search from "@/components/pos/Search";
 import Menu from "@/components/pos/Menu";
@@ -8,28 +215,23 @@ import PosScreen from "@/components/pos/PosScreen";
 import { UserContext } from "@/contexts/UserContext";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
+import { FiShoppingCart, FiX, FiArrowLeft } from "react-icons/fi";
 
-const bhutanGST = 0.05; // 5% GST
+const bhutanGST = 0.05;
 
 function PosLayout() {
   const [cartItems, setCartItems] = useState([]);
-  const [activeCategory, setActiveCategory] = useState(); // will be set by Menu
+  const [activeCategory, setActiveCategory] = useState();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { idToken } = useAuthStatus();
   const { user } = useContext(UserContext);
 
   const [itemsByCategory, setItemsByCategory] = useState({});
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Display items for active category
-  const displayedProducts = activeCategory
-    ? itemsByCategory[activeCategory] || []
-    : [];
-
-  // Add to cart
+  // LOGIC UNTOUCHED
   const handleAddToCart = (product) => {
     const existing = cartItems.find((item) => item.id === product.id);
     if (existing) {
@@ -52,26 +254,19 @@ function PosLayout() {
     }
   };
 
-  // Totals
-  // Subtotal for all items (same as before)
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.qty * item.unitPrice,
     0
   );
-
-  // GST only on items that are not GST exempt
   const gst = cartItems.reduce((sum, item) => {
-    if (item.isGSTExempt) return sum; // skip exempt items
+    if (item.isGSTExempt) return sum;
     return sum + item.qty * item.unitPrice * bhutanGST;
   }, 0);
-
-  // Total = subtotal + GST
   const total = subtotal + gst;
 
-  // Fetch items for the active category if not already fetched
   useEffect(() => {
     if (!activeCategory || !idToken) return;
-    if (itemsByCategory[activeCategory]) return; // already fetched
+    if (itemsByCategory[activeCategory]) return;
 
     const fetchItemsForCategory = async () => {
       try {
@@ -82,75 +277,84 @@ function PosLayout() {
           {},
           idToken
         );
-
         if (!res.ok) return;
-
         const data = await res.json();
-        setItemsByCategory((prev) => ({
-          ...prev,
-          [activeCategory]: data,
-        }));
+        setItemsByCategory((prev) => ({ ...prev, [activeCategory]: data }));
       } catch (err) {
         console.error("Fetch items error:", err);
       }
     };
-
     fetchItemsForCategory();
   }, [activeCategory, idToken, itemsByCategory]);
 
-  // Update when searchQuery changes
   useEffect(() => {
     setIsSearching(searchQuery.trim().length > 0);
   }, [searchQuery]);
 
   return (
-    <div className="h-screen flex flex-col dark:bg-gray-900 dark:text-white">
-      {/* Search */}
-      <div className="p-4 border-b dark:border-gray-700">
-        <Search
-          value={searchQuery}
-          onChange={setSearchQuery}
-          itemsByCategory={itemsByCategory}
-          activeCategory={activeCategory}
-          user={user}
-          onSearchResult={(results) => {
-            setSearchResults(results);
-          }}
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
+      {/* --- TOP BAR: SEARCH & LOGO --- */}
+      <header className="z-30 flex items-center h-20 px-4 md:px-8 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md">
+        <div className="flex-1">
+          <Search
+            value={searchQuery}
+            onChange={setSearchQuery}
+            itemsByCategory={itemsByCategory}
+            activeCategory={activeCategory}
+            user={user}
+            onSearchResult={(results) => setSearchResults(results)}
+          />
+        </div>
+      </header>
+
+      {/* --- MOBILE CATEGORY BAR --- */}
+      <div className="lg:hidden bg-gray-50 dark:bg-gray-900/50 border-b dark:border-gray-800 shadow-inner">
+        <Menu
+          active={activeCategory}
+          onChange={setActiveCategory}
+          isSearching={isSearching}
         />
       </div>
 
-      {/* Mobile Menu */}
-      <div className="lg:hidden p-2 border-b overflow-x-auto flex gap-2 dark:border-gray-700">
-        <Menu active={activeCategory} onChange={setActiveCategory} />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Desktop Menu */}
-        <div className="hidden lg:block border-r w-48 p-4 dark:border-gray-700">
+      <main className="flex flex-1 overflow-hidden relative">
+        {/* --- DESKTOP CATEGORY SIDEBAR --- */}
+        <aside className="hidden lg:block w-72 overflow-y-auto border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/20">
           <Menu
             active={activeCategory}
             onChange={setActiveCategory}
             isSearching={isSearching}
           />
-        </div>
+        </aside>
 
-        {/* POS Screen */}
-        <div className="flex-1 overflow-y-auto">
-          <PosScreen
-            products={
-              searchQuery
-                ? searchResults
-                : itemsByCategory[activeCategory] || []
-            }
-            // products={displayedProducts}
-            cartItems={cartItems}
-            onAddToCart={handleAddToCart}
-          />
-        </div>
+        {/* --- PRODUCT GRID AREA --- */}
+        <section className="flex-1 overflow-y-auto bg-white dark:bg-gray-900/20 custom-scrollbar">
+          <div className="p-4 md:p-8">
+            {/* Dynamic Heading based on Search or Category */}
+            <div className="mb-6 px-2">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-pink mb-1">
+                {isSearching ? "Search Results" : "Browsing Catalog"}
+              </h2>
+              <h1 className="text-2xl font-black uppercase tracking-tight">
+                {isSearching
+                  ? `"${searchQuery}"`
+                  : activeCategory || "Loading..."}
+              </h1>
+            </div>
 
-        {/* Desktop Checkout */}
-        <div className="hidden lg:block w-96 border-l dark:border-gray-700">
+            <PosScreen
+              products={
+                searchQuery
+                  ? searchResults
+                  : itemsByCategory[activeCategory] || []
+              }
+              cartItems={cartItems}
+              onAddToCart={handleAddToCart}
+            />
+          </div>
+        </section>
+
+        {/* --- DESKTOP CHECKOUT SIDEBAR --- */}
+        <aside className="hidden lg:block w-[400px]">
           <Checkout
             cartItems={cartItems}
             subtotal={subtotal}
@@ -158,33 +362,49 @@ function PosLayout() {
             total={total}
             setCartItems={setCartItems}
           />
+        </aside>
+      </main>
+
+      {/* --- MOBILE FLOATING CART ACTION --- */}
+      {cartItems.length > 0 && !isCheckoutOpen && (
+        <div className="lg:hidden fixed bottom-6 left-0 right-0 px-6 z-40 animate-in slide-in-from-bottom-4">
+          <button
+            onClick={() => setIsCheckoutOpen(true)}
+            className="w-full bg-gray-900 dark:bg-brand-pink text-white h-16 rounded-2xl shadow-2xl flex items-center justify-between px-6 active:scale-95 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <FiShoppingCart size={20} />
+                <span className="absolute -top-2 -right-2 bg-white text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                  {cartItems.length}
+                </span>
+              </div>
+              <span className="font-black uppercase tracking-widest text-sm">
+                View Order
+              </span>
+            </div>
+            <span className="text-lg font-black font-mono">
+              Nu. {total.toLocaleString()}
+            </span>
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Mobile Checkout Button */}
-      <button
-        onClick={() => setIsCheckoutOpen(true)}
-        className="lg:hidden fixed bottom-4 left-4 right-4 btn-primary font-semibold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2"
-      >
-        View Cart
-        <span className="bg-white text-black rounded-full px-2 py-1 text-xs font-bold">
-          {cartItems.length}
-        </span>
-      </button>
-
-      {/* Mobile Checkout Modal */}
+      {/* --- MOBILE CHECKOUT MODAL (FULL SCREEN) --- */}
       {isCheckoutOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/40">
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl h-[85%] flex flex-col animate-slideUp">
-            <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 border-b flex justify-between items-center dark:border-gray-700">
-              <h2 className="font-semibold text-lg">Checkout</h2>
+        <div className="lg:hidden fixed inset-0 z-[100] bg-white dark:bg-gray-950 animate-in slide-in-from-bottom duration-300">
+          <div className="flex flex-col h-full">
+            <header className="p-6 border-b dark:border-gray-800 flex items-center gap-4">
               <button
                 onClick={() => setIsCheckoutOpen(false)}
-                className="text-gray-500 dark:text-gray-300 text-xl"
+                className="p-2 -ml-2 text-gray-400"
               >
-                ✕
+                <FiArrowLeft size={24} />
               </button>
-            </div>
+              <h2 className="text-xl font-black uppercase tracking-tight">
+                Review Order
+              </h2>
+            </header>
 
             <div className="flex-1 overflow-y-auto">
               <Checkout
@@ -193,7 +413,6 @@ function PosLayout() {
                 gst={gst}
                 total={total}
                 setCartItems={setCartItems}
-                hidePayButton
               />
             </div>
           </div>
