@@ -31,7 +31,7 @@ export default function ForgotPassword({ setShowForgotPassword, onSuccess }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#5DB7DE] via-[#F1E9DB] to-[#EE4B6A]">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#5DB7DE] via-[#F1E9DB] to-[#EE4B6A]">
       <div className="bg-white/90 p-8 rounded-2xl shadow-2xl w-full max-w-md mx-2">
         <h2 className="text-2xl font-bold text-center mb-6 text-[#5DB7DE]">
           Reset Password
@@ -67,7 +67,7 @@ export default function ForgotPassword({ setShowForgotPassword, onSuccess }) {
             )}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-[#5DB7DE] to-[#EE4B6A] text-white font-bold rounded-full shadow-lg hover:from-[#EE4B6A] hover:to-[#5DB7DE] transition text-lg disabled:opacity-60"
+              className="w-full py-3 bg-linear-to-r from-[#5DB7DE] to-[#EE4B6A] text-white font-bold rounded-full shadow-lg hover:from-[#EE4B6A] hover:to-[#5DB7DE] transition text-lg disabled:opacity-60"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Send Reset Link"}

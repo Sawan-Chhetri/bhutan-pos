@@ -230,7 +230,7 @@ const LandingPage = () => {
         <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-black tracking-widest text-slate-500 uppercase bg-slate-100 rounded-full border border-slate-200">
           Built for Bhutanese Businesses <span className="text-2xl">🇧🇹</span>
         </div>
-        <h1 className="text-5xl md:text-[5.5rem] font-black tracking-tight text-slate-950 mb-8 leading-[1]">
+        <h1 className="text-5xl md:text-[5.5rem] font-black tracking-tight text-slate-950 mb-8 leading-none">
           Managing GST shouldn&apos;t <br />
           <span className="text-[#EE4B6A]">cost this much.</span>
         </h1>
@@ -281,7 +281,7 @@ const LandingPage = () => {
           ].map((pain, i) => (
             <div
               key={i}
-              className="p-8 bg-white rounded-[2rem] border border-slate-200 shadow-sm"
+              className="p-8 bg-white rounded-4xl border border-slate-200 shadow-sm"
             >
               <div className="text-4xl mb-4">{pain.icon}</div>
               <h4 className="text-xl font-bold mb-3">{pain.title}</h4>
