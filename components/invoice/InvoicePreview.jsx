@@ -167,10 +167,12 @@ export default function InvoicePreview({ invoice }) {
                     {it.qty}
                   </td>
                   <td className="px-6 py-5 text-sm font-bold text-gray-600 dark:text-gray-400 font-mono text-right">
-                    {Number(it.rate || 0).toFixed(2)}
+                    {Number(it.unitPrice || 0).toFixed(2)}
                   </td>
                   <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono text-right">
-                    {(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
+                    {(Number(it.qty || 0) * Number(it.unitPrice || 0)).toFixed(
+                      2
+                    )}
                   </td>
                 </tr>
               ))}

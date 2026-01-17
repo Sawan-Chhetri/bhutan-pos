@@ -630,7 +630,7 @@ export default function InvoicePage() {
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 min-w-[240px]">
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 min-w-60">
               <h2 className="text-[10px] font-black text-brand-pink uppercase tracking-[0.3em] mb-4">
                 Official Receipt
               </h2>
