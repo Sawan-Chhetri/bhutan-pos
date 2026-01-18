@@ -101,7 +101,9 @@ export default function AdminBulkItemUpload() {
       );
 
     // ✅ Extract unique categories
-    const categories = [...new Set(items.map((i) => i.category))];
+    const categories = [
+      ...new Set(items.map((i) => i.category.trim().toLowerCase())),
+    ];
 
     if (!items.length) {
       setMessage("❌ No valid rows found.");

@@ -31,6 +31,7 @@ export async function POST(request) {
       gst,
       total,
       customerName,
+      customerCID,
       contact,
       customerId,
       customerAddress,
@@ -39,6 +40,16 @@ export async function POST(request) {
 
     if (!cartItems?.length) {
       return NextResponse.json({ error: "Empty cart" }, { status: 400 });
+    }
+
+    if ((total > 50000 && !customerCID) || !customerName) {
+      return NextResponse.json(
+        {
+          error:
+            "Customer CID/Passport Number is required for this transaction.",
+        },
+        { status: 400 }
+      );
     }
 
     const db = admin.firestore();
@@ -123,6 +134,7 @@ export async function POST(request) {
           lineTotal,
           isGSTExempt: item.isGSTExempt ?? false,
           customerName: customerName || null,
+          customerCID: customerCID || null,
           cusAddress: customerAddress || null,
           cusId: customerId || null,
           isPaid: isPaid ?? true,
@@ -151,6 +163,7 @@ export async function POST(request) {
         total,
         taxableSales,
         customerName: customerName || null,
+        customerCID: customerCID || null,
         contact: contact || customerAddress,
         date: now,
         createdBy: uid,

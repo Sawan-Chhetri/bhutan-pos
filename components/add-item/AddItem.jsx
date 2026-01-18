@@ -12,6 +12,7 @@ export default function AddItem({
 }) {
   // Initialize state directly from the prop
   const [name, setName] = useState(editingItem?.name || "");
+  const [barcode, setBarcode] = useState(editingItem?.barcode || "");
   const [category, setCategory] = useState(editingItem?.category || "");
   const [price, setPrice] = useState(editingItem?.price || "");
   const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
@@ -29,6 +30,7 @@ export default function AddItem({
       category: category.trim().toLowerCase(),
       price: Number(price),
       isGSTExempt,
+      barcode: barcode.trim() || null,
     };
 
     if (editingItem && onUpdateItem) {
@@ -46,6 +48,7 @@ export default function AddItem({
               price,
               category: payload.category,
               isGSTExempt,
+              barcode: barcode.trim() || null,
             },
           }),
         },
@@ -65,6 +68,7 @@ export default function AddItem({
               price,
               category: payload.category,
               isGSTExempt,
+              barcode: barcode.trim() || null,
             },
           }),
         },
@@ -121,6 +125,20 @@ export default function AddItem({
           onChange={(e) => setPrice(e.target.value)}
           className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
           placeholder="Enter price"
+        />
+      </div>
+
+      {/* Barcode */}
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Barcode (Optional)
+        </label>
+        <input
+          type="text"
+          value={barcode}
+          onChange={(e) => setBarcode(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          placeholder="Enter barcode"
         />
       </div>
 

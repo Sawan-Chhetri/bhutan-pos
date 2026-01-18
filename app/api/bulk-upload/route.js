@@ -94,14 +94,13 @@ export async function POST(req) {
     for (const name of categories) {
       if (!name) continue;
 
-      const categoryId = name.trim().toUpperCase(); // normalize
+      const categoryId = name.trim().toLowerCase(); // normalize
       const categoryRef = storeRef.collection("categories").doc(categoryId);
 
       const snap = await categoryRef.get();
       if (!snap.exists) {
         batch.set(categoryRef, {
           name: categoryId,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
     }
@@ -115,11 +114,9 @@ export async function POST(req) {
       batch.set(ref, {
         barcode: barcode || null,
         name,
-        category: category?.trim().toUpperCase(),
+        category,
         price,
-        isActive: true,
         isGSTExempt: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     });
 

@@ -332,7 +332,7 @@ function PosLayout() {
             {/* Dynamic Heading based on Search or Category */}
             <div className="mb-6 px-2">
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-pink mb-1">
-                {isSearching ? "Search Results" : "Browsing Catalog"}
+                {isSearching ? "Search Results" : "Browsing Category"}
               </h2>
               <h1 className="text-2xl font-black uppercase tracking-tight">
                 {isSearching

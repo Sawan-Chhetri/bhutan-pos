@@ -21,11 +21,23 @@ export default function CheckoutModal({
   const { idToken } = useAuthStatus();
   const [customerName, setCustomerName] = useState("");
   const [contact, setContact] = useState("");
+  const [customerCID, setCustomerCID] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   if (!isOpen) return null;
 
   const handleConfirm = async ({ customerName, contact }) => {
     // Handle payment confirmation logic here
+
+    if (total > 50000) {
+      if (!customerName.trim() || !customerCID.trim()) {
+        setErrorMsg(
+          "For transactions above Nu. 50,000, Customer Name and CID/Passport Number are required."
+        );
+        return;
+      }
+    }
+
     try {
       const authFetch = (await import("@/lib/authFetch")).default;
       const res = await authFetch(
@@ -39,6 +51,7 @@ export default function CheckoutModal({
             gst,
             total,
             customerName,
+            customerCID,
             contact,
           }),
         },
@@ -66,9 +79,17 @@ export default function CheckoutModal({
               Checkout
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Customer details (optional)
+              {total > 50000
+                ? "Customer details (required)"
+                : "Customer details (optional)"}
             </p>
           </div>
+
+          {errorMsg && (
+            <div className="mb-4 text-center text-red-500 font-medium bg-red-50 border border-red-200 rounded p-2">
+              {errorMsg}
+            </div>
+          )}
 
           {/* Body */}
           <div className="px-6 py-4 space-y-4">
@@ -81,7 +102,21 @@ export default function CheckoutModal({
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Optional"
+                placeholder={total > 50000 ? "Required" : "Optional"}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              />
+            </div>
+
+            {/* Customer CID */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                CID or Passport Number
+              </label>
+              <input
+                type="text"
+                value={customerCID}
+                onChange={(e) => setCustomerCID(e.target.value)}
+                placeholder={total > 50000 ? "Required" : "Optional"}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
               />
             </div>
@@ -121,7 +156,10 @@ export default function CheckoutModal({
           {/* Footer */}
           <div className="px-6 pb-6 flex justify-end gap-3">
             <button
-              onClick={onClose}
+              onClick={() => {
+                setErrorMsg("");
+                onClose();
+              }}
               className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
             >
               Cancel
