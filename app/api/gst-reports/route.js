@@ -41,6 +41,9 @@ export async function GET(request) {
       month: doc.id, // document ID is YYYY-MM
       totalSales: doc.data()?.totalSales || 0,
       gstCollected: doc.data()?.gstCollected || 0,
+      purchaseCount: doc.data()?.purchaseCount || 0,
+      taxablePurchases: doc.data()?.taxablePurchases || 0,
+      itcClaimed: doc.data()?.itcClaimed || 0,
     }));
 
     // Sort descending by month
@@ -51,7 +54,7 @@ export async function GET(request) {
     console.error("GST reports fetch failed:", err);
     return NextResponse.json(
       { error: "Failed to fetch GST reports" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

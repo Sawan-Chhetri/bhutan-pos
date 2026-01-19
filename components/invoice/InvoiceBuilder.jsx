@@ -391,16 +391,16 @@ export default function InvoiceBuilder() {
   // --- CALCULATIONS ---
   const subtotal = useMemo(
     () => items.reduce((s, it) => s + it.qty * it.unitPrice, 0),
-    [items]
+    [items],
   );
   const gstTotal = useMemo(
     () =>
       items.reduce(
         (g, it) =>
           it.isGSTExempt ? g : g + it.qty * it.unitPrice * it.gstPercent,
-        0
+        0,
       ),
-    [items]
+    [items],
   );
   const total = subtotal + gstTotal;
 
@@ -443,7 +443,7 @@ export default function InvoiceBuilder() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         },
-        idToken
+        idToken,
       );
 
       const json = await res.json();
@@ -781,12 +781,12 @@ function HorizonInput({
       <input
         autoFocus={autoFocus}
         type={type}
-        className="w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold focus:ring-0 placeholder:text-gray-200"
+        className="w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold focus:ring-0 focus:outline-none placeholder:text-gray-200"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
       />
-      <div className="h-[2px] w-full bg-gray-100 group-focus-within:bg-green-500 transition-all" />
+      <div className="h-[2px] w-full bg-gray-200 group-focus-within:bg-green-500 transition-all" />
     </div>
   );
 }

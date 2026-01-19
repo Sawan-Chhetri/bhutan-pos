@@ -248,7 +248,7 @@ const LandingPage = () => {
           </a>
         </div>
         <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest">
-          Setup in 3 minutes • No credit card required
+          Setup in few minutes • No payment required
         </p>
       </section>
 

@@ -48,7 +48,7 @@ export async function POST(request) {
           error:
             "Customer CID/Passport Number is required for this transaction.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -72,7 +72,7 @@ export async function POST(request) {
 
     // Format: YYYY-MM → 2026-01
     const monthKey = `${dateObj.getFullYear()}-${String(
-      dateObj.getMonth() + 1
+      dateObj.getMonth() + 1,
     ).padStart(2, "0")}`;
 
     /* =====================================================
@@ -204,7 +204,7 @@ export async function POST(request) {
 
     return NextResponse.json(
       { error: "Failed to create invoice" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -355,7 +355,7 @@ export async function GET(request) {
     console.error("sales error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

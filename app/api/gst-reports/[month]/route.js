@@ -46,7 +46,7 @@ export async function GET(request, { params }) {
     if (!gstSnap.exists) {
       return NextResponse.json(
         { error: "No GST report found for this month" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     const gstData = gstSnap.data();
@@ -68,6 +68,9 @@ export async function GET(request, { params }) {
       totalOrders: gstData.saleCount || 0,
       taxableSales: gstData.taxableSales || 0,
       gstCollected: gstData.gstCollected || 0,
+      taxablePurchases: gstData.taxablePurchases || 0,
+      itcClaimed: gstData.itcClaimed || 0,
+      purchaseCount: gstData.purchaseCount || 0,
       business: {
         name: storeData.name || "",
         phone: storeData.phone || "",
