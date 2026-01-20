@@ -199,9 +199,12 @@
 
 // export default LandingPage;
 
+"use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 const LandingPage = () => {
+  const route = useRouter();
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-[#A8DF8E]/30">
       {/* Navigation */}
@@ -382,7 +385,12 @@ const LandingPage = () => {
                 No commitment. Cancel when you want.
               </p>
             </div>
-            <button className="w-full py-4 rounded-2xl border-2 border-slate-950 text-slate-950 font-black hover:bg-slate-50 transition">
+            <button
+              onClick={() => {
+                route.push("/get-started");
+              }}
+              className="w-full py-4 rounded-2xl border-2 border-slate-950 text-slate-950 font-black hover:bg-slate-50 transition"
+            >
               Select Monthly
             </button>
           </div>
@@ -403,7 +411,12 @@ const LandingPage = () => {
                 The professional choice. Billed Nu. 7,200/yr.
               </p>
             </div>
-            <button className="w-full py-4 rounded-2xl bg-[#A8DF8E] text-slate-950 font-black hover:scale-[1.02] transition shadow-lg shadow-[#A8DF8E]/20">
+            <button
+              onClick={() => {
+                route.push("/get-started");
+              }}
+              className="w-full py-4 rounded-2xl bg-[#A8DF8E] text-slate-950 font-black hover:scale-[1.02] transition shadow-lg shadow-[#A8DF8E]/20"
+            >
               Start Annual Plan
             </button>
           </div>

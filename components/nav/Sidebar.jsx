@@ -421,19 +421,6 @@ export default function Sidebar() {
       icon: <FiPackage size={18} />,
       roles: ["pos", "admin"],
     },
-    // --- NEW PURCHASE ROUTES ---
-    {
-      href: "/purchases",
-      label: "RECORD PURCHASE",
-      icon: <FiPlusCircle size={18} />,
-      roles: ["admin", "pos"],
-    },
-    {
-      href: "/purchase-history",
-      label: "PURCHASE HISTORY",
-      icon: <FiShoppingCart size={18} />,
-      roles: ["admin", "pos"],
-    },
     // ---------------------------
     {
       href: "/invoice",
@@ -441,6 +428,20 @@ export default function Sidebar() {
       icon: <FiFileText size={18} />,
       roles: ["admin", "other"],
     },
+    // --- NEW PURCHASE ROUTES ---
+    {
+      href: "/purchases",
+      label: "RECORD PURCHASE",
+      icon: <FiPlusCircle size={18} />,
+      roles: ["admin", "pos", "other"],
+    },
+    {
+      href: "/purchase-history",
+      label: "PURCHASE HISTORY",
+      icon: <FiShoppingCart size={18} />,
+      roles: ["admin", "pos", "other"],
+    },
+
     {
       href: "/invoices",
       label: "INVOICE HISTORY",
@@ -491,11 +492,8 @@ export default function Sidebar() {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
-                    BHUTAN <span className="text-brand-pink">POS</span>
+                    SWIFT<span className="text-brand-pink italic">GST</span>
                   </h2>
-                  <p className="text-[9px] font-bold text-gray-400 tracking-[0.4em] uppercase mt-1">
-                    Industrial v2.0
-                  </p>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -514,7 +512,7 @@ export default function Sidebar() {
                     {user?.name || "Guest Operator"}
                   </span>
                   <span className="text-[10px] font-bold text-brand-pink uppercase tracking-widest truncate">
-                    {user?.type === "admin" ? "Master" : "POS"} Access
+                    {user?.type === "other" ? "Service" : "POS"} Access
                   </span>
                 </div>
               </div>

@@ -161,7 +161,7 @@ export default function OnboardingContact() {
       {/* 3. FOOTER */}
       <footer className="mt-12 text-center">
         <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">
-          &copy; {new Date().getFullYear()} Bhutan POS Systems
+          &copy; {new Date().getFullYear()} Swift GST Systems
         </p>
       </footer>
     </div>
