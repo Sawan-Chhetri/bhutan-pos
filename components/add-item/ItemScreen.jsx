@@ -509,7 +509,7 @@
 // }
 
 "use client";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   FiEdit,
   FiTrash2,
@@ -554,7 +554,7 @@ export default function ItemScreen() {
         const res = await authFetch(
           `/api/read-items?page=${currentPage}&limit=${ITEMS_PER_PAGE}`,
           {},
-          idToken
+          idToken,
         );
 
         if (!res.ok) throw new Error("Failed to fetch items");
@@ -581,7 +581,7 @@ export default function ItemScreen() {
 
   const handleUpdateItem = (updatedItem) => {
     setItems((prev) =>
-      prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+      prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
     );
     onClose();
   };
@@ -594,7 +594,7 @@ export default function ItemScreen() {
       await authFetch(
         `/api/modify-items/${itemId}`,
         { method: "DELETE" },
-        idToken
+        idToken,
       );
     } catch (err) {
       console.error("Delete failed", err);
@@ -799,8 +799,8 @@ export default function ItemScreen() {
                   page === currentPage
                     ? "bg-white dark:bg-gray-700 text-brand-pink shadow-sm scale-105"
                     : page === "..."
-                    ? "text-gray-400 cursor-default"
-                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                      ? "text-gray-400 cursor-default"
+                      : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
                 {page}

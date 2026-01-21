@@ -97,7 +97,7 @@ export default function AdminBulkItemUpload() {
         price: Number(row[fieldMap.price]?.toString().replace(/,/g, "")),
       }))
       .filter(
-        (item) => item.name && item.category && !Number.isNaN(item.price)
+        (item) => item.name && item.category && !Number.isNaN(item.price),
       );
 
     // ✅ Extract unique categories

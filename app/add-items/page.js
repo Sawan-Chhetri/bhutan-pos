@@ -1,7 +1,18 @@
+"use client";
 import ItemsLayout from "@/components/add-item/ItemsLayout";
 import Sidebar from "@/components/nav/Sidebar";
+import { useContext, useEffect } from "react";
+import { UserContext } from "@/contexts/UserContext";
+import { useRouter } from "next/navigation";
+import useAuthGuard from "@/hooks/useAuthGuard";
 
-function page() {
+function Page() {
+  // Check auth
+  const { isAuthorized, isLoading } = useAuthGuard(["pos"]);
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
     <>
       <Sidebar />
@@ -10,4 +21,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

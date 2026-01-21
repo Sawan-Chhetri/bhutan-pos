@@ -21,7 +21,7 @@ export function UserProvider({ children }) {
         const res = await authFetch(
           `/api/user/${user.uid}`,
           { headers: {} },
-          idToken
+          idToken,
         );
 
         if (!res.ok) {

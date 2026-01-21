@@ -1,6 +1,12 @@
+"use client";
 import Sidebar from "@/components/nav/Sidebar";
 import PurchaseLedger from "@/components/purchases/PurchaseLedger";
-function page() {
+import useAuthGuard from "@/hooks/useAuthGuard";
+function Page() {
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "other"]);
+  if (!isAuthorized) {
+    return null;
+  }
   return (
     <>
       <Sidebar />
@@ -9,4 +15,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

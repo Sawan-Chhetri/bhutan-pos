@@ -164,7 +164,7 @@ export async function POST(request) {
         taxableSales,
         customerName: customerName || null,
         customerCID: customerCID || null,
-        contact: contact || customerAddress,
+        contact: contact || customerAddress || null,
         date: now,
         createdBy: uid,
         isPaid: isPaid ?? true,

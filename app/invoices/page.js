@@ -1,6 +1,13 @@
+"use client";
 import SalesScreen from "@/components/sales/SalesScreen";
 import Sidebar from "@/components/nav/Sidebar";
-function page() {
+import useAuthGuard from "@/hooks/useAuthGuard";
+
+function Page() {
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "other"]);
+  if (!isAuthorized) {
+    return null;
+  }
   return (
     <>
       <Sidebar />
@@ -9,4 +16,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

@@ -370,7 +370,7 @@
 
 "use client";
 import { useParams } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
 import {

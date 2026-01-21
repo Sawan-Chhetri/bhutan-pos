@@ -428,6 +428,12 @@ export default function Sidebar() {
       icon: <FiFileText size={18} />,
       roles: ["admin", "other"],
     },
+    {
+      href: "/invoices",
+      label: "INVOICE HISTORY",
+      icon: <FiFileText size={18} />,
+      roles: ["admin", "other", "pos"],
+    },
     // --- NEW PURCHASE ROUTES ---
     {
       href: "/purchases",
@@ -440,13 +446,6 @@ export default function Sidebar() {
       label: "PURCHASE HISTORY",
       icon: <FiShoppingCart size={18} />,
       roles: ["admin", "pos", "other"],
-    },
-
-    {
-      href: "/invoices",
-      label: "INVOICE HISTORY",
-      icon: <FiFileText size={18} />,
-      roles: ["admin", "other", "pos"],
     },
     {
       href: "/gst-reports",

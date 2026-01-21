@@ -1,6 +1,7 @@
+"use client";
 import PurchaseDetail from "@/components/purchases/PurchaseDetail";
-function page() {
+function Page() {
   return <PurchaseDetail />;
 }
 
-export default page;
+export default Page;
