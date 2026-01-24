@@ -237,8 +237,8 @@ function PosLayout() {
     if (existing) {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
-        )
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item,
+        ),
       );
     } else {
       setCartItems((prev) => [
@@ -256,7 +256,7 @@ function PosLayout() {
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.qty * item.unitPrice,
-    0
+    0,
   );
   const gst = cartItems.reduce((sum, item) => {
     if (item.isGSTExempt) return sum;
@@ -272,10 +272,10 @@ function PosLayout() {
       try {
         const res = await authFetch(
           `/api/readItemsByCategory?category=${encodeURIComponent(
-            activeCategory
+            activeCategory,
           )}`,
           {},
-          idToken
+          idToken,
         );
         if (!res.ok) return;
         const data = await res.json();

@@ -171,7 +171,7 @@ export default function InvoicePreview({ invoice }) {
                   </td>
                   <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono text-right">
                     {(Number(it.qty || 0) * Number(it.unitPrice || 0)).toFixed(
-                      2
+                      2,
                     )}
                   </td>
                 </tr>

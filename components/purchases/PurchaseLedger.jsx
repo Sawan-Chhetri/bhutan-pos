@@ -452,7 +452,7 @@ export default function PurchaseLedger() {
                 Gross Total
               </p>
               <p className="text-sm font-bold">
-                Nu. {(totalCost + totalITC).toLocaleString()}
+                Nu. {totalCost.toLocaleString()}
               </p>
             </div>
             <button
@@ -484,13 +484,13 @@ export default function PurchaseLedger() {
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <BlueInput
-                label="Supplier TIN / CID"
+                label="Supplier GST TPN / CID"
                 value={supplierTIN}
                 onChange={setSupplierTIN}
                 placeholder="Tax Identity"
               />
               <BlueInput
-                label="Bill Number"
+                label="Invoice Number"
                 value={billNumber}
                 onChange={setBillNumber}
                 placeholder="Ref #"
@@ -533,7 +533,7 @@ export default function PurchaseLedger() {
                 </div>
                 <div className="flex items-center gap-6">
                   <p className="text-2xl font-mono font-black italic">
-                    Nu. {(it.qty * it.cost + it.gstAmount).toLocaleString()}
+                    Nu. {(it.qty * it.cost).toLocaleString()}
                   </p>
                   <button
                     onClick={() => setItems(items.filter((_, i) => i !== idx))}

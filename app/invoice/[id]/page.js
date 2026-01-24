@@ -626,13 +626,16 @@ export default function InvoicePage() {
               </h1>
               <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-relaxed max-w-xs">
                 {invoice.store.address} <br />
-                Phone: {invoice.store.phone}
+                <span className="text-gray-700">Phone:</span>{" "}
+                {invoice.store.phone} <br />
+                <span className="text-gray-700">TPN (GST): </span>{" "}
+                {invoice.store.gstNumber}
               </p>
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 min-w-60">
               <h2 className="text-[10px] font-black text-brand-pink uppercase tracking-[0.3em] mb-4">
-                Official Receipt
+                Tax Invoice
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -671,7 +674,7 @@ export default function InvoicePage() {
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    Description
+                    Item
                   </th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                     Qty
@@ -688,16 +691,16 @@ export default function InvoicePage() {
                 {invoice.items.map((item, i) => (
                   <tr key={i}>
                     <td className="px-6 py-5 text-sm font-bold text-gray-800 dark:text-gray-200">
-                      {item.name}
+                      {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}
                     </td>
                     <td className="px-6 py-5 text-sm font-black text-gray-500 font-mono">
                       {item.qty}
                     </td>
                     <td className="px-6 py-5 text-sm font-bold text-gray-600 dark:text-gray-400 font-mono">
-                      {parseInt(item.unitPrice).toFixed(2)}
+                      {item.unitPrice.toLocaleString()}
                     </td>
                     <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono">
-                      {(item.qty * item.unitPrice).toFixed(2)}
+                      {(item.qty * item.unitPrice).toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -710,11 +713,15 @@ export default function InvoicePage() {
             <div className="w-full md:w-64 space-y-3">
               <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
                 <span>Subtotal</span>
-                <span className="font-mono">{invoice.subtotal.toFixed(2)}</span>
+                <span className="font-mono">
+                  {invoice.subtotal.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
                 <span>GST (5%)</span>
-                <span className="font-mono">{invoice.gst.toFixed(2)}</span>
+                <span className="font-mono">
+                  {invoice.gst.toLocaleString()}
+                </span>
               </div>
               <div className="h-px bg-gray-100 dark:bg-gray-800 my-4" />
               <div className="flex justify-between items-baseline">
@@ -722,7 +729,7 @@ export default function InvoicePage() {
                   Total Nu.
                 </span>
                 <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter font-mono">
-                  {invoice.total.toFixed(2)}
+                  {invoice.total.toLocaleString()}
                 </span>
               </div>
             </div>

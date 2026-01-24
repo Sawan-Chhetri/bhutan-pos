@@ -247,7 +247,8 @@ const LandingPage = () => {
             href="/get-started"
             className="w-full sm:w-auto px-12 py-5 rounded-2xl text-lg font-black bg-[#A8DF8E] text-slate-950 hover:shadow-[0_20px_50px_rgba(168,223,142,0.4)] transition-all transform hover:-translate-y-1"
           >
-            Fix My Billing — Nu. 0 Today
+            {/* Fix My Billing — Nu. 0 Today */}
+            Start GST Billing — Free for 14 Days
           </a>
         </div>
         <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest">
@@ -341,9 +342,10 @@ const LandingPage = () => {
             </p>
             <div className="space-y-4">
               {[
-                'Track unpaid "debtors" instantly',
+                'Track unpaid "invoices" instantly',
                 "One-click PDF invoicing",
-                "Project-based cost tracking",
+                // "Project-based cost tracking",
+                "Input Tax Credit (ITC) tracking",
               ].map((f) => (
                 <div
                   key={f}
