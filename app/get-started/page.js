@@ -140,7 +140,7 @@ export default function OnboardingContact() {
             </a>
 
             <a
-              href="mailto:support@bhutanpos.com"
+              href="mailto:support@swiftgst.com"
               className="flex items-center justify-between group px-6 py-5 rounded-[2rem] bg-gray-50/50 hover:bg-black transition-all border border-gray-100"
             >
               <div className="flex items-center gap-4">
