@@ -297,7 +297,7 @@ export default function SalesScreen() {
         const res = await authFetch(
           `/api/sales?page=${page}&limit=${ITEMS_PER_PAGE}`,
           {},
-          idToken
+          idToken,
         );
         if (!res.ok) throw new Error("Failed to fetch sales");
         const data = await res.json();
@@ -357,8 +357,8 @@ export default function SalesScreen() {
           page === currentPage
             ? "bg-brand-pink text-white shadow-lg shadow-pink-500/20"
             : page === "..."
-            ? "text-gray-400"
-            : "bg-white dark:bg-gray-800 text-gray-500 hover:text-brand-pink border border-gray-100 dark:border-gray-700"
+              ? "text-gray-400"
+              : "bg-white dark:bg-gray-800 text-gray-500 hover:text-brand-pink border border-gray-100 dark:border-gray-700"
         }`}
       >
         {page}
@@ -379,10 +379,10 @@ export default function SalesScreen() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tighter uppercase text-gray-900 dark:text-white">
-              Sales <span className="text-brand-pink">History</span>
+            <h1 className="text-center md:text-left text-2xl md:text-3xl font-black tracking-tighter uppercase text-gray-900 dark:text-white">
+              Invoices <span className="text-brand-pink">History</span>
             </h1>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em] mt-1">
+            <p className="text-center md:text-left text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em] mt-1">
               Transaction Log & Revenue Tracking
             </p>
           </div>

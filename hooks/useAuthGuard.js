@@ -15,10 +15,11 @@ export default function useAuthGuard(allowedRoles = []) {
   const isAuthorized = user && allowedRoles.includes(user.type);
 
   useEffect(() => {
+    if (loading) return;
     // Only act when loading is finished
     if (!loading) {
       if (!user || !isAuthorized) {
-        router.push("/");
+        router.replace("/");
       }
     }
   }, [user, loading, router, isAuthorized]);

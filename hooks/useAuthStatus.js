@@ -28,7 +28,7 @@ export default function useAuthStatus() {
       } catch (err) {
         console.debug(
           "useAuthStatus: failed to read idToken",
-          err?.message ?? err
+          err?.message ?? err,
         );
         setIdToken(null);
       }

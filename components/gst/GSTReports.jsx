@@ -518,9 +518,9 @@ export default function GSTReports() {
       <div className="max-w-6xl mx-auto">
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase text-gray-900 dark:text-white leading-none">
-              Tax <span className="text-blue-600">Liability</span>
+          <div className="text-center md:text-left">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-gray-900 dark:text-white leading-none">
+              GST <span className="text-blue-600">Reports</span>
             </h1>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.4em] mt-3">
               Sales Output <span className="text-blue-600 italic">vs</span>{" "}
@@ -618,7 +618,7 @@ export default function GSTReports() {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 Total Taxable Sales
               </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
+              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-normal">
                 Nu. {currentData.totalSales.toLocaleString()}
               </p>
             </div>
@@ -639,7 +639,7 @@ export default function GSTReports() {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 Total Taxable Purchases
               </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
+              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-normal">
                 Nu. {currentData.taxablePurchases?.toLocaleString() || "0"}
               </p>
             </div>

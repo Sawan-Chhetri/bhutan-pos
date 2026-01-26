@@ -5,6 +5,7 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 
 function Page() {
   const { isAuthorized, isLoading } = useAuthGuard(["pos"]);
+
   if (!isAuthorized) {
     return null;
   }

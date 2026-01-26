@@ -248,7 +248,7 @@ const LandingPage = () => {
             className="w-full sm:w-auto px-12 py-5 rounded-2xl text-lg font-black bg-[#A8DF8E] text-slate-950 hover:shadow-[0_20px_50px_rgba(168,223,142,0.4)] transition-all transform hover:-translate-y-1"
           >
             {/* Fix My Billing — Nu. 0 Today */}
-            Start GST Billing — Free for 14 Days
+            Start Today — Free for 14 Days
           </a>
         </div>
         <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest">
