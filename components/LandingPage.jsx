@@ -245,9 +245,9 @@ const LandingPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a
             href="/get-started"
-            className="w-full sm:w-auto px-12 py-5 rounded-2xl text-lg font-black bg-[#A8DF8E] text-slate-950 hover:shadow-[0_20px_50px_rgba(168,223,142,0.4)] transition-all transform hover:-translate-y-1"
+            // className="w-full sm:w-auto px-12 py-5 rounded-2xl text-lg font-black bg-[#A8DF8E] text-slate-950 hover:shadow-[0_20px_50px_rgba(168,223,142,0.4)] transition-all transform hover:-translate-y-1"
+            className="w-full md:w-md bg-gray-900 dark:bg-brand-pink text-white py-5 px-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-pink-500/10 mt-4 disabled:opacity-50 disabled:hover:scale-100"
           >
-            {/* Fix My Billing — Nu. 0 Today */}
             Start Today — Free for 14 Days
           </a>
         </div>
@@ -437,7 +437,8 @@ const LandingPage = () => {
           </p>
           <a
             href="/get-started"
-            className="inline-block px-12 py-5 rounded-2xl text-lg font-black bg-slate-950 text-white hover:bg-slate-800 transition shadow-2xl shadow-slate-900/40"
+            // className="inline-block px-12 py-5 rounded-2xl text-lg font-black bg-slate-950 text-white hover:bg-slate-800 transition shadow-2xl shadow-slate-900/40"
+            className="w-auto bg-gray-900 dark:bg-brand-pink text-white py-5 px-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-pink-500/10 mt-4 disabled:opacity-50 disabled:hover:scale-100"
           >
             Create Your Account — Free for 14 Days
           </a>

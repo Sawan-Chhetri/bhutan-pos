@@ -111,7 +111,7 @@ export default function PurchaseHistory() {
         {/* Header & Search */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-xl text-center md:text-4xl md:text-left font-black tracking-tighter uppercase">
+            <h1 className="text-3xl text-center md:text-4xl md:text-left font-black tracking-tighter uppercase">
               Purchase <span className="text-blue-600">History</span>
             </h1>
             <p className="text-[10px] text-center md:text-left font-bold text-gray-400 uppercase tracking-[0.4em] mt-1">

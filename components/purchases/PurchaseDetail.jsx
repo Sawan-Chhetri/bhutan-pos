@@ -44,7 +44,7 @@ export default function PurchaseDetail() {
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center font-black uppercase tracking-[0.4em] text-blue-600 animate-pulse">
-        Retrieving Voucher...
+        Retrieving Purchase Invoice...
       </div>
     );
 
@@ -427,7 +427,7 @@ export default function PurchaseDetail() {
           {/* Verification Footer */}
           <div className="mt-10 md:mt-16 pt-8 border-t border-dashed border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-50">
             <p className="text-[8px] md:text-[9px] font-black uppercase tracking-widest italic text-center sm:text-left">
-              Digital Record • Verified for BRS Compliance
+              Digital Record
             </p>
             <p className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-blue-500">
               Generated via SwiftGST

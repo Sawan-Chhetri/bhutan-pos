@@ -517,9 +517,10 @@ export default function GSTReports() {
     <div className="p-4 md:p-12 bg-[#F8F9FA] dark:bg-gray-950 min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* HEADER SECTION */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-          <div className="text-center md:text-left">
-            <h1 className="text-2xl md:text-4xl font-black tracking-tighter uppercase text-gray-900 dark:text-white leading-none">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-12 gap-8">
+          {/* Left/Top: Text Block */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-gray-900 dark:text-white leading-none">
               GST <span className="text-blue-600">Reports</span>
             </h1>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.4em] mt-3">
@@ -528,30 +529,33 @@ export default function GSTReports() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 p-2 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 flex items-center gap-3">
-            <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-              <FiCalendar size={20} />
+          {/* Right/Bottom: Month Selector */}
+          <div className="w-full md:w-auto flex justify-center">
+            <div className="bg-white dark:bg-gray-900 p-2 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 w-fit">
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl text-blue-600">
+                <FiCalendar size={20} />
+              </div>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-transparent text-xs font-black uppercase tracking-widest outline-none pr-8 cursor-pointer dark:text-white"
+              >
+                {gstReports
+                  .sort((a, b) => (a.month > b.month ? -1 : 1))
+                  .map((rpt) => (
+                    <option
+                      key={rpt.month}
+                      value={rpt.month}
+                      className="dark:bg-gray-900"
+                    >
+                      {new Date(rpt.month + "-01").toLocaleString("en-US", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </option>
+                  ))}
+              </select>
             </div>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-xs font-black uppercase tracking-widest outline-none pr-8 cursor-pointer dark:text-white"
-            >
-              {gstReports
-                .sort((a, b) => (a.month > b.month ? -1 : 1))
-                .map((rpt) => (
-                  <option
-                    key={rpt.month}
-                    value={rpt.month}
-                    className="dark:bg-gray-900"
-                  >
-                    {new Date(rpt.month + "-01").toLocaleString("en-US", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </option>
-                ))}
-            </select>
           </div>
         </div>
 
