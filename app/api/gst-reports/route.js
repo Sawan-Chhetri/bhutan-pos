@@ -43,6 +43,7 @@ export async function GET(request) {
       gstCollected: doc.data()?.gstCollected || 0,
       purchaseCount: doc.data()?.purchaseCount || 0,
       taxablePurchases: doc.data()?.taxablePurchases || 0,
+      saleCount: doc.data()?.saleCount || 0,
       itcClaimed: doc.data()?.itcClaimed || 0,
     }));
 

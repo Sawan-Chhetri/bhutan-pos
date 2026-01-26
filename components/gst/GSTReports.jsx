@@ -505,6 +505,8 @@ export default function GSTReports() {
     gstCollected: 0,
     taxablePurchases: 0,
     itcClaimed: 0,
+    saleCount: 0,
+    purchaseCount: 0,
   };
 
   // The critical math for Net Liability
@@ -558,10 +560,6 @@ export default function GSTReports() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           {/* OUTPUT BOX */}
           <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
-            <FiPlusCircle
-              className="absolute -right-2 -top-2 text-green-500/5 group-hover:text-green-500/10 transition-colors"
-              size={120}
-            />
             <h3 className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Output
               GST (Sales)
@@ -574,10 +572,6 @@ export default function GSTReports() {
 
           {/* INPUT BOX */}
           <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
-            <FiMinusCircle
-              className="absolute -right-2 -top-2 text-blue-500/5 group-hover:text-blue-500/10 transition-colors"
-              size={120}
-            />
             <h3 className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Input
               Credit (ITC)
@@ -593,14 +587,14 @@ export default function GSTReports() {
             className={`rounded-[2.5rem] p-8 shadow-2xl transition-all ${
               netGstPayable > 0
                 ? "bg-gray-900 text-white"
-                : "bg-blue-600 text-white"
+                : "bg-[#A8DF8E] text-white"
             }`}
           >
-            <h3 className="text-[9px] font-black uppercase tracking-widest opacity-60 mb-6 flex items-center gap-2">
+            <h3 className="text-[9px] font-black uppercase tracking-widest opacity-90 mb-6 flex items-center gap-2">
               <FiShield />{" "}
               {netGstPayable > 0 ? "Net GST Payable" : "Tax Carry Forward"}
             </h3>
-            <p className="text-sm font-black opacity-60 mb-1">Nu.</p>
+            <p className="text-sm font-black opacity-90 mb-1">Nu.</p>
             <p className="text-5xl font-mono font-black italic tracking-tighter">
               {Math.abs(netGstPayable).toLocaleString()}
             </p>
@@ -610,10 +604,16 @@ export default function GSTReports() {
         {/* 2. VOLUME TRACKING */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <FiTrendingUp
-              className="absolute -right-6 -bottom-6 text-gray-50 dark:text-gray-800 group-hover:scale-110 transition-transform"
-              size={180}
-            />
+            <div className="relative z-10">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                Total Sales
+              </p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
+                {currentData.saleCount}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
             <div className="relative z-10">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 Total Taxable Sales
@@ -625,10 +625,16 @@ export default function GSTReports() {
           </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <FiShoppingBag
-              className="absolute -right-6 -bottom-6 text-gray-50 dark:text-gray-800 group-hover:scale-110 transition-transform"
-              size={180}
-            />
+            <div className="relative z-10">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                Total Purchases
+              </p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
+                {currentData.purchaseCount}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
             <div className="relative z-10">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 Total Taxable Purchases
@@ -667,7 +673,7 @@ export default function GSTReports() {
         </div>
 
         <p className="text-center mt-16 text-[9px] font-black text-gray-400 uppercase tracking-[0.6em]">
-          SwiftGST Analytics Engine • Verified Bhutan Standards
+          SwiftGST Analytics Engine
         </p>
       </div>
     </div>

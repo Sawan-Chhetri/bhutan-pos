@@ -74,6 +74,7 @@ export async function GET(request, { params }) {
       business: {
         name: storeData.name || "",
         phone: storeData.phone || "",
+        gstNumber: storeData.gstNumber || "",
       },
     });
   } catch (err) {

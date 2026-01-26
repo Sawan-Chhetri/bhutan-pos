@@ -71,6 +71,36 @@ export default function PurchaseDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 md:p-12 print:p-0">
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0.8cm;
+          }
+          body {
+            background: white !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .report-card {
+            box-shadow: none !important;
+            border: 1px solid #eee !important;
+            margin: 0 !important;
+            padding: 2rem !important;
+          }
+          .section-spacing {
+            margin-bottom: 1.2rem !important;
+          }
+          .grid-spacing {
+            gap: 0.75rem !important;
+            margin-bottom: 1.2rem !important;
+          }
+          .liability-card {
+            padding: 2rem !important;
+          }
+        }
+      `}</style>
       {/* 1. TOP NAVIGATION (Hidden on Print) */}
       <nav className="max-w-4xl mx-auto mb-8 flex justify-between items-center print:hidden">
         <Link

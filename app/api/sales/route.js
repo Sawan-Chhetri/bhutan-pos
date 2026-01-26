@@ -133,11 +133,6 @@ export async function POST(request) {
           qty: Number(item.qty || 0),
           lineTotal,
           isGSTExempt: item.isGSTExempt ?? false,
-          customerName: customerName || null,
-          customerCID: customerCID || null,
-          cusAddress: customerAddress || null,
-          cusId: customerId || null,
-          isPaid: isPaid ?? true,
         };
       });
 

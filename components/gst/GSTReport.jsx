@@ -328,7 +328,7 @@ export default function GSTReport({ month }) {
         setReport({ ...data, monthLabel, generatedOn });
         setBusiness({
           name: data.business?.name || "Bhutan POS Enterprise",
-          tin: data.business?.tin || "TIN PENDING",
+          tpn: data.business?.gstNumber || "TPN PENDING",
         });
       } catch (err) {
         setError(err.message);
@@ -413,7 +413,7 @@ export default function GSTReport({ month }) {
                   {business.name}
                 </h1>
                 <p className="text-[9px] font-bold text-brand-pink uppercase tracking-widest mt-1">
-                  TIN: {business.tin}
+                  GST TPN: {business.tpn}
                 </p>
               </div>
             </div>
@@ -437,10 +437,23 @@ export default function GSTReport({ month }) {
           </div>
 
           {/* Financial Breakdown Grid */}
-          <div className="grid-spacing grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <SummaryItem label="Gross Sales" value={report.totalSales} isBold />
+          <div className="grid-spacing grid grid-cols-2 md:grid-cols-2 gap-4 mb-8">
+            <SummaryItemCount
+              label="Total Sales"
+              value={report.saleCount || 0}
+              isBold
+            />
+            <SummaryItemCount
+              label="Total Purchases"
+              value={report.purchaseCount || 0}
+            />
             <SummaryItem
-              label="Taxable Purchases"
+              label="Total Taxable Sales"
+              value={report.taxableSales}
+              isBold
+            />
+            <SummaryItem
+              label="Total Taxable Purchases"
               value={report.taxablePurchases || 0}
             />
             <SummaryItem
@@ -459,7 +472,7 @@ export default function GSTReport({ month }) {
 
           {/* Total Net Section */}
           <div
-            className={`liability-card relative rounded-3xl p-8 overflow-hidden transition-colors ${netPayable > 0 ? "bg-gray-900" : "bg-green-600"}`}
+            className={`liability-card relative rounded-3xl p-8 overflow-hidden transition-colors ${netPayable > 0 ? "bg-gray-900" : "bg-blue-600"}`}
           >
             <div className="relative z-10 flex flex-col items-center text-center">
               <h3 className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] mb-2">
@@ -523,6 +536,36 @@ function SummaryItem({ label, value, isBold, isPink, isBlue, icon }) {
           }`}
         >
           {value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SummaryItemCount({ label, value, isBold, isPink, isBlue, icon }) {
+  return (
+    <div className="p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl group transition-all">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">
+          {label}
+        </p>
+        <span className="opacity-20 group-hover:opacity-100 transition-opacity">
+          {icon}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-0.5">
+        <span
+          className={`text-lg font-black font-mono tracking-tighter ${
+            isBold
+              ? "text-gray-900 dark:text-white"
+              : isPink
+                ? "text-brand-pink"
+                : isBlue
+                  ? "text-blue-500"
+                  : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
+          {value}
         </span>
       </div>
     </div>

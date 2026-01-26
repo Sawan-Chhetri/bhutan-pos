@@ -438,10 +438,10 @@ export default function InvoicePage() {
       justifyContent: "space-between",
       marginBottom: 30,
       borderBottom: 2,
-      borderBottomColor: "#F472B6",
+      borderBottomColor: "#A8DF8E",
       paddingBottom: 20,
     },
-    brand: { fontSize: 20, fontWeight: "bold", color: "#F472B6" },
+    brand: { fontSize: 20, fontWeight: "bold", color: "#A8DF8E" },
     address: { color: "#6B7280", fontSize: 9, marginTop: 4 },
     metaBox: { textAlign: "right" },
     title: {
@@ -464,7 +464,7 @@ export default function InvoicePage() {
       flexDirection: "row",
       backgroundColor: "#F9FAFB",
       borderBottom: 1,
-      borderBottomColor: "#E5E7EB",
+      borderBottomColor: "#A8DF8E",
       padding: 8,
     },
     th: { flex: 1, fontWeight: "bold", color: "#374151" },
@@ -489,7 +489,7 @@ export default function InvoicePage() {
       marginBottom: 4,
     },
     grandTotal: {
-      color: "#F472B6",
+      color: "#A8DF8E",
       fontWeight: "bold",
       fontSize: 12,
       marginTop: 4,
@@ -515,10 +515,13 @@ export default function InvoicePage() {
             </Text>
             <Text style={pdfStyles.address}>{invoice.store.address}</Text>
             <Text style={pdfStyles.address}>Phone: {invoice.store.phone}</Text>
+            <Text style={pdfStyles.address}>
+              GST TPN: {invoice.store.gstNumber}
+            </Text>
           </View>
           <View style={pdfStyles.metaBox}>
             <Text style={pdfStyles.title}>Tax Invoice</Text>
-            <Text>No: {invoice.invoiceNumber}</Text>
+            <Text>Invoice # {invoice.invoiceNumber}</Text>
             <Text>Date: {invoice.date}</Text>
           </View>
         </View>
@@ -539,13 +542,38 @@ export default function InvoicePage() {
           </View>
           {invoice.items.map((item, i) => (
             <View key={i} style={pdfStyles.row}>
-              <Text style={[pdfStyles.td, { flex: 2 }]}>{item.name}</Text>
+              <View
+                style={[
+                  pdfStyles.td,
+                  { flex: 2, flexDirection: "row", alignItems: "center" },
+                ]}
+              >
+                <Text
+                  style={{ fontSize: 10, fontWeight: "bold", color: "#111827" }}
+                >
+                  {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}
+                </Text>
+                {item.isGSTExempt && (
+                  <Text
+                    style={{
+                      fontSize: 7,
+                      fontWeight: "heavy",
+                      color: "#9CA3AF", // Muted Gray
+                      marginLeft: 4,
+                      letterSpacing: 0.5,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    [EXEMPT]
+                  </Text>
+                )}
+              </View>
               <Text style={pdfStyles.td}>{item.qty}</Text>
               <Text style={pdfStyles.td}>
-                {parseInt(item.unitPrice).toFixed(2)}
+                {item.unitPrice.toLocaleString()}
               </Text>
               <Text style={pdfStyles.td}>
-                {(item.qty * item.unitPrice).toFixed(2)}
+                {(item.qty * item.unitPrice).toLocaleString()}
               </Text>
             </View>
           ))}
@@ -554,15 +582,15 @@ export default function InvoicePage() {
         <View style={pdfStyles.totalsArea}>
           <View style={pdfStyles.totalRow}>
             <Text>Subtotal</Text>
-            <Text>{invoice.subtotal.toFixed(2)}</Text>
+            <Text>{invoice.subtotal.toLocaleString()}</Text>
           </View>
           <View style={pdfStyles.totalRow}>
             <Text>GST (5%)</Text>
-            <Text>{invoice.gst.toFixed(2)}</Text>
+            <Text>{invoice.gst.toLocaleString()}</Text>
           </View>
           <View style={[pdfStyles.totalRow, pdfStyles.grandTotal]}>
             <Text>TOTAL</Text>
-            <Text>Nu. {invoice.total.toFixed(2)}</Text>
+            <Text>Nu. {invoice.total.toLocaleString()}</Text>
           </View>
         </View>
 
@@ -690,8 +718,24 @@ export default function InvoicePage() {
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                 {invoice.items.map((item, i) => (
                   <tr key={i}>
-                    <td className="px-6 py-5 text-sm font-bold text-gray-800 dark:text-gray-200">
-                      {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}
+                    {/* <td className="px-6 py-5 text-sm font-bold text-gray-800 dark:text-gray-200">
+                      {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}{" "}
+                      <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter">
+                        No GST
+                      </span>
+                    </td> */}
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                          {item.name.charAt(0).toUpperCase() +
+                            item.name.slice(1)}
+                        </span>
+                        {item.isGSTExempt && (
+                          <span className="px-1.5 py-0.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                            Exempt
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-5 text-sm font-black text-gray-500 font-mono">
                       {item.qty}
