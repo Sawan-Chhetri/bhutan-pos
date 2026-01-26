@@ -254,7 +254,6 @@ import {
   FiChevronRight,
   FiCheckCircle,
   FiClock,
-  FiArrowLeft,
 } from "react-icons/fi";
 
 const ITEMS_PER_PAGE = 15;
@@ -391,106 +390,236 @@ export default function SalesScreen() {
 
         {/* Table Container */}
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden">
-          <div className="relative group">
-            <div className="overflow-x-auto rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl">
-              <table className="w-full text-left border-collapse min-w-[700px]">
-                {/* min-w prevents squashing */}
-                <thead>
-                  <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                    {/* Sticky Header Column */}
-                    <th className="sticky left-0 z-10 bg-gray-50 dark:bg-gray-800 px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest shadow-[4px_0_10px_-5px_rgba(0,0,0,0.1)]">
-                      Order Info
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      Customer
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      Date
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      Amount
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      {user?.type === "other" ? "Management" : "Items"}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-800 bg-white dark:bg-gray-900">
-                  {sales.map((sale) => (
-                    <tr
-                      key={sale.id}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-                    >
-                      {/* Sticky Row Column */}
-                      <td className="sticky left-0 z-10 bg-white dark:bg-gray-900 px-6 py-5 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.1)]">
-                        <Link
-                          href={`/invoice/${sale.id}`}
-                          target="_blank"
-                          className="flex items-center gap-3 group/link whitespace-nowrap"
-                        >
-                          <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg text-brand-pink">
-                            <FiFileText size={16} />
-                          </div>
-                          <span className="font-bold text-sm text-gray-900 dark:text-gray-100 group-hover/link:text-brand-pink">
-                            {sale.invoiceNumber}
-                          </span>
-                        </Link>
-                      </td>
-
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                          <FiUser size={14} className="opacity-50" />
-                          <span className="font-medium">
-                            {sale.customerName || "Walk-in"}
-                          </span>
+          <div className="overflow-x-auto">
+            {/* <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Order Info
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Customer
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Amount
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {user?.type === "other" ? "Management" : "Items"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                {sales.map((sale) => (
+                  <tr
+                    key={sale.id}
+                    className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                  >
+                    <td className="px-6 py-5">
+                      <Link
+                        href={`/invoice/${sale.id}`}
+                        target="_blank"
+                        className="flex items-center gap-3 group"
+                      >
+                        <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg text-brand-pink group-hover:scale-110 transition-transform">
+                          <FiFileText size={16} />
                         </div>
-                      </td>
+                        <span className="font-bold text-sm text-gray-900 dark:text-gray-100 group-hover:text-brand-pink transition-colors">
+                          {sale.invoiceNumber}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <FiUser size={14} className="opacity-50" />
+                        <span className="font-medium">
+                          {sale.customerName || "Walk-in"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-tight">
+                        <FiCalendar size={14} />
+                        {sale.date}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-baseline gap-1 text-brand-pink">
+                        <span className="text-[10px] font-black uppercase">
+                          Nu.
+                        </span>
+                        <span className="text-base font-black font-mono tracking-tighter">
+                          {sale.total.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      {user?.type === "other" ? (
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => {
+                              setSelectedSaleId(sale.id);
+                              setModalOpen(true);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${
+                              paidStatus[sale.id]
+                                ? "bg-green-50 text-green-600 border-green-200"
+                                : "bg-amber-50 text-amber-600 border-amber-200"
+                            }`}
+                          >
+                            {paidStatus[sale.id] ? (
+                              <FiCheckCircle />
+                            ) : (
+                              <FiClock />
+                            )}
+                            {paidStatus[sale.id] ? "Paid" : "Pending"}
+                          </button>
 
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-tight">
-                          <FiCalendar size={14} />
-                          {sale.date}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        <div className="flex items-baseline gap-1 text-brand-pink font-mono">
-                          <span className="text-[10px] font-black uppercase">
-                            Nu.
-                          </span>
-                          <span className="text-base font-black tracking-tighter">
-                            {sale.total.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                            })}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-5 whitespace-nowrap">
-                        {user?.type === "other" ? (
-                          <div className="flex items-center gap-4">
-                            <span
-                              className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                                paidStatus[sale.id]
-                                  ? "bg-green-50 text-green-600 border-green-200"
-                                  : "bg-amber-50 text-amber-600 border-amber-200"
+                          {/* Toggle Switch UI */}
+            {/* <button
+                            onClick={() =>
+                              handleTogglePaid(sale.id, !paidStatus[sale.id])
+                            }
+                            className={`w-10 h-5 rounded-full relative transition-colors ${
+                              paidStatus[sale.id]
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            <div
+                              className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${
+                                paidStatus[sale.id] ? "left-6" : "left-1"
                               }`}
-                            >
-                              {paidStatus[sale.id] ? "Paid" : "Pending"}
-                            </span>
-                            {/* Your Switch Toggle Component */}
-                          </div>
-                        ) : (
-                          <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-[10px] font-black text-gray-500 uppercase tracking-widest italic">
-                            {sale.items.length} Items
+                            />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                          {sale.items.length} Items
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table> */}
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              {/* min-w prevents squashing */}
+              <thead>
+                <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                  {/* Sticky Header Column */}
+                  <th className="sticky left-0 z-10 bg-gray-50 dark:bg-gray-800 px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest shadow-[4px_0_10px_-5px_rgba(0,0,0,0.1)]">
+                    Order Info
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Customer
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Amount
+                  </th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {user?.type === "other" ? "Management" : "Items"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800 bg-white dark:bg-gray-900">
+                {sales.map((sale) => (
+                  <tr
+                    key={sale.id}
+                    className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                  >
+                    {/* Sticky Row Column */}
+                    <td className="sticky left-0 z-10 bg-white dark:bg-gray-900 px-6 py-5 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.1)]">
+                      <Link
+                        href={`/invoice/${sale.id}`}
+                        target="_blank"
+                        className="flex items-center gap-3 group/link whitespace-nowrap"
+                      >
+                        <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg text-brand-pink">
+                          <FiFileText size={16} />
+                        </div>
+                        <span className="font-bold text-sm text-gray-900 dark:text-gray-100 group-hover/link:text-brand-pink">
+                          {sale.invoiceNumber}
+                        </span>
+                      </Link>
+                    </td>
+
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <FiUser size={14} className="opacity-50" />
+                        <span className="font-medium">
+                          {sale.customerName || "Walk-in"}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-tight">
+                        <FiCalendar size={14} />
+                        {sale.date}
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <div className="flex items-baseline gap-1 text-brand-pink font-mono">
+                        <span className="text-[10px] font-black uppercase">
+                          Nu.
+                        </span>
+                        <span className="text-base font-black tracking-tighter">
+                          {sale.total.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      {user?.type === "other" ? (
+                        <div className="flex items-center gap-4">
+                          <span
+                            className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                              paidStatus[sale.id]
+                                ? "bg-green-50 text-green-600 border-green-200"
+                                : "bg-amber-50 text-amber-600 border-amber-200"
+                            }`}
+                          >
+                            {paidStatus[sale.id] ? "Paid" : "Pending"}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          {/* Toggle Switch UI */}
+                          <button
+                            onClick={() =>
+                              handleTogglePaid(sale.id, !paidStatus[sale.id])
+                            }
+                            className={`w-10 h-5 rounded-full relative transition-colors ${
+                              paidStatus[sale.id]
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                            }`}
+                          >
+                            <div
+                              className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${
+                                paidStatus[sale.id] ? "left-6" : "left-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-[10px] font-black text-gray-500 uppercase tracking-widest italic">
+                          {sale.items.length} Items
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
