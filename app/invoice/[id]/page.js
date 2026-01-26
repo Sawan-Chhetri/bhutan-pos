@@ -697,7 +697,7 @@ export default function InvoicePage() {
           </div>
 
           {/* Table */}
-          <div className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden mb-12">
+          <div className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-x-auto mb-12">
             <table className="w-full text-left">
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr>

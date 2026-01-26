@@ -71,6 +71,7 @@ export async function GET(request, { params }) {
       taxablePurchases: gstData.taxablePurchases || 0,
       itcClaimed: gstData.itcClaimed || 0,
       purchaseCount: gstData.purchaseCount || 0,
+      saleCount: gstData.saleCount || 0,
       business: {
         name: storeData.name || "",
         phone: storeData.phone || "",
