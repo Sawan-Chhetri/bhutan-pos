@@ -436,6 +436,7 @@ export default function InvoiceBuilder() {
         customerId,
         isPaid: false,
       };
+      const authFetch = (await import("@/lib/authFetch")).default;
       const res = await authFetch(
         "/api/sales",
         {
