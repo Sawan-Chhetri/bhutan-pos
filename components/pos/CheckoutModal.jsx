@@ -255,7 +255,7 @@ export default function CheckoutModal({
 
   return (
     <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
         {/* Progress/Indicator Header */}
         {isHighValue && (
           <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] py-1.5 text-center">
