@@ -16,7 +16,7 @@
 //   const [gstNumber, setGstNumber] = useState("");
 //   const [customerName, setCustomerName] = useState("");
 //   const [customerAddress, setCustomerAddress] = useState("");
-//   const [customerId, setCustomerId] = useState("");
+//   const [customerCID, setcustomerCID] = useState("");
 //   const [items, setItems] = useState([
 //     {
 //       id: Date.now().toString(),
@@ -101,7 +101,7 @@
 //         total,
 //         customerName,
 //         customerAddress,
-//         customerId,
+//         customerCID,
 //         isPaid: false,
 //       };
 
@@ -143,7 +143,7 @@
 //     setGstNumber("");
 //     setCustomerName("");
 //     setCustomerAddress("");
-//     setCustomerId("");
+//     setcustomerCID("");
 
 //     setItems([
 //       {
@@ -195,8 +195,8 @@
 //           <label className="block text-sm font-medium mb-1">ID #</label>
 //           <input
 //             className="w-full px-3 py-2 rounded border border-gray-200"
-//             value={customerId}
-//             onChange={(e) => setCustomerId(e.target.value)}
+//             value={customerCID}
+//             onChange={(e) => setcustomerCID(e.target.value)}
 //             placeholder="Customer ID (CID/Passport No.)"
 //           />
 //         </div>
@@ -371,7 +371,7 @@ export default function InvoiceBuilder() {
   // --- STATE ---
   const [customerName, setCustomerName] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [customerId, setCustomerId] = useState("");
+  const [customerCID, setcustomerCID] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [items, setItems] = useState([]);
 
@@ -433,10 +433,9 @@ export default function InvoiceBuilder() {
         total,
         customerName,
         customerAddress,
-        customerId,
+        customerCID,
         isPaid: false,
       };
-      const authFetch = (await import("@/lib/authFetch")).default;
       const res = await authFetch(
         "/api/sales",
         {
@@ -531,9 +530,9 @@ export default function InvoiceBuilder() {
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <HorizonInput
-                label="Reference ID"
-                value={customerId}
-                onChange={setCustomerId}
+                label="CID / Passport Number"
+                value={customerCID}
+                onChange={setcustomerCID}
                 placeholder="CID / License No."
               />
               <HorizonInput
