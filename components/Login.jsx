@@ -153,7 +153,7 @@ function Login({ onSuccess }) {
 
   useEffect(() => {
     if (!user) return;
-    if (user.type === "pos") {
+    if (user.type === "pos" || user.type === "restaurants") {
       router.push("/pos");
     } else {
       router.push("/invoice");

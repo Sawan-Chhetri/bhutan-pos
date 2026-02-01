@@ -32,9 +32,15 @@ export async function POST(request) {
 
     const itemRef = db.collection(`stores/${storeId}/items`).doc();
 
+    const stock = Number(item.stock) || 0;
+    const minStock = Number(item.minStock) || 0;
+
     await itemRef.set({
       ...item,
       isActive: true,
+      stock, // Ensure number
+      minStock, // Ensure number
+      isLowStock: stock <= minStock,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -88,7 +94,7 @@ export async function PATCH(request) {
     }
 
     // 4. Whitelist allowed fields
-    const allowedFields = ["name", "price", "category", "isGSTExempt"];
+    const allowedFields = ["name", "price", "category", "isGSTExempt", "minStock"];
     const safeUpdates = {};
 
     for (const key of allowedFields) {
@@ -104,9 +110,16 @@ export async function PATCH(request) {
       );
     }
 
+    // 5. Recalculate isLowStock if minStock is updated
+    if (safeUpdates.minStock !== undefined) {
+      const currentStock = Number(itemSnap.data().stock || 0);
+      const newMin = Number(safeUpdates.minStock);
+      safeUpdates.isLowStock = currentStock <= newMin;
+    }
+
     safeUpdates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-    // 5. Update
+    // 6. Update
     await itemRef.update(safeUpdates);
 
     return NextResponse.json({ success: true });

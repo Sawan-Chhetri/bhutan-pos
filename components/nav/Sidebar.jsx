@@ -368,12 +368,16 @@ import {
   FiChevronRight,
   FiShoppingCart, // Added for Purchases
   FiPackage, // Added for Inventory
+  FiClipboard, // Added for Shopping List
 } from "react-icons/fi";
 import useLogout from "@/hooks/useLogout";
+import usePermissions from "@/hooks/usePermissions";
 import { UserContext } from "@/contexts/UserContext";
 
 export default function Sidebar() {
   const { user } = useContext(UserContext);
+  const permissions = usePermissions(user);
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const sidebarRef = useRef(null);
@@ -413,50 +417,58 @@ export default function Sidebar() {
       href: "/pos",
       label: "POS DASHBOARD",
       icon: <FiGrid size={18} />,
-      roles: ["pos", "admin"],
+      // roles: ["pos", "admin", "restaurants"]
+      condition: permissions.isPosUser || permissions.isAdmin || permissions.isRestaurantUser,
     },
     {
       href: "/add-items",
       label: "INVENTORY MGMT",
       icon: <FiPackage size={18} />,
-      roles: ["pos", "admin"],
+      condition: permissions.canManageInventory,
     },
     // ---------------------------
     {
       href: "/invoice",
       label: "CREATE INVOICE",
       icon: <FiFileText size={18} />,
-      roles: ["admin", "other"],
+      // roles: ["admin", "other"]
+      condition: permissions.isBasicUser || permissions.isAdmin,
+    },
+    {
+      href: "/shopping-list",
+      label: "SHOPPING LIST",
+      icon: <FiClipboard size={18} />,
+      condition: permissions.canViewShoppingList,
     },
     {
       href: "/invoices",
       label: "INVOICE HISTORY",
       icon: <FiFileText size={18} />,
-      roles: ["admin", "other", "pos"],
+      condition: true, // All authenticated users can view history (or restrict if needed)
     },
     // --- NEW PURCHASE ROUTES ---
     {
       href: "/purchases",
       label: "RECORD PURCHASE",
       icon: <FiPlusCircle size={18} />,
-      roles: ["admin", "pos", "other"],
+      condition: true, // Available to all active users
     },
     {
       href: "/purchase-history",
       label: "PURCHASE HISTORY",
       icon: <FiShoppingCart size={18} />,
-      roles: ["admin", "pos", "other"],
+      condition: true,
     },
     {
       href: "/gst-reports",
       label: "GST REPORTS",
       icon: <FiBarChart2 size={18} />,
-      roles: ["admin", "other", "pos"],
+      condition: true,
     },
   ];
 
   const visibleLinks = links.filter(
-    (link) => !link.roles || link.roles.includes(user?.type),
+    (link) => link.condition !== false
   );
 
   return (
@@ -511,7 +523,7 @@ export default function Sidebar() {
                     {user?.name || "Guest Operator"}
                   </span>
                   <span className="text-[10px] font-bold text-brand-pink uppercase tracking-widest truncate">
-                    {user?.type === "other" ? "Service" : "POS"} Access
+                    {user?.type === "other" ? "Service" : user?.type === "restaurants" ? "Restaurant" : "POS"} Access
                   </span>
                 </div>
               </div>

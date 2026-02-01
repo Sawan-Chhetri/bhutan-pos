@@ -324,7 +324,8 @@
 // }
 
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
+import { UserContext } from "@/contexts/UserContext";
 import {
   FiPlus,
   FiTrash2,
@@ -334,13 +335,18 @@ import {
   FiX,
   FiActivity,
   FiPercent,
+  FiSearch,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
+import usePermissions from "@/hooks/usePermissions";
+
 
 export default function PurchaseLedger() {
   const { idToken } = useAuthStatus();
+  const { user } = useContext(UserContext);
+  const permissions = usePermissions(user);
   const [saving, setSaving] = useState(false);
 
   // --- FORM STATE ---
@@ -356,7 +362,11 @@ export default function PurchaseLedger() {
     qty: 1,
     cost: 0,
     isTaxable: true,
+    itemId: null, // Track the ID
   });
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // --- CALCULATIONS ---
   // Assuming standard 5% GST for calculation
@@ -388,8 +398,57 @@ export default function PurchaseLedger() {
         : 0,
     };
     setItems([...items, newItem]);
-    setTempItem({ description: "", qty: 1, cost: 0, isTaxable: true });
+    setTempItem({ description: "", qty: 1, cost: 0, isTaxable: true, itemId: null });
+    setSearchQuery("");
+    setSearchResults([]);
     setIsModalOpen(false);
+  };
+
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    // Always update description for free text
+    // If we select an item later, it will overwrite this
+    // If not, this is what goes to the DB (for 'other' users or valid free text)
+    // Actually the onChange calling this ALREADY does setTempItem... wait.
+    // The onChange below does: 
+    // onChange={(v) => { handleSearch(v); setIsSearching(true); setTempItem(...) }}
+    
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+    
+    // Only search for POS users
+    if (!permissions.canSearchInventory) return;
+
+    try {
+      const storeId = user?.storeId;
+      if (!storeId) return;
+
+      const res = await fetch(
+        `/api/search-items?query=${encodeURIComponent(query)}&storeId=${storeId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Search failed", error);
+    }
+  };
+
+  const selectItem = (item) => {
+    setTempItem({
+      ...tempItem,
+      description: item.name,
+      // cost: item.price, // Optional: pre-fill cost if desired? Usually cost != price.
+      itemId: item.id,
+    });
+    setSearchQuery(item.name);
+    setSearchResults([]);
+    setIsSearching(false);
   };
 
   const recordPurchase = async () => {
@@ -589,11 +648,63 @@ export default function PurchaseLedger() {
             </div>
 
             <div className="space-y-10">
-              <BlueInput
-                label="Description"
-                value={tempItem.description}
-                onChange={(v) => setTempItem({ ...tempItem, description: v })}
-              />
+              <div className="relative">
+                <BlueInput
+                  label={permissions.canSearchInventory ? "Search Item / Service" : "Description"}
+                  value={searchQuery}
+                  onChange={(v) => {
+                    setSearchQuery(v);
+                    setTempItem({ ...tempItem, description: v, itemId: null });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleSearch(searchQuery);
+                        setIsSearching(true);
+                    }
+                  }}
+                  onFocus={() => setIsSearching(true)}
+                />
+
+                {permissions.canSearchInventory && (
+                    <div className="absolute top-9 right-0 flex items-center gap-2">
+                        <span className="hidden sm:inline-block text-[9px] font-bold text-gray-300 uppercase tracking-wider mr-2">
+                            Press Enter ↵
+                        </span>
+                        <button
+                            onClick={() => {
+                                handleSearch(searchQuery);
+                                setIsSearching(true);
+                            }}
+                            className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg active:scale-95"
+                        >
+                            <FiSearch size={16} />
+                        </button>
+                    </div>
+                )}
+                {permissions.canSearchInventory && isSearching && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 bg-white shadow-xl rounded-xl mt-2 max-h-48 overflow-y-auto border border-gray-100">
+                    {searchResults.map((res) => (
+                      <button
+                        key={res.id}
+                        onClick={() => selectItem(res)}
+                        className="w-full text-left px-4 py-3 hover:bg-blue-50 text-sm font-bold border-b border-gray-50 last:border-none flex justify-between items-center"
+                      >
+                        <div className="flex flex-col">
+                          <span>{res.name}</span>
+                          {res.barcode && (
+                            <span className="text-[10px] text-gray-400 font-mono font-normal">
+                              SKU: {res.barcode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-gray-400 font-normal">
+                          Nu. {res.price}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-10">
                 <BlueInput
@@ -672,7 +783,7 @@ export default function PurchaseLedger() {
   );
 }
 
-function BlueInput({ label, value, onChange, placeholder, type = "text" }) {
+function BlueInput({ label, value, onChange, placeholder, type = "text", ...props }) {
   return (
     <div className="group space-y-4 text-left">
       <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-blue-600">
@@ -684,6 +795,7 @@ function BlueInput({ label, value, onChange, placeholder, type = "text" }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        {...props}
       />
       <div className="h-[2px] w-full bg-gray-100 group-focus-within:bg-blue-500 transition-all" />
     </div>

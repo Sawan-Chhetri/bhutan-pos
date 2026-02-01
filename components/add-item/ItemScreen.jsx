@@ -525,12 +525,16 @@ import AddItemModal from "./AddItemModal";
 import DeleteModal from "./DeleteModal";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
+import { UserContext } from "@/contexts/UserContext";
+import usePermissions from "@/hooks/usePermissions";
 
 const ITEMS_PER_PAGE = 20;
 
 export default function ItemScreen() {
-  const { user, idToken } = useAuthStatus();
-
+  const { idToken } = useAuthStatus();
+  const { user } = useContext(UserContext);
+  const permissions = usePermissions(user);
+  
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -620,7 +624,7 @@ export default function ItemScreen() {
         <div className="space-y-1">
           <h1 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white flex items-center justify-center gap-3">
             <FiArchive className="text-brand-pink shrink-0" />
-            <span>INVENTORY</span>
+            <span>{permissions.canTrackStock ? "INVENTORY" : "ITEMS"}</span>
           </h1>
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">
             {items.length} Products on Page {currentPage}
@@ -724,7 +728,7 @@ export default function ItemScreen() {
                   {item.category}
                 </span>
                 <span className="text-[10px] text-gray-400 font-mono">
-                  #{item.id.slice(-6).toUpperCase()}
+                  #{item?.id !== null ? item?.id.slice(-6)?.toUpperCase() : ""}
                 </span>
               </div>
 
@@ -752,15 +756,32 @@ export default function ItemScreen() {
                   {Number(item.price).toLocaleString()}
                 </p>
               </div>
-              {viewMode === "grid" && (
+              {/* {viewMode === "grid" && (
                 <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+              )} */}
+                            {viewMode === "grid" && (
+                permissions.canTrackStock ? (
+                  <div className="text-right">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">
+                      Stock
+                    </p>
+                    <p className={`text-xl font-black ${
+                      (item.stock || 0) <= (item.minStock || 0) 
+                        ? "text-red-500" 
+                        : "text-gray-900 dark:text-white"
+                    }`}>
+                      {item.stock || 0}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                )
               )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* --- PAGINATION (MODERN) --- */}
       {/* --- PAGINATION (MODERN & RESPONSIVE) --- */}
       <div className="mt-12 flex items-center justify-center gap-2 sm:gap-3">
         {/* Previous Button */}

@@ -4,7 +4,7 @@ import PosLayout from "@/components/pos/PosLayout";
 import useAuthGuard from "@/hooks/useAuthGuard";
 
 function Page() {
-  const { isAuthorized, isLoading } = useAuthGuard(["pos"]);
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "restaurants"]);
 
   if (!isAuthorized) {
     return null;

@@ -22,22 +22,41 @@ export async function GET(request) {
 
     const db = admin.firestore();
 
-    // 2️⃣ Query Firestore for exact name match
-    const itemsRef = db
+    // 2️⃣ Query Firestore
+    // A) Search by Name (Partial)
+    const nameQueryPromise = db
       .collection(`stores/${storeId}/items`)
       .where("name", ">=", queryName)
-      .where("name", "<=", end);
+      .where("name", "<=", end)
+      .get();
 
-    const itemsSnap = await itemsRef.get();
+    // B) Search by Barcode (Exact) - use original query case
+    const rawQuery = searchParams.get("query").trim();
+    const barcodeQueryPromise = db
+      .collection(`stores/${storeId}/items`)
+      .where("barcode", "==", rawQuery)
+      .get();
 
-    if (itemsSnap.empty) {
-      return NextResponse.json([]);
-    }
+    const [nameSnap, barcodeSnap] = await Promise.all([
+      nameQueryPromise,
+      barcodeQueryPromise,
+    ]);
 
-    const items = itemsSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const results = new Map();
+
+    // Helper to add docs
+    const addDocs = (snap) => {
+      snap.forEach((doc) => {
+        if (!results.has(doc.id)) {
+          results.set(doc.id, { id: doc.id, ...doc.data() });
+        }
+      });
+    };
+
+    addDocs(nameSnap);
+    addDocs(barcodeSnap);
+
+    const items = Array.from(results.values());
 
     return NextResponse.json(items);
   } catch (error) {

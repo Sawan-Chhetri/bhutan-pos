@@ -4,6 +4,8 @@ import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
 import { UserContext } from "@/contexts/UserContext";
 
+import usePermissions from "@/hooks/usePermissions";
+
 export default function AddItem({
   onAddItem,
   onUpdateItem,
@@ -15,10 +17,13 @@ export default function AddItem({
   const [barcode, setBarcode] = useState(editingItem?.barcode || "");
   const [category, setCategory] = useState(editingItem?.category || "");
   const [price, setPrice] = useState(editingItem?.price || "");
+  const [initialStock, setInitialStock] = useState(0);
+  const [minStock, setMinStock] = useState(editingItem?.minStock || 5);
   const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
   const itemId = editingItem ? editingItem.id : null;
   const { idToken } = useAuthStatus();
   const { user, loading: userLoading } = useContext(UserContext);
+  const permissions = usePermissions(user);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +54,7 @@ export default function AddItem({
               category: payload.category,
               isGSTExempt,
               barcode: barcode.trim() || null,
+              minStock: permissions.canTrackStock ? Number(minStock) : undefined,
             },
           }),
         },
@@ -69,6 +75,8 @@ export default function AddItem({
               category: payload.category,
               isGSTExempt,
               barcode: barcode.trim() || null,
+              stock: permissions.canTrackStock ? Number(initialStock) : 0,
+              minStock: permissions.canTrackStock ? Number(minStock) : 0,
             },
           }),
         },
@@ -81,6 +89,8 @@ export default function AddItem({
       setName("");
       setCategory("");
       setPrice("");
+      setInitialStock(0);
+      setMinStock(5);
       setIsGSTExempt(false);
     }
   };
@@ -141,6 +151,37 @@ export default function AddItem({
           placeholder="Enter barcode"
         />
       </div>
+
+      {permissions.canTrackStock && (
+        <div className="flex gap-4">
+          {!editingItem && (
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">
+                Initial Stock
+              </label>
+              <input
+                type="number"
+                value={initialStock}
+                onChange={(e) => setInitialStock(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                placeholder="0"
+              />
+            </div>
+          )}
+          <div className="flex-1">
+            <label className="block text-sm font-medium mb-1">
+              Min Stock Alert
+            </label>
+            <input
+              type="number"
+              value={minStock}
+              onChange={(e) => setMinStock(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+              placeholder="5"
+            />
+          </div>
+        </div>
+      )}
 
       {/* GST Exempt Toggle */}
       <div className="flex items-center gap-3">

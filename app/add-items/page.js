@@ -6,9 +6,11 @@ import { UserContext } from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
 import useAuthGuard from "@/hooks/useAuthGuard";
 
-function Page() {
+function AddItemsPage() {
   // Check auth
-  const { isAuthorized, isLoading } = useAuthGuard(["pos"]);
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "restaurants"]);
+  const { user } = useContext(UserContext);
+  const router = useRouter();
   if (!isAuthorized) {
     return null;
   }
@@ -21,4 +23,4 @@ function Page() {
   );
 }
 
-export default Page;
+export default AddItemsPage;
