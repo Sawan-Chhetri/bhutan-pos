@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AddCategory from "./AddCategory";
 import AddItem from "./AddItem";
+import { FiX, FiPackage, FiClipboard } from "react-icons/fi";
 
 export default function AddItemModal({
   isOpen,
@@ -44,30 +45,57 @@ export default function AddItemModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-start pt-20 px-2">
-      <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-lg shadow-lg">
-        {/* Tabs */}
-        <div className="flex">
+    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 relative">
+        {/* Pink Decorative Header */}
+        <div className="h-2 bg-brand-pink w-full" />
+        
+        {/* Header with Exit */}
+        <div className="p-8 pb-0 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+              {editingItem ? "Edit Product" : "System Inventory"}
+            </h2>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
+              {activeTab === "item" ? "Product Management" : "Category Management"}
+            </p>
+          </div>
           <button
-            className={`flex-1 py-3 ${
-              activeTab === "item" ? "border-b-2 border-brand-pink" : ""
-            }`}
-            onClick={() => setActiveTab("item")}
+            onClick={onClose}
+            className="p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-brand-pink transition-all"
           >
-            {editingItem ? "Edit Item" : "Add Item"}
-          </button>
-          <button
-            className={`flex-1 py-3 ${
-              activeTab === "category" ? "border-b-2 border-brand-pink" : ""
-            }`}
-            onClick={() => setActiveTab("category")}
-          >
-            Add Category
+            <FiX size={20} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Modern Tabs */}
+        <div className="px-8 mt-8 flex gap-2">
+          <button
+            onClick={() => setActiveTab("item")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              activeTab === "item"
+                ? "bg-brand-pink text-white"
+                : "bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100"
+            }`}
+          >
+            <FiPackage size={14} />
+            {editingItem ? "Edit Item" : "Add Item"}
+          </button>
+          <button
+            onClick={() => setActiveTab("category")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              activeTab === "category"
+                ? "bg-brand-pink text-white"
+                : "bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100"
+            }`}
+          >
+            <FiClipboard size={14} />
+            Category
+          </button>
+        </div>
+
+        {/* Content Area with custom scrollbar */}
+        <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {activeTab === "item" ? (
             <AddItem
               onAddItem={onAddItem}
@@ -83,12 +111,6 @@ export default function AddItemModal({
               onUpdateItem={onUpdateItem}
             />
           )}
-        </div>
-
-        <div className="px-6 pb-6 flex justify-end">
-          <button onClick={onClose} className="btn btn-ghost">
-            Close
-          </button>
         </div>
       </div>
     </div>

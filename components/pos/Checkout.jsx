@@ -295,7 +295,7 @@ export default function Checkout({
             w-full flex items-center justify-center gap-3 h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all
             ${
               total > 0
-                ? "bg-brand-pink text-white shadow-xl shadow-pink-500/20 hover:bg-pink-600 hover:scale-[1.02] active:scale-95 cursor-pointer"
+                ? "bg-brand-pink text-white hover:scale-[1.02] active:scale-95 cursor-pointer"
                 : "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
             }
           `}
