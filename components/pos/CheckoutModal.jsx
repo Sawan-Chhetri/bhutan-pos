@@ -255,16 +255,17 @@ export default function CheckoutModal({
 
   return (
     <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col">
         {/* Progress/Indicator Header */}
         {isHighValue && (
-          <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] py-1.5 text-center">
+          <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] py-1.5 text-center flex-shrink-0">
             Verification Required (Sale {">"} 50k)
           </div>
         )}
 
-        <div className="p-6 md:p-8">
-          <header className="mb-6">
+        {/* Fixed Header */}
+        <div className="p-6 md:p-8 pb-4 flex-shrink-0">
+          <header>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
               Checkout
             </h2>
@@ -272,7 +273,10 @@ export default function CheckoutModal({
               Review sale and customer details
             </p>
           </header>
+        </div>
 
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto px-6 md:px-8 custom-scrollbar">
           {errorMsg && (
             <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-tight">
               <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
@@ -345,47 +349,49 @@ export default function CheckoutModal({
             </div>
 
             {/* Order Summary */}
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 mb-6">
               <div className="flex justify-between text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 <span>Summary</span>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm font-bold text-gray-600 dark:text-gray-400">
                   <span>Subtotal</span>
-                  <span>Nu. {subtotal.toFixed(2)}</span>
+                  <span>Nu. {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-gray-600 dark:text-gray-400">
                   <span>GST (5%)</span>
-                  <span>Nu. {gst.toFixed(2)}</span>
+                  <span>Nu. {gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
                   <span className="text-xs font-black uppercase text-gray-400">
                     Total Nu.
                   </span>
                   <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                    {total.toFixed(2)}
+                    {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="mt-8 grid grid-cols-2 gap-3">
+        {/* Fixed Actions Button Area */}
+        <div className="p-6 md:p-8 pt-4 flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-50 dark:border-gray-800">
+          <div className="grid grid-cols-2 gap-3">
             <button
               disabled={isSubmitting}
               onClick={() => {
                 setErrorMsg("");
                 onClose();
               }}
-              className="px-4 py-3 rounded-xl border-2 border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:bg-gray-50 transition"
+              className="px-4 py-4 rounded-xl border-2 border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
             >
               Cancel
             </button>
             <button
               disabled={isSubmitting}
               onClick={handleConfirm}
-              className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all shadow-lg ${
+              className={`px-4 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all shadow-lg ${
                 isSubmitting
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-brand-pink hover:scale-[1.02] active:scale-95"
@@ -396,6 +402,7 @@ export default function CheckoutModal({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    
   );
 }

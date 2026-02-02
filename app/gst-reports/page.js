@@ -3,8 +3,10 @@ import GSTReports from "@/components/gst/GSTReports";
 import Sidebar from "@/components/nav/Sidebar";
 import useAuthGuard from "@/hooks/useAuthGuard";
 
-function Page() {
-  const { isAuthorized, isLoading } = useAuthGuard(["pos", "other"]);
+export default function GSTReportPage() {
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "other", "restaurants"]);
+
+  if (isLoading) return <div className="p-10">Loading auth...</div>;
   if (!isAuthorized) {
     return null;
   }
@@ -16,4 +18,4 @@ function Page() {
   );
 }
 
-export default Page;
+

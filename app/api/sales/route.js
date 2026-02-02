@@ -93,6 +93,22 @@ export async function POST(request) {
        * A) READ EVERYTHING FIRST (MANDATORY)
        * --------------------------------------------- */
       const counterSnap = await tx.get(counterRef);
+      /* ---------------------------------------------
+       * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
+       * --------------------------------------------- */
+      const loadedItems = {};
+      if (storeId && userSnap.data()?.type === "pos") {
+        for (const item of cartItems) {
+          if (item.id) {
+            const itemRef = db.doc(`stores/${storeId}/items/${item.id}`);
+            const docSnap = await tx.get(itemRef);
+            if (docSnap.exists) {
+              loadedItems[item.id] = docSnap.data();
+            }
+          }
+        }
+      }
+      
       const gstSnap = await tx.get(gstReportRef);
 
       /* ---------------------------------------------
@@ -183,6 +199,27 @@ export async function POST(request) {
           saleCount: admin.firestore.FieldValue.increment(1),
           lastUpdated: now,
         });
+      }
+
+      // 8️⃣ STOCK UPDATES (Decrement) - Only for POS users (inventory tracked)
+      if (storeId && userSnap.data()?.type === "pos") {
+        for (const item of items) {
+          if (item.itemId && loadedItems[item.itemId]) {
+            const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
+            
+            // Calculate new state
+            const currentData = loadedItems[item.itemId];
+            const currentStock = Number(currentData.stock || 0);
+            const minStock = Number(currentData.minStock || 0);
+            const newStock = currentStock - item.qty;
+            const isLowStock = newStock <= minStock;
+
+            tx.update(itemRef, {
+              stock: newStock,
+              isLowStock: isLowStock
+            });
+          }
+        }
       }
     });
 

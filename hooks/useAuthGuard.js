@@ -18,7 +18,19 @@ export default function useAuthGuard(allowedRoles = []) {
     if (loading) return;
     // Only act when loading is finished
     if (!loading) {
-      if (!user || !isAuthorized) {
+      if (!user) {
+        router.replace("/");
+        return;
+      }
+
+      // Check License
+      if (user.isActive === false) {
+        router.replace("/expired");
+        return;
+      }
+
+      // Check Role
+      if (!isAuthorized) {
         router.replace("/");
       }
     }

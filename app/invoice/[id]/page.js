@@ -390,6 +390,8 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import { UserContext } from "@/contexts/UserContext";
+import usePermissions from "@/hooks/usePermissions";
+import Receipt80mm from "@/components/receipt/Receipt80mm";
 
 export default function InvoicePage() {
   const { id } = useParams();
@@ -397,6 +399,7 @@ export default function InvoicePage() {
   const { idToken } = useAuthStatus();
   const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext);
+const permissions = usePermissions(user);
 
   useEffect(() => {
     if (!id || !idToken) return;
@@ -683,7 +686,7 @@ export default function InvoicePage() {
             </PDFDownloadLink>
           </div>
           {/* DIRECT PRINT OPTION */}
-          {user?.type === "pos" && (
+          {permissions.canPrintReceipts && (
             <button
               onClick={() => window.print()}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#8bc36d] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"
@@ -845,107 +848,7 @@ export default function InvoicePage() {
       </div>
 
       {/* HIDDEN THERMAL RECEIPT VIEW */}
-      <div className="thermal-receipt">
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: "900", margin: 0 }}>
-            {invoice.store.name}
-          </h2>
-          <p style={{ fontSize: "10px", margin: "2px 0" }}>
-            {invoice.store.address}
-          </p>
-          <p style={{ fontSize: "10px", fontWeight: "bold" }}>
-            TPN: {invoice.store.gstNumber}
-          </p>
-        </div>
-
-        <div
-          style={{
-            fontSize: "11px",
-            borderBottom: "1px dashed #000",
-            paddingBottom: "5px",
-            marginBottom: "5px",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>INV: #{invoice.invoiceNumber}</span>
-            <span>{invoice.date}</span>
-          </div>
-          <div>CUST: {invoice.customerName || "Walk-in"}</div>
-        </div>
-
-        <table
-          style={{
-            width: "100%",
-            fontSize: "11px",
-            borderCollapse: "collapse",
-          }}
-        >
-          <thead>
-            <tr style={{ borderBottom: "1px solid #000" }}>
-              <th style={{ textAlign: "left", padding: "4px 0" }}>ITEM</th>
-              <th style={{ textAlign: "right", padding: "4px 0" }}>AMT</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((item, i) => (
-              <tr key={i}>
-                <td style={{ padding: "4px 0" }}>
-                  {item.name} <br />
-                  <span style={{ fontSize: "9px" }}>
-                    {item.qty} x {item.unitPrice.toLocaleString()}
-                  </span>
-                </td>
-                <td
-                  style={{
-                    textAlign: "right",
-                    verticalAlign: "top",
-                    padding: "4px 0",
-                  }}
-                >
-                  {(item.qty * item.unitPrice).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div
-          style={{
-            marginTop: "10px",
-            borderTop: "1px dashed #000",
-            paddingTop: "5px",
-            fontSize: "12px",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>SUBTOTAL:</span>
-            <span>{invoice.subtotal.toLocaleString()}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>GST (5%):</span>
-            <span>{invoice.gst.toLocaleString()}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: "900",
-              fontSize: "14px",
-              marginTop: "5px",
-            }}
-          >
-            <span>TOTAL:</span>
-            <span>Nu. {invoice.total.toLocaleString()}</span>
-          </div>
-        </div>
-
-        <div
-          style={{ textAlign: "center", marginTop: "15px", fontSize: "9px" }}
-        >
-          <p>--- THANK YOU ---</p>
-          <p>Powered by SwiftGST</p>
-        </div>
-      </div>
+      {invoice && <Receipt80mm invoice={invoice} />}
     </div>
   );
 }

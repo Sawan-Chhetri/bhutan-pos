@@ -216,6 +216,8 @@ import { UserContext } from "@/contexts/UserContext";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
 import { FiShoppingCart, FiX, FiArrowLeft } from "react-icons/fi";
+import useBarcodeScanner from "@/hooks/useBarcodeScanner";
+import { toast } from "react-toastify";
 
 const bhutanGST = 0.05;
 
@@ -263,6 +265,55 @@ function PosLayout() {
     return sum + item.qty * item.unitPrice * bhutanGST;
   }, 0);
   const total = subtotal + gst;
+
+  /* ---------------------------------------------
+   * 🛒 BARCODE SCANNER LOGIC
+   * --------------------------------------------- */
+  const handleScan = async (barcode) => {
+    if (!barcode) return;
+
+    // 1. Key: Search LOCAL cache first (fastest)
+    const allLocalItems = Object.values(itemsByCategory).flat();
+    const localMatch = allLocalItems.find(
+      (item) => item.barcode === barcode || item.name === barcode
+    );
+
+    if (localMatch) {
+      handleAddToCart(localMatch);
+      toast.success(`Added ${localMatch.name}`);
+      return;
+    }
+
+    // 2. Search GLOBAL database
+    try {
+      const storeId = user?.storeId || "";
+      const res = await authFetch(
+        `/api/search-items?query=${encodeURIComponent(barcode)}&storeId=${storeId}`,
+        {},
+        idToken
+      );
+      
+      if (res.ok) {
+        const results = await res.json();
+        // Priority: Exact Barcode Match
+        const exactMatch = results.find(i => i.barcode === barcode);
+        const match = exactMatch || results[0]; 
+
+        if (match) {
+          handleAddToCart(match);
+          toast.success(`Added ${match.name}`);
+        } else {
+          toast.error(`Product not found: ${barcode}`);
+        }
+      } else {
+        toast.error("Scanner error");
+      }
+    } catch (err) {
+      console.error("Scanner fetch error", err);
+    }
+  };
+
+  useBarcodeScanner(handleScan, user?.type === "pos");
 
   useEffect(() => {
     if (!activeCategory || !idToken) return;
