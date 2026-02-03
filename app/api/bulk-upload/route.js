@@ -106,19 +106,39 @@ export async function POST(req) {
     }
 
     /* ---------------- CREATE ITEMS ---------------- */
+    let totalRetailDelta = 0;
+
     items.forEach((item) => {
-      const { barcode, name, price, category } = item;
+      const { barcode, name, price, category, stock } = item;
+      const numPrice = Number(price || 0);
+      const numStock = Number(stock || 0);
 
       const ref = storeRef.collection("items").doc();
 
       batch.set(ref, {
         barcode: barcode || null,
-        name,
-        category,
-        price,
+        name: name || "Untitled Item",
+        category: category || "Uncategorized",
+        price: numPrice,
+        stock: numStock,
+        isActive: true,
         isGSTExempt: false,
       });
+
+      // Update valuation deltas
+      totalRetailDelta += numStock * numPrice;
     });
+
+    /* ---------------- UPDATE VALUATION SUMMARY ---------------- */
+    const summaryRef = storeRef.collection("inventory_metadata").doc("summary");
+    batch.set(
+      summaryRef,
+      {
+        totalRetailValue: admin.firestore.FieldValue.increment(totalRetailDelta),
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
 
     await batch.commit();
 

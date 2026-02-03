@@ -366,9 +366,10 @@ import {
   FiLogOut,
   FiUser,
   FiChevronRight,
-  FiShoppingCart, // Added for Purchases
-  FiPackage, // Added for Inventory
-  FiClipboard, // Added for Shopping List
+  FiShoppingCart,
+  FiPackage,
+  FiClipboard,
+  FiTrendingUp,
 } from "react-icons/fi";
 import useLogout from "@/hooks/useLogout";
 import usePermissions from "@/hooks/usePermissions";
@@ -464,6 +465,12 @@ export default function Sidebar() {
       label: "GST REPORTS",
       icon: <FiBarChart2 size={18} />,
       condition: true,
+    },
+    {
+      href: "/inventory-valuation",
+      label: "INVENTORY VALUE",
+      icon: <FiTrendingUp size={18} />,
+      condition: permissions.isPosUser || permissions.isAdmin,
     },
   ];
 

@@ -48,6 +48,7 @@ export default function AddItem({
       price: Number(price),
       isGSTExempt,
       barcode: barcode.trim() || null,
+      stock: permissions.canTrackStock ? Number(initialStock) : 0,
     };
 
     try {
@@ -62,7 +63,7 @@ export default function AddItem({
               itemId,
               updates: {
                 name: payload.name,
-                price,
+                price: Number(price),
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
@@ -82,7 +83,7 @@ export default function AddItem({
             body: JSON.stringify({
               item: {
                 name: payload.name,
-                price,
+                price: Number(price),
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
@@ -152,9 +153,9 @@ export default function AddItem({
         </div>
 
         {/* Price */}
-        <div>
+        <div className="col-span-full">
           <label className={labelClasses}>
-            <FiDollarSign /> Unit Price (Nu.)
+            <FiDollarSign /> Selling Price (Nu.)
           </label>
           <input
             type="number"

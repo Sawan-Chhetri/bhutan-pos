@@ -95,7 +95,7 @@ export default function Receipt80mm({ invoice }) {
           <h2 style={{ fontSize: "16px", fontWeight: "900", margin: 0 }}>
             {invoice.store?.name}
           </h2>
-          <p style={{ fontSize: "10px", margin: "2px 0" }}>
+          <p style={{ fontSize: "10px", fontWeight: "600", margin: "2px 0" }}>
             {invoice.store?.address}
           </p>
           <p style={{ fontSize: "10px", fontWeight: "bold" }}>
@@ -111,11 +111,11 @@ export default function Receipt80mm({ invoice }) {
             marginBottom: "5px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
             <span>INV: #{invoice.invoiceNumber}</span>
             <span>{formattedDate}</span>
           </div>
-          <div>CUST: {invoice.customerName || "Walk-in"}</div>
+          <div style={{ fontWeight: "600" }}>CUST: {invoice.customerName || "Walk-in"}</div>
         </div>
 
         <table
@@ -134,9 +134,9 @@ export default function Receipt80mm({ invoice }) {
           <tbody>
             {invoice.items?.map((item, i) => (
               <tr key={i}>
-                <td style={{ padding: "4px 0" }}>
+                <td style={{ padding: "4px 0", fontWeight: "600" }}>
                   {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)} <br />
-                  <span style={{ fontSize: "9px" }}>
+                  <span style={{ fontSize: "9px", fontWeight: "600" }}>
                     {item.qty} x {item.unitPrice?.toLocaleString()}
                   </span>
                 </td>
@@ -145,6 +145,7 @@ export default function Receipt80mm({ invoice }) {
                     textAlign: "right",
                     verticalAlign: "top",
                     padding: "4px 0",
+                    fontWeight: "600",
                   }}
                 >
                   {(item.qty * item.unitPrice)?.toLocaleString()}
@@ -162,11 +163,11 @@ export default function Receipt80mm({ invoice }) {
             fontSize: "12px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
             <span>SUBTOTAL:</span>
             <span>{invoice.subtotal?.toLocaleString()}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
             <span>GST (5%):</span>
             <span>{invoice.gst?.toLocaleString()}</span>
           </div>
@@ -185,7 +186,7 @@ export default function Receipt80mm({ invoice }) {
         </div>
 
         <div
-          style={{ textAlign: "center", marginTop: "15px", fontSize: "9px" }}
+          style={{ textAlign: "center", marginTop: "15px", fontSize: "9px", fontWeight: "600" }}
         >
           <p>--- THANK YOU ---</p>
           <p>Powered by SwiftGST</p>

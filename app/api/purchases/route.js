@@ -77,6 +77,8 @@ export async function POST(request) {
        * A) READ EVERYTHING FIRST (MANDATORY)
        * --------------------------------------------- */
       const gstSnap = await tx.get(gstReportRef);
+      const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
+      const summarySnap = await tx.get(summaryRef);
 
       /* ---------------------------------------------
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
@@ -140,13 +142,16 @@ export async function POST(request) {
       if (!gstSnap.exists) {
         tx.set(gstReportRef, {
           month: monthKey,
-          totalPurchases: taxablePurchases,
+          totalPurchases: Number(totalPurchases || 0),
+          taxablePurchases: taxablePurchases,
           itcClaimed: totalITC,
           purchaseCount: 1,
           lastUpdated: now,
         });
       } else {
         tx.update(gstReportRef, {
+          totalPurchases:
+            admin.firestore.FieldValue.increment(Number(totalPurchases || 0)),
           taxablePurchases:
             admin.firestore.FieldValue.increment(taxablePurchases),
           itcClaimed: admin.firestore.FieldValue.increment(totalITC),
@@ -155,14 +160,16 @@ export async function POST(request) {
         });
       }
 
-      // 8️⃣ STOCK UPDATES
+      // 8️⃣ STOCK UPDATES & VALUATION
       if (storeId && userSnap.data()?.type === "pos") {
+        let retailDelta = 0;
+
         for (const item of cartItems) {
           if (item.itemId && loadedItems[item.itemId]) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
+            const currentData = loadedItems[item.itemId];
             
             // Calculate new state
-            const currentData = loadedItems[item.itemId];
             const currentStock = Number(currentData.stock || 0);
             const minStock = Number(currentData.minStock || 0);
             const newStock = currentStock + item.qty;
@@ -172,7 +179,25 @@ export async function POST(request) {
               stock: newStock,
               isLowStock: isLowStock
             });
+
+            // Valuation Updates
+            retailDelta += item.qty * Number(currentData.price || 0);
           }
+        }
+
+        // Valuation Updates Logic moved to writes below
+
+
+        if (!summarySnap.exists) {
+          tx.set(summaryRef, {
+            totalRetailValue: retailDelta,
+            lastUpdated: now,
+          });
+        } else {
+          tx.update(summaryRef, {
+            totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
+            lastUpdated: now,
+          });
         }
       }
     });

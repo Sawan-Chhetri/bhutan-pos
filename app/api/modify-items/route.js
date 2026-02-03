@@ -31,17 +31,38 @@ export async function POST(request) {
     }
 
     const itemRef = db.collection(`stores/${storeId}/items`).doc();
+    const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
 
     const stock = Number(item.stock) || 0;
     const minStock = Number(item.minStock) || 0;
+    const price = Number(item.price) || 0;
 
-    await itemRef.set({
-      ...item,
-      isActive: true,
-      stock, // Ensure number
-      minStock, // Ensure number
-      isLowStock: stock <= minStock,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    await db.runTransaction(async (tx) => {
+      const summarySnap = await tx.get(summaryRef); // Read before write
+
+      tx.set(itemRef, {
+        ...item,
+        isActive: true,
+        stock,
+        minStock,
+        price,
+        isLowStock: stock <= minStock,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      const retailDelta = stock * price;
+
+      if (!summarySnap.exists) {
+        tx.set(summaryRef, {
+          totalRetailValue: retailDelta,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      } else {
+        tx.update(summaryRef, {
+          totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
     });
 
     return NextResponse.json({ id: itemRef.id });
@@ -110,17 +131,38 @@ export async function PATCH(request) {
       );
     }
 
+    const currentData = itemSnap.data();
+    const currentStock = Number(currentData.stock || 0);
+
     // 5. Recalculate isLowStock if minStock is updated
     if (safeUpdates.minStock !== undefined) {
-      const currentStock = Number(itemSnap.data().stock || 0);
       const newMin = Number(safeUpdates.minStock);
       safeUpdates.isLowStock = currentStock <= newMin;
     }
 
     safeUpdates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-    // 6. Update
-    await itemRef.update(safeUpdates);
+    // 6. Transaction to update item and summary
+    const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
+
+    await db.runTransaction(async (tx) => {
+      tx.update(itemRef, safeUpdates);
+
+      let retailDelta = 0;
+
+      if (safeUpdates.price !== undefined) {
+        const oldPrice = Number(currentData.price || 0);
+        const newPrice = Number(safeUpdates.price);
+        retailDelta = (newPrice - oldPrice) * currentStock;
+      }
+
+      if (retailDelta !== 0) {
+        tx.update(summaryRef, {
+          totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
