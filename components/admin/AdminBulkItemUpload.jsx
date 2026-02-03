@@ -22,7 +22,8 @@ export default function AdminBulkItemUpload() {
     { key: "barcode", label: "Barcode" },
     { key: "name", label: "Name" },
     { key: "category", label: "Category" },
-    { key: "price", label: "Price" },
+    { key: "price", label: "Selling Price" },
+    { key: "stock", label: "Stock" },
   ];
 
   /* ---------------- ADMIN CHECK ---------------- */
@@ -48,7 +49,8 @@ export default function AdminBulkItemUpload() {
       barcode: csvHeaders.find((h) => h.toLowerCase() === "barcode") || "",
       name: csvHeaders.find((h) => h.toLowerCase() === "name") || "",
       category: csvHeaders.find((h) => h.toLowerCase() === "category") || "",
-      price: csvHeaders.find((h) => h.toLowerCase() === "price") || "",
+      price: csvHeaders.find((h) => h.toLowerCase() === "price" || h.toLowerCase() === "selling price") || "",
+      stock: csvHeaders.find((h) => h.toLowerCase() === "stock") || "",
     });
   }, [csvHeaders]);
 
@@ -65,8 +67,6 @@ export default function AdminBulkItemUpload() {
       dynamicTyping: false,
       transformHeader: (h) => h.replace(/^\uFEFF/, "").trim(),
       complete: (results) => {
-        console.log("HEADERS:", results.meta.fields);
-        console.log("ROW SAMPLE:", results.data[0]);
         setCsvHeaders(results.meta.fields || []);
         setCsvData(results.data || []);
       },
@@ -94,7 +94,8 @@ export default function AdminBulkItemUpload() {
         barcode: row[fieldMap.barcode]?.trim().toLowerCase(),
         name: row[fieldMap.name]?.trim().toLowerCase(),
         category: row[fieldMap.category]?.trim().toLowerCase(),
-        price: Number(row[fieldMap.price]?.toString().replace(/,/g, "")),
+        price: Number(row[fieldMap.price]?.toString().replace(/,/g, "") || 0),
+        stock: Number(row[fieldMap.stock]?.toString().replace(/,/g, "") || 0),
       }))
       .filter(
         (item) => item.name && item.category && !Number.isNaN(item.price),

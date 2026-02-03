@@ -69,6 +69,7 @@ export async function GET(request, { params }) {
       taxableSales: gstData.taxableSales || 0,
       gstCollected: gstData.gstCollected || 0,
       taxablePurchases: gstData.taxablePurchases || 0,
+      totalPurchases: gstData.totalPurchases || 0,
       itcClaimed: gstData.itcClaimed || 0,
       purchaseCount: gstData.purchaseCount || 0,
       saleCount: gstData.saleCount || 0,

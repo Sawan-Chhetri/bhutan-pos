@@ -623,7 +623,7 @@ export default function GSTReports() {
                 Total Taxable Sales
               </p>
               <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-normal">
-                Nu. {currentData.totalSales.toLocaleString()}
+                Nu. {currentData.taxableSales.toLocaleString()}
               </p>
             </div>
           </div>

@@ -110,6 +110,8 @@ export async function POST(request) {
       }
       
       const gstSnap = await tx.get(gstReportRef);
+      const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
+      const summarySnap = await tx.get(summaryRef);
 
       /* ---------------------------------------------
        * B) GENERATE INVOICE NUMBER (IN-MEMORY)
@@ -201,14 +203,16 @@ export async function POST(request) {
         });
       }
 
-      // 8️⃣ STOCK UPDATES (Decrement) - Only for POS users (inventory tracked)
+      // 8️⃣ STOCK UPDATES & VALUATION
       if (storeId && userSnap.data()?.type === "pos") {
+        let retailDelta = 0;
+
         for (const item of items) {
           if (item.itemId && loadedItems[item.itemId]) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
+            const currentData = loadedItems[item.itemId];
             
             // Calculate new state
-            const currentData = loadedItems[item.itemId];
             const currentStock = Number(currentData.stock || 0);
             const minStock = Number(currentData.minStock || 0);
             const newStock = currentStock - item.qty;
@@ -218,7 +222,20 @@ export async function POST(request) {
               stock: newStock,
               isLowStock: isLowStock
             });
+
+            // Valuation Updates (Subtraction)
+            retailDelta -= item.qty * Number(item.unitPrice || 0);
           }
+        }
+
+        // Valuation Updates Logic moved below
+
+
+        if (summarySnap.exists) {
+          tx.update(summaryRef, {
+            totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
+            lastUpdated: now,
+          });
         }
       }
     });
