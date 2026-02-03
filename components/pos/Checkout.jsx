@@ -152,10 +152,14 @@ export default function Checkout({
   gst,
   total,
   setCartItems,
+  showPrintModal,
+  setShowPrintModal,
+  saleId,
+  setSaleId,
 }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [showPrintModal, setShowPrintModal] = useState(false);
-  const [saleId, setSaleId] = useState(null);
+  // const [showPrintModal, setShowPrintModal] = useState(false);
+  // const [saleId, setSaleId] = useState(null);
 
   const increment = (id) => {
     setCartItems((prev) =>
@@ -323,13 +327,6 @@ export default function Checkout({
           setCartItems([]);
         }}
       />
-      {showPrintModal && (
-        <PrintReceiptModal
-          isOpen={showPrintModal}
-          onClose={() => setShowPrintModal(false)}
-          saleId={saleId}
-        />
-      )}
     </aside>
   );
 }

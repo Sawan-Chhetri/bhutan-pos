@@ -1,6 +1,5 @@
-"use client";
-
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Reusable 80mm Thermal Receipt Component
@@ -8,6 +7,13 @@ import React from "react";
  * @param {Object} invoice - The invoice data object containing store, items, and totals.
  */
 export default function Receipt80mm({ invoice }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   if (!invoice) return null;
 
   // Format date if it's a Firestore timestamp or raw string
@@ -28,7 +34,7 @@ export default function Receipt80mm({ invoice }) {
 
   const formattedDate = formatDate(invoice.date);
 
-  return (
+  const receiptContent = (
     <>
       <style jsx global>{`
         /* Thermal Receipt Print Styles */
@@ -42,26 +48,44 @@ export default function Receipt80mm({ invoice }) {
             margin: 0;
           }
 
-          body * {
-            visibility: hidden;
+          /* Hide everything in the body except our portal content */
+          body > *:not(#thermal-print-portal) {
+            display: none !important;
           }
 
-          .thermal-receipt,
-          .thermal-receipt * {
-            visibility: visible;
+          html, body {
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            width: 80mm !important;
+          }
+
+          #thermal-print-portal {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 80mm !important;
+            background: white !important;
+            color: black !important;
+            visibility: visible !important;
           }
 
           .thermal-receipt {
             display: block !important;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 80mm;
-            padding: 5mm;
-            background: white;
-            color: black;
-            font-family: "Courier New", Courier, monospace;
-            line-height: 1.2;
+            width: 80mm !important;
+            padding: 5mm !important;
+            background: white !important;
+            color: black !important;
+            font-family: "Courier New", Courier, monospace !important;
+            line-height: 1.2 !important;
+            visibility: visible !important;
+          }
+
+          .thermal-receipt * {
+            visibility: visible !important;
           }
         }
       `}</style>
@@ -169,4 +193,17 @@ export default function Receipt80mm({ invoice }) {
       </div>
     </>
   );
+
+  // If not mounted or no document, we can't use portal
+  if (!mounted || typeof document === 'undefined') return null;
+
+  // Create or get the print portal div
+  let portalDiv = document.getElementById('thermal-print-portal');
+  if (!portalDiv) {
+    portalDiv = document.createElement('div');
+    portalDiv.id = 'thermal-print-portal';
+    document.body.appendChild(portalDiv);
+  }
+
+  return createPortal(receiptContent, portalDiv);
 }

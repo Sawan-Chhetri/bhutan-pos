@@ -218,6 +218,7 @@ import authFetch from "@/lib/authFetch";
 import { FiShoppingCart, FiX, FiArrowLeft } from "react-icons/fi";
 import useBarcodeScanner from "@/hooks/useBarcodeScanner";
 import { toast } from "react-toastify";
+import PrintReceiptModal from "@/components/pos/PrintReceiptModal";
 
 const bhutanGST = 0.05;
 
@@ -232,6 +233,8 @@ function PosLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [saleId, setSaleId] = useState(null);
 
   // LOGIC UNTOUCHED
   const handleAddToCart = (product) => {
@@ -412,6 +415,10 @@ function PosLayout() {
             gst={gst}
             total={total}
             setCartItems={setCartItems}
+            showPrintModal={showPrintModal}
+            setShowPrintModal={setShowPrintModal}
+            saleId={saleId}
+            setSaleId={setSaleId}
           />
         </aside>
       </main>
@@ -464,10 +471,21 @@ function PosLayout() {
                 gst={gst}
                 total={total}
                 setCartItems={setCartItems}
+                showPrintModal={showPrintModal}
+                setShowPrintModal={setShowPrintModal}
+                saleId={saleId}
+                setSaleId={setSaleId}
               />
             </div>
           </div>
         </div>
+      )}
+      {showPrintModal && (
+        <PrintReceiptModal
+          isOpen={showPrintModal}
+          onClose={() => setShowPrintModal(false)}
+          saleId={saleId}
+        />
       )}
     </div>
   );

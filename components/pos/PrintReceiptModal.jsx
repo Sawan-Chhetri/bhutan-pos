@@ -36,10 +36,12 @@ export default function PrintReceiptModal({ isOpen, onClose, saleId }) {
           saleDate = formatter.format(d);
         }
         
-        setInvoice({ ...data, date: saleDate });
-        console.log(invoice);
+        const fetchedInvoice = { ...data, date: saleDate };
+        setInvoice(fetchedInvoice);
+        console.log("✅ Receipt Data Loaded:", saleId);
+        // console.log(fetchedInvoice); // Debugging
       } catch (err) {
-        console.error("Error fetching invoice for print:", err);
+        console.error("❌ Print Error:", err);
       } finally {
         setLoading(false);
       }
@@ -51,20 +53,20 @@ export default function PrintReceiptModal({ isOpen, onClose, saleId }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[2rem] shadow-2xl p-8 border border-gray-100 dark:border-gray-800 flex flex-col items-center">
-        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 print:bg-white print:backdrop-blur-none">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[2rem] shadow-2xl p-8 border border-gray-100 dark:border-gray-800 flex flex-col items-center print:shadow-none print:border-none print:p-0 print:w-auto print:max-w-none print:rounded-none">
+        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 print:hidden">
           <FiCheckCircle className="text-green-500" size={32} />
         </div>
         
-        <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2">
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2 print:hidden">
           Payment Success
         </h2>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 text-center uppercase tracking-widest">
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 text-center uppercase tracking-widest print:hidden">
           Transaction Complete
         </p>
 
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col gap-3 w-full print:hidden">
           <button
             disabled={loading || !invoice}
             onClick={() => window.print()}
