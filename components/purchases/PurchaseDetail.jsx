@@ -294,7 +294,7 @@ export default function PurchaseDetail() {
                   <FiCalendar className="text-blue-500" /> {formattedDate}
                 </span>
                 <span className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded">
-                  <FiHash className="text-blue-500" /> #{purchase.billNumber}
+                  <FiHash className="text-blue-500" /> {purchase.billNumber}
                 </span>
               </div>
             </div>
@@ -398,10 +398,10 @@ export default function PurchaseDetail() {
             <div className="flex flex-col sm:flex-row gap-6 md:gap-12 text-white">
               <div className="flex-1">
                 <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1">
-                  Net Expense
+                  Purchase Value (Excl. GST)
                 </p>
                 <p className="text-xl md:text-2xl font-black font-mono tracking-tighter">
-                  Nu. {purchase.totalPurchases?.toLocaleString()}
+                  Nu. {(purchase.taxablePurchases + purchase.nonTaxablePurchases)?.toLocaleString()}
                 </p>
               </div>
               <div className="sm:border-l border-white/10 sm:pl-6 md:pl-12 flex-1">
@@ -416,10 +416,10 @@ export default function PurchaseDetail() {
 
             <div className="text-left lg:text-right border-t lg:border-t-0 lg:border-l border-white/10 pt-6 lg:pt-0 lg:pl-12">
               <p className="text-[9px] font-black opacity-50 uppercase tracking-widest mb-1 text-white">
-                Total Value
+                Invoice Total (Incl. GST)
               </p>
               <p className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white font-mono leading-none">
-                Nu. {(purchase.totalPurchases + purchase.itc).toLocaleString()}
+                Nu. {(purchase.grossPurchases).toLocaleString()}
               </p>
             </div>
           </div>
