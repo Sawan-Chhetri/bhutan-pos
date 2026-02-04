@@ -252,210 +252,270 @@ const LandingPage = () => {
           </a>
         </div>
         <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest">
-          Setup in few minutes • No payment required
+          Quick setup • No payment required
         </p>
       </section>
 
-      {/* The Pain Wall: "Does this sound familiar?" */}
-      <section className="w-full max-w-6xl mx-auto px-6 py-20 bg-slate-50 rounded-[3rem] border border-slate-100">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-black mb-4">Business is hard enough.</h2>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">
-            Why are you still dealing with this?
-          </p>
-        </div>
+      {/* The Pain Wall: Re-engineered for Emotional Impact */}
+<section className="w-full max-w-6xl mx-auto px-6 py-24 bg-[#F8FAFC] rounded-[4rem] border border-slate-200/60 relative overflow-hidden">
+  {/* Sublte background decorative element */}
+  <div className="absolute top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl -mr-48 -mt-48 opacity-60"></div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              title: "The 'Vendor' Quote",
-              desc: "They quoted you Nu. 40,000 for a system that looks like it was built in 1995. You only need to print an invoice.",
-              icon: "💸",
-            },
-            {
-              title: "The GST Headache",
-              desc: "Is this item exempt? Is it 5%? Spending your Friday nights with a calculator and a pile of crumpled receipts.",
-              icon: "🤯",
-            },
-            {
-              title: "The 'Broken Computer' Trap",
-              desc: "Old systems store data on your PC. If it breaks, your records are gone. SwiftGST is Cloud-Native—your data is safer than a bank vault.",
-              icon: "🛡️",
-            },
-          ].map((pain, i) => (
-            <div
-              key={i}
-              className="p-8 bg-white rounded-4xl border border-slate-200 shadow-sm"
-            >
-              <div className="text-4xl mb-4">{pain.icon}</div>
-              <h4 className="text-xl font-bold mb-3">{pain.title}</h4>
-              <p className="text-slate-500 leading-relaxed text-sm font-medium">
-                {pain.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+  <div className="text-center mb-16 relative z-10">
+    <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
+      Running a business shouldn&apos;t feel like <br/>
+      <span className="text-[#EE4B6A] italic">fighting the government.</span>
+    </h2>
+    <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
+      The old way is costing you more than just time.
+    </p>
+  </div>
 
-      {/* The Solution: "Two Ways to Save Your Sanity" */}
-      <section id="solutions" className="w-full max-w-6xl mx-auto px-6 py-32">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Retail Mode */}
-          <div className="relative group p-10 rounded-[2.5rem] bg-white border-2 border-slate-100 transition-all">
-            <div className="text-xs font-black tracking-widest text-[#A8DF8E] uppercase mb-4">
-              For Shops & Cafes
-            </div>
-            <h3 className="text-4xl font-black text-slate-950 mb-6">
-              Retail without the Regret.
-            </h3>
-            <p className="text-slate-500 mb-8 font-medium text-lg leading-relaxed">
-              Most POS systems are too slow. SwiftGST is built for speed. Scan,
-              click, print.
-            </p>
-            <div className="space-y-4">
-              {[
-                "Auto-separates GST items",
-                "Sales and GST reports",
-                "Works on any phone or laptop",
-              ].map((f) => (
-                <div
-                  key={f}
-                  className="flex items-center gap-3 font-bold text-slate-700"
-                >
-                  <span className="text-[#A8DF8E]">✔</span> {f}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Service Mode */}
-          <div className="relative group p-10 rounded-[2.5rem] bg-slate-950 text-white transition-all shadow-2xl">
-            <div className="text-xs font-black tracking-widest text-[#FFAAB8] uppercase mb-4">
-              For Construction & Services
-            </div>
-            <h3 className="text-4xl font-black mb-6">
-              Invoices that get Paid.
-            </h3>
-            <p className="text-slate-400 mb-8 font-medium text-lg leading-relaxed">
-              Stop sending ugly Word documents. Send professional, GST-ready
-              invoices that prove you&apos;re a serious business.
-            </p>
-            <div className="space-y-4">
-              {[
-                'Track unpaid "invoices" instantly',
-                "One-click PDF invoicing",
-                // "Project-based cost tracking",
-                "Input Tax Credit (ITC) tracking",
-              ].map((f) => (
-                <div
-                  key={f}
-                  className="flex items-center gap-3 font-bold text-slate-300"
-                >
-                  <span className="text-[#FFAAB8]">✔</span> {f}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing: The "No Brainer" Section */}
-      <section
-        id="pricing"
-        className="w-full max-w-4xl mx-auto px-6 py-24 border-t border-slate-100"
+  <div className="grid md:grid-cols-3 gap-8 relative z-10">
+    {[
+      {
+        title: "The 'Invisible' Tax Leak",
+        desc: "You pay GST on your sales, but lose thousands because you aren't tracking the GST you paid on purchases. That's your hard-earned profit, gone.",
+        icon: "📉",
+        tag: "Financial Drain"
+      },
+      {
+        title: "The 'Item Cap' Prison",
+        desc: "Other apps charge you more just because you added a 101st product or a second phone. We don't believe in punishing you for growing.",
+        icon: "🔓",
+        tag: "Artificial Limits"
+      },
+      {
+        title: "The 'Friday Night' Math",
+        desc: "Spending hours with a calculator and a shoebox of crumpled receipts just to file a return. You should be with your family, not a spreadsheet.",
+        icon: "🕰️",
+        tag: "Burnout"
+      },
+    ].map((pain, i) => (
+      <div
+        key={i}
+        className="group p-10 bg-white rounded-[3rem] border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       >
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-black mb-4 italic">
-            Cheaper than a lunch.
-          </h2>
-          <p className="text-slate-500 font-bold">
-            You are losing more than Nu. 750 a month just in wasted time.
-          </p>
+        <div className="flex justify-between items-start mb-6">
+          <div className="text-5xl">{pain.icon}</div>
+          <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-slate-100 text-slate-500 rounded-full group-hover:bg-[#EE4B6A]/10 group-hover:text-[#EE4B6A] transition-colors">
+            {pain.tag}
+          </span>
         </div>
+        <h4 className="text-2xl font-black mb-4 text-slate-950 leading-tight">{pain.title}</h4>
+        <p className="text-slate-500 leading-relaxed text-sm font-bold opacity-80">
+          {pain.desc}
+        </p>
+      </div>
+    ))}
+  </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Micro (Service) */}
-          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-[#EE4B6A]/30 transition-all">
-            <div>
-              <h4 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-2">Service (Micro)</h4>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-950">199</span>
-                <span className="text-slate-400 font-bold text-sm">/mo</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-500 mb-6">For Freelancers & Contractors. Professional PDF Invoices.</p>
-              <ul className="space-y-3 mb-8">
-                {["Unlimited Invoices", "PDF Generation", "Basic GST Report"].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
-                    <span className="text-green-500">✔</span> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase hover:bg-slate-50 transition">Select Micro</button>
-          </div>
+  <div className="mt-16 text-center">
+    <p className="text-slate-400 font-black text-xs uppercase tracking-widest">
+      Stop the bleeding. Start billing with <span className="text-slate-900 italic">SwiftGST.</span>
+    </p>
+  </div>
+</section>
 
-          {/* Shop (POS Lite) */}
-          <div className="p-8 bg-white border-2 border-[#EE4B6A] rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-brand-pink/5 relative scale-105 z-10">
-            <div className="absolute top-4 right-6 bg-[#EE4B6A] text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-brand-pink/20">Popular</div>
-            <div>
-              <h4 className="font-black text-[#EE4B6A] uppercase tracking-widest text-[10px] mb-2">Shop (POS Lite)</h4>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-950">399</span>
-                <span className="text-slate-400 font-bold text-sm">/mo</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-500 mb-6 italic">&quot;The Yeti Killer&quot;. Pan shops, small groceries.</p>
-              <ul className="space-y-3 mb-8">
-                {["Unlimited Products", "Full POS Interface", "Stock Counts", "Full GST Reporting"].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
-                    <span className="text-[#EE4B6A]">✔</span> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl bg-[#EE4B6A] text-white font-black text-[10px] uppercase hover:brightness-110 transition shadow-lg shadow-brand-pink/20">Get Lite</button>
-          </div>
+      {/* The Solutions: Industry-Specific GST Painkillers */}
+<section id="solutions" className="w-full max-w-6xl mx-auto px-6 py-32">
+  <div className="text-center mb-16">
+    <h2 className="text-4xl font-black mb-4 italic">One System. Four Ways to Save.</h2>
+    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Custom workflows for the most complex sectors in Bhutan.</p>
+  </div>
 
-          {/* Business (POS Pro) */}
-          <div className="p-8 bg-slate-950 text-white rounded-[2.5rem] flex flex-col justify-between shadow-2xl">
-            <div>
-              <h4 className="font-black text-[#A8DF8E] uppercase tracking-widest text-[10px] mb-2">Business (Pro)</h4>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black">799</span>
-                <span className="text-slate-400 font-bold text-sm">/mo</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-400 mb-6">Large Hardware, Pharmacy, Multisession Stores.</p>
-              <ul className="space-y-3 mb-8">
-                {["Real-time Valuation", "Multi-device Access", "Bulk Import/Export", "Advanced Analytics"].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-300">
-                    <span className="text-[#A8DF8E]">✔</span> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl bg-[#A8DF8E] text-slate-950 font-black text-[10px] uppercase hover:brightness-110 transition">Select Pro</button>
+  <div className="grid md:grid-cols-2 gap-8">
+    {/* 1. RETAIL & SHOPS */}
+    <div className="relative group p-10 rounded-[2.5rem] bg-white border-2 border-slate-100 hover:border-[#A8DF8E]/50 transition-all">
+      <div className="text-xs font-black tracking-widest text-[#A8DF8E] uppercase mb-4">Retail & Groceries</div>
+      <h3 className="text-3xl font-black text-slate-950 mb-6">Stop the Stock Bleeding.</h3>
+      <p className="text-slate-500 mb-8 font-medium text-md leading-relaxed">
+        High-speed POS for busy counters. Track every Nu. from the shelf to the drawer while capturing ITC on every purchase.
+      </p>
+      <div className="space-y-4">
+        {["Auto-Shopping Lists", "Inventory Valuation", "Stock level tracking"].map((f) => (
+          <div key={f} className="flex items-center gap-3 font-bold text-slate-700 text-sm">
+            <span className="text-[#A8DF8E]">✔</span> {f}
           </div>
+        ))}
+      </div>
+    </div>
 
-          {/* Restaurant */}
-          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-slate-400 transition-all">
-            <div>
-              <h4 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-2">Hospitality</h4>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-950">699</span>
-                <span className="text-slate-400 font-bold text-sm">/mo</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-500 mb-6">Cafes, Bars and Restaurants. High volume sales.</p>
-              <ul className="space-y-3 mb-8">
-                {["KOT System (Planned)", "Table Management", "Kitchen Sync"].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
-                    <span className="text-slate-400">✔</span> {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl border-2 border-slate-950 text-slate-950 font-black text-[10px] uppercase hover:bg-slate-950 hover:text-white transition">Select Hospitality</button>
+    {/* 2. SERVICES & CONSTRUCTION */}
+    <div className="relative group p-10 rounded-[2.5rem] bg-slate-950 text-white shadow-2xl">
+      <div className="text-xs font-black tracking-widest text-[#FFAAB8] uppercase mb-4">Construction & Services</div>
+      <h3 className="text-3xl font-black mb-6">Invoices that Save Taxes.</h3>
+      <p className="text-slate-400 mb-8 font-medium text-md leading-relaxed">
+        Professional PDF billing for contractors. Track ITC on materials so you only pay GST on your actual profit.
+      </p>
+      <div className="space-y-4">
+        {["Track Unpaid Balances", "Input Tax Credit Tracking", "One-Click PDF Billing"].map((f) => (
+          <div key={f} className="flex items-center gap-3 font-bold text-slate-300 text-sm">
+            <span className="text-[#FFAAB8]">✔</span> {f}
           </div>
+        ))}
+      </div>
+    </div>
+
+    {/* 3. HOTELS & STAYS */}
+    <div className="relative group p-10 rounded-[2.5rem] bg-white border-2 border-slate-100 hover:border-blue-400/50 transition-all">
+      <div className="text-xs font-black tracking-widest text-blue-500 uppercase mb-4">Hotels & Guest Houses</div>
+      <h3 className="text-3xl font-black text-slate-950 mb-6">Unified Hospitality Billing.</h3>
+      <p className="text-slate-500 mb-8 font-medium text-md leading-relaxed">
+        Manage room statuses and restaurant orders on one guest bill. Seamlessly handle high-volume seasonal GST filing.
+      </p>
+      <div className="space-y-4">
+        {["Merged Food & Room Bills", "Guest History & Sales", "Easy GST Filing"].map((f) => (
+          <div key={f} className="flex items-center gap-3 font-bold text-slate-700 text-sm">
+            <span className="text-blue-500">✔</span> {f}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* 4. RESTAURANTS & CAFES */}
+    <div className="relative group p-10 rounded-[2.5rem] bg-[#FDF2F4] border-2 border-[#FFAAB8]/20 transition-all">
+      <div className="text-xs font-black tracking-widest text-[#EE4B6A] uppercase mb-4">Cafes & Restaurants</div>
+      <h3 className="text-3xl font-black text-slate-950 mb-6">Kitchen Speed, GST Accuracy.</h3>
+      <p className="text-slate-500 mb-8 font-medium text-md leading-relaxed">
+        Lightning-fast menu interface. Record every grocery purchase to maximize your Input Tax Credits at the end of the month.
+      </p>
+      <div className="space-y-4">
+        {["Easily update menu items", "Purchase Recording for ITC", "Fast Receipt Printing"].map((f) => (
+          <div key={f} className="flex items-center gap-3 font-bold text-slate-700 text-sm">
+            <span className="text-[#EE4B6A]">✔</span> {f}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+      {/* Pricing: The "GST Simplifier" Section */}
+{/* Pricing: The "Yeti-Killer" GST Section */}
+<section id="pricing" className="w-full max-w-6xl mx-auto px-6 py-24">
+  <div className="text-center mb-16">
+    <h2 className="text-5xl font-black mb-4 italic tracking-tighter">
+      Professional GST tools. <br/>
+      <span className="text-blue-600">Zero artificial limits.</span>
+    </h2>
+    <p className="text-slate-500 font-bold max-w-2xl mx-auto">
+      Why pay more for &quot;item caps&quot; and &quot;device limits&quot;? SwiftGST gives you unlimited growth for a fraction of the cost.
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    {/* SERVICES - Nu. 299 */}
+    <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between hover:border-blue-500/30 transition-all">
+      <div>
+        <h4 className="font-black text-blue-500 uppercase tracking-[0.2em] text-[10px] mb-2">Service (Micro)</h4>
+        <div className="flex items-baseline gap-1 mb-4">
+          <span className="text-4xl font-black text-slate-950">299</span>
+          <span className="text-slate-400 font-bold text-sm">/mo</span>
         </div>
-      </section>
+        <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-tight">For Freelancers & Construction</p>
+        <ul className="space-y-3 mb-8">
+          {[
+            "UNLIMITED PDF Invoices",
+            "Purchase & ITC Tracking", 
+            "Track Unpaid Balances",
+            "GST-Filing Summaries"
+          ].map(f => (
+            <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+              <span className="text-blue-500">✔</span> {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => route.push("/get-started")} className="w-full py-4 rounded-2xl border-2 border-slate-100 text-slate-950 font-black text-[10px] uppercase hover:bg-slate-50 transition">Select Service</button>
+    </div>
+
+    {/* POS LITE - Nu. 599 */}
+    <div className="p-8 bg-white border-2 border-emerald-500 rounded-[3rem] flex flex-col justify-between relative shadow-2xl shadow-emerald-500/10 scale-105 z-10">
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase">Most Popular</div>
+      <div>
+        <h4 className="font-black text-emerald-600 uppercase tracking-[0.2em] text-[10px] mb-2">POS Lite</h4>
+        <div className="flex items-baseline gap-1 mb-4">
+          <span className="text-4xl font-black text-slate-950">599</span>
+          <span className="text-slate-400 font-bold text-sm">/mo</span>
+        </div>
+        <p className="text-[10px] font-bold text-emerald-600 mb-6 uppercase tracking-tight italic">No Item Caps. No Hassle.</p>
+        <ul className="space-y-3 mb-8">
+          {[
+            "UNLIMITED Items (No Caps)",
+            "Unlimited Daily Sales",
+            "Input Tax Credit (ITC) Logic",
+            "GST-Ready POS Interface"
+          ].map(f => (
+            <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+              <span className="text-emerald-500">✔</span> {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => route.push("/get-started")} className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-black text-[10px] uppercase hover:brightness-110 transition shadow-lg">Get Started</button>
+    </div>
+
+    {/* HOTEL - Nu. 899 */}
+    <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between hover:border-blue-600/30 transition-all">
+      <div>
+        <h4 className="font-black text-blue-600 uppercase tracking-[0.2em] text-[10px] mb-2">Hotels</h4>
+        <div className="flex items-baseline gap-1 mb-4">
+          <span className="text-4xl font-black text-slate-950">899</span>
+          <span className="text-slate-400 font-bold text-sm">/mo</span>
+        </div>
+        <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-tight">Guest Houses & Boutique Stays</p>
+        <ul className="space-y-3 mb-8">
+          {[
+            "Room Booking Grid",
+            "Unified Restaurant + Room Bill",
+            "ITC Tracking for Supplies",
+            "Track your expenses"
+          ].map(f => (
+            <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+              <span className="text-blue-600">✔</span> {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => route.push("/get-started")} className="w-full py-4 rounded-2xl border-2 border-slate-100 text-slate-950 font-black text-[10px] uppercase hover:bg-slate-50 transition">Select Hotel</button>
+    </div>
+
+    {/* SUPER POS - Nu. 999 */}
+    <div className="p-8 bg-slate-950 text-white rounded-[2.5rem] flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+      <div>
+        <h4 className="font-black text-[#A8DF8E] uppercase tracking-[0.2em] text-[10px] mb-2">Super POS</h4>
+        <div className="flex items-baseline gap-1 mb-4">
+          <span className="text-4xl font-black">999</span>
+          <span className="text-slate-400 font-bold text-sm">/mo</span>
+        </div>
+        <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-tight">For High-Volume Retailers</p>
+        <ul className="space-y-3 mb-8">
+          {[
+            "UNLIMITED Devices (Not just 1)",
+            "Real-Time Inventory Valuation",
+            "Auto Shopping List",
+            "Advanced stock tracking"
+          ].map(f => (
+            <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-300">
+              <span className="text-[#A8DF8E]">✔</span> {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => route.push("/get-started")} className="w-full py-4 rounded-2xl bg-[#A8DF8E] text-slate-950 font-black text-[10px] uppercase hover:brightness-110 transition">Go Pro</button>
+    </div>
+
+  </div>
+
+  {/* Comparison Footer */}
+  <div className="mt-16 text-center">
+    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+      No Hardware Contracts • Cancel Anytime
+    </p>
+  </div>
+</section>
 
       {/* Final "Zen" Hook */}
       <footer className="w-full py-24 bg-slate-50 text-center px-6">

@@ -19,6 +19,15 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    
+    // Prevent manual creation of 'rooms' or 'room' category
+    const normalizedName = name.trim().toLowerCase();
+    if (normalizedName === 'rooms' || normalizedName === 'room') {
+      return NextResponse.json(
+        { error: "The 'rooms' category is system-managed and cannot be created manually." },
+        { status: 400 }
+      );
+    }
 
     const db = admin.firestore();
 
@@ -58,7 +67,9 @@ export async function GET(request) {
 
     // Get storeId from user
     const userSnap = await db.doc(`users/${uid}`).get();
-    const storeId = userSnap.data()?.storeId;
+    const userData = userSnap.data();
+    const storeId = userData?.storeId;
+    const userType = userData?.type;
 
     if (!storeId) {
       return NextResponse.json({ error: "Store not linked" }, { status: 400 });
@@ -68,10 +79,27 @@ export async function GET(request) {
       .collection(`stores/${storeId}/categories`)
       .get();
 
-    const categories = categoriesSnap.docs.map((doc) => ({
+    let categories = categoriesSnap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
+
+    // Auto-create ROOMS category for hotel users if it doesn't exist
+    if (userType === "hotel") {
+      const roomsExists = categories.some(cat => cat.name === "rooms");
+      if (!roomsExists) {
+        const roomsCategoryRef = db.collection(`stores/${storeId}/categories`).doc();
+        await roomsCategoryRef.set({
+          name: "rooms",
+          isSystemManaged: true,
+        });
+        categories.push({
+          id: roomsCategoryRef.id,
+          name: "rooms",
+          isSystemManaged: true,
+        });
+      }
+    }
 
     return NextResponse.json(categories);
   } catch (err) {

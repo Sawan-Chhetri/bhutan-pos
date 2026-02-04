@@ -155,7 +155,7 @@ function Login({ onSuccess }) {
   // Redirect only if already logged in (not during an active login attempt)
   useEffect(() => {
     if (!user || isLoading) return;
-    if (user.type === "pos" || user.type === "restaurants") {
+    if (user.type === "pos" || user.type === "restaurants" || user.type === "hotel") {
       router.push("/pos");
     } else {
       router.push("/invoice");

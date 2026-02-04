@@ -24,17 +24,19 @@ export const usePermissions = (user) => {
 
   return {
     // Inventory & Stock
-    canTrackStock: ["pos", "restaurants"].includes(type), // POS & Restaurants track stock levels
-    canSearchInventory: ["pos", "restaurants"].includes(type), // POS & Restaurants search inventory in Purchase Ledger
-    canViewShoppingList: type === "pos" || type === "admin",
+    canTrackStock: ["pos"].includes(type), // POS & Hotels track stock levels
+    canSearchInventory: ["pos", "restaurants"].includes(type), // POS & Restaurants & Hotels
+    canViewShoppingList: ["pos", "admin"].includes(type),
     
     // Core Features
-    canPrintReceipts: ["pos", "restaurants"].includes(type),
-    canManageInventory: ["pos", "restaurants", "admin"].includes(type), // Add/Edit items
+    canPrintReceipts: ["pos", "restaurants", "hotel"].includes(type),
+    canManageInventory: ["pos", "restaurants", "admin", "hotel"].includes(type), // Add/Edit items
     
     // User Roles
     isPosUser: type === "pos",
     isRestaurantUser: type === "restaurants",
+    isHotelUser: type === "hotel",
+    isDualModeUser: type === "hotel", // Hotels have Room vs Restaurant toggle
     isBasicUser: type === "other", // Only Invoice Builder
     isAdmin: type === "admin",
   };

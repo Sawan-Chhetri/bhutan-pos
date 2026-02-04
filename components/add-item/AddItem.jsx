@@ -20,11 +20,12 @@ export default function AddItem({
   onUpdateItem,
   categories = [],
   editingItem = null,
+  fixedCategory = null, // New Prop
 }) {
   // Initialize state directly from the prop
   const [name, setName] = useState(editingItem?.name || "");
   const [barcode, setBarcode] = useState(editingItem?.barcode || "");
-  const [category, setCategory] = useState(editingItem?.category || "");
+  const [category, setCategory] = useState(fixedCategory || editingItem?.category || "");
   const [price, setPrice] = useState(editingItem?.price || "");
   const [initialStock, setInitialStock] = useState(0);
   const [minStock, setMinStock] = useState(editingItem?.minStock || 5);
@@ -36,6 +37,9 @@ export default function AddItem({
   const { idToken } = useAuthStatus();
   const { user, loading: userLoading } = useContext(UserContext);
   const permissions = usePermissions(user);
+  
+  // Detect if editing a room item
+  const isEditingRoom = editingItem?.category === 'rooms';
 
   const discountedPrice = discountPercent > 0 
     ? Number(price) * (1 - Number(discountPercent) / 100)
@@ -81,8 +85,7 @@ export default function AddItem({
           idToken
         );
       } else {
-        onAddItem(payload);
-        await authFetch(
+        const res = await authFetch(
           "/api/modify-items",
           {
             method: "POST",
@@ -102,6 +105,11 @@ export default function AddItem({
           },
           idToken
         );
+
+        if (res.ok) {
+          const { id } = await res.json();
+          onAddItem({ ...payload, id });
+        }
       }
 
       if (!editingItem) {
@@ -128,38 +136,42 @@ export default function AddItem({
       {/* Item Name */}
       <div>
         <label className={labelClasses}>
-          <FiPackage /> Item Description
+          <FiPackage /> {fixedCategory === "rooms" ? "Room Number / Name" : "Item Description"}
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputClasses}
-          placeholder="e.g. Organic Red Apple"
+          placeholder="e.g. Deluxe Room"
           required
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Category Dropdown */}
-        <div>
-          <label className={labelClasses}>
-            <FiLayers /> Category
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={inputClasses}
-            required
-          >
-            <option value="">Select Category</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name.toUpperCase()}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Category Dropdown (Hidden if fixed OR editing a room) */}
+        {!fixedCategory && !isEditingRoom && (
+          <div>
+            <label className={labelClasses}>
+              <FiLayers /> Category
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={inputClasses}
+              required
+            >
+              <option value="">Select Category</option>
+              {categories
+                .filter(cat => cat.name !== 'rooms') // Hide rooms from dropdown
+                .map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name.toUpperCase()}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
 
         {/* Price & Discount */}
         <div className="col-span-full">
@@ -212,7 +224,7 @@ export default function AddItem({
       </div>
 
       {/* Barcode */}
-      <div>
+      {fixedCategory !== "rooms" && (<div>
         <label className={labelClasses}>
           <FiTag /> Barcode / SKU (Optional)
         </label>
@@ -223,9 +235,10 @@ export default function AddItem({
           className={inputClasses}
           placeholder="Scan or type barcode"
         />
-      </div>
+      </div>)}
+      
 
-      {permissions.canTrackStock && (
+      {permissions.canTrackStock && fixedCategory !== "rooms" && (
         <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
           <div className="flex justify-between items-center mb-4">
             <span className="text-[10px] font-black text-brand-pink uppercase tracking-[0.2em]">
