@@ -380,9 +380,9 @@ export async function GET(request) {
       return NextResponse.json({ error: "Store not linked" }, { status: 400 });
     }
 
-    // Fetch total count for pagination
-    const totalSnap = await db.collection(`stores/${storeId}/sales`).get();
-    const totalCount = totalSnap.size;
+    // Fetch total count for pagination (Optimized with .count())
+    const totalCountSnap = await db.collection(`stores/${storeId}/sales`).count().get();
+    const totalCount = totalCountSnap.data().count;
 
     // Calculate offset
     const offset = (page - 1) * limit;

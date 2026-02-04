@@ -84,10 +84,10 @@ export async function GET(request) {
     const itemsCol = db.collection(`stores/${storeId}/items`);
 
     /* --------------------------------
-     * TOTAL COUNT
+     * TOTAL COUNT (Optimized with .count())
      * -------------------------------- */
-    const totalSnap = await itemsCol.get();
-    const totalCount = totalSnap.size;
+    const totalCountSnap = await itemsCol.count().get();
+    const totalCount = totalCountSnap.data().count;
 
     /* --------------------------------
      * PAGINATION
