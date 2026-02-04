@@ -55,6 +55,9 @@
 import { createContext, useState, useEffect } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
+import { auth } from "@/firebase.config";
+import { signOut } from "firebase/auth";
+import { toast } from "react-toastify";
 
 export const UserContext = createContext();
 
@@ -89,6 +92,23 @@ export function UserProvider({ children }) {
 
         if (res.ok) {
           const data = await res.json();
+
+          // --- DEVICE LOCKING CHECK (Specific to Restaurant/Lite Users) ---
+          if (data?.type === "restaurants") {
+            const localSessionId = localStorage.getItem("activeSessionId");
+            if (
+              data.activeSessionId &&
+              localSessionId &&
+              data.activeSessionId !== localSessionId
+            ) {
+              toast.error("ACCOUNT IN USE: Logged out from this device.");
+              await signOut(auth);
+              setUserDetails(null);
+              setLoading(false);
+              return;
+            }
+          }
+
           setUserDetails(data);
         } else {
           setUserDetails(null);
