@@ -190,6 +190,7 @@ export default function CheckoutModal({
   setShowPrintModal,
   saleId,
   setSaleId,
+  globalDiscount,
 }) {
   const { idToken } = useAuthStatus();
   const [customerName, setCustomerName] = useState("");
@@ -213,6 +214,11 @@ export default function CheckoutModal({
       }
     }
 
+    if (globalDiscount?.value > 0 && !globalDiscount?.reason) {
+      setErrorMsg("Please select a reason for the global discount.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setErrorMsg("");
@@ -227,6 +233,7 @@ export default function CheckoutModal({
             subtotal,
             gst,
             total,
+            globalDiscount, // Pass the discount object
             customerName: customerName.trim() || "Walk-in Customer",
             customerCID: customerCID.trim() || null,
             contact: contact.trim() || null,
@@ -350,24 +357,72 @@ export default function CheckoutModal({
 
             {/* Order Summary */}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 mb-6">
-              <div className="flex justify-between text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                <span>Summary</span>
+              <h3 className="flex justify-between text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">
+                Order Summary
+              </h3>
+              <div className="space-y-3">
+                {cartItems.map((item) => {
+                  const hasItemDiscount = (item.discountPercent || 0) > 0;
+                  const effectiveUnitPrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+                  const lineTotal = item.qty * effectiveUnitPrice;
+                  
+                  return (
+                    <div key={item.id} className="flex justify-between text-sm group">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-800 dark:text-gray-100 uppercase text-[11px]">
+                          {item.name}
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-mono">
+                          {item.qty} × Nu. {item.unitPrice.toLocaleString()}
+                          {hasItemDiscount && (
+                            <span className="ml-2 text-brand-pink font-bold">
+                              (-{item.discountPercent}%)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <span className="font-mono font-bold text-gray-900 dark:text-gray-100">
+                        Nu. {lineTotal.toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="space-y-1">
-                <div className="flex justify-between text-sm font-bold text-gray-600 dark:text-gray-400">
-                  <span>Subtotal</span>
-                  <span>Nu. {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+
+              {/* Stacked Discount Breakdown */}
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-500 font-bold uppercase tracking-wider">Net Subtotal</span>
+                  <span className="font-mono font-bold">Nu. {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-gray-600 dark:text-gray-400">
-                  <span>GST (5%)</span>
-                  <span>Nu. {gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+
+                {globalDiscount && globalDiscount.value > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs text-brand-pink">
+                      <span className="font-black uppercase tracking-wider">
+                        Global Discount ({globalDiscount.type === "percent" ? `${globalDiscount.value}%` : "Fixed"})
+                      </span>
+                      <span className="font-mono font-black">
+                        - Nu. {(globalDiscount.type === "percent" ? (subtotal * globalDiscount.value / 100) : globalDiscount.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    {globalDiscount.reason && (
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight italic">
+                        Reason: {globalDiscount.reason}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center text-xs pt-1">
+                  <span className="text-gray-500 font-bold uppercase tracking-wider">Tax (GST 5%)</span>
+                  <span className="font-mono font-bold">Nu. {gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                  <span className="text-xs font-black uppercase text-gray-400">
-                    Total Nu.
-                  </span>
+
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-sm font-black text-brand-pink uppercase tracking-[0.2em]">Grand Total</span>
                   <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                    {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    Nu. {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>

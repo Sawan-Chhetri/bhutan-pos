@@ -545,57 +545,87 @@ const permissions = usePermissions(user);
             <Text style={pdfStyles.th}>Price</Text>
             <Text style={pdfStyles.th}>Total</Text>
           </View>
-          {invoice.items.map((item, i) => (
-            <View key={i} style={pdfStyles.row}>
-              <View
-                style={[
-                  pdfStyles.td,
-                  { flex: 2, flexDirection: "row", alignItems: "center" },
-                ]}
-              >
-                <Text
-                  style={{ fontSize: 10, fontWeight: "bold", color: "#111827" }}
+          {invoice.items.map((item, i) => {
+            const hasItemDiscount = (item.discountPercent || 0) > 0;
+            const unitPrice = Number(item.unitPrice || 0);
+            const effectivePrice = Number(item.effectiveUnitPrice || (unitPrice * (1 - (item.discountPercent || 0) / 100)));
+            
+            return (
+              <View key={i} style={pdfStyles.row}>
+                <View
+                  style={[
+                    pdfStyles.td,
+                    { flex: 2, flexDirection: "row", alignItems: "center" },
+                  ]}
                 >
-                  {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 10, fontWeight: "bold", color: "#111827" }}>
+                      {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}
+                    </Text>
+                    {hasItemDiscount && (
+                      <Text style={{ fontSize: 7, color: "#brand-pink", fontWeight: "bold" }}>
+                        Discount: -{item.discountPercent}%
+                      </Text>
+                    )}
+                  </View>
+                  {item.isGSTExempt && (
+                    <Text
+                      style={{
+                        fontSize: 7,
+                        fontWeight: "heavy",
+                        color: "#9CA3AF",
+                        marginLeft: 4,
+                        letterSpacing: 0.5,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      [EXEMPT]
+                    </Text>
+                  )}
+                </View>
+                <Text style={pdfStyles.td}>{item.qty}</Text>
+                <Text style={pdfStyles.td}>
+                  {unitPrice.toLocaleString()}
                 </Text>
-                {item.isGSTExempt && (
-                  <Text
-                    style={{
-                      fontSize: 7,
-                      fontWeight: "heavy",
-                      color: "#9CA3AF", // Muted Gray
-                      marginLeft: 4,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    [EXEMPT]
-                  </Text>
-                )}
+                <Text style={pdfStyles.td}>
+                  {(item.qty * effectivePrice).toLocaleString()}
+                </Text>
               </View>
-              <Text style={pdfStyles.td}>{item.qty}</Text>
-              <Text style={pdfStyles.td}>
-                {item.unitPrice.toLocaleString()}
-              </Text>
-              <Text style={pdfStyles.td}>
-                {(item.qty * item.unitPrice).toLocaleString()}
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <View style={pdfStyles.totalsArea}>
           <View style={pdfStyles.totalRow}>
-            <Text>Subtotal</Text>
-            <Text>{invoice.subtotal.toLocaleString()}</Text>
+            <Text>Net Subtotal</Text>
+            <Text>{Number(invoice.subtotal || 0).toLocaleString()}</Text>
           </View>
+          
+          {invoice.globalDiscount && Number(invoice.globalDiscount.value || 0) > 0 && (
+            <View style={{ marginBottom: 4 }}>
+              <View style={pdfStyles.totalRow}>
+                <Text style={{ color: "#f472b6" }}>Discount ({invoice.globalDiscount.type === "percent" ? `${invoice.globalDiscount.value}%` : "Fixed"})</Text>
+                <Text style={{ color: "#f472b6" }}>
+                  -{(invoice.globalDiscount.type === "percent" 
+                    ? (Number(invoice.subtotal || 0) * Number(invoice.globalDiscount.value) / 100) 
+                    : Number(invoice.globalDiscount.value)).toLocaleString()}
+                </Text>
+              </View>
+              {invoice.globalDiscount.reason && (
+                <Text style={{ fontSize: 7, color: "#9CA3AF", textAlign: "right", marginTop: -2 }}>
+                  Reason: {invoice.globalDiscount.reason}
+                </Text>
+              )}
+            </View>
+          )}
+
           <View style={pdfStyles.totalRow}>
             <Text>GST (5%)</Text>
-            <Text>{invoice.gst.toLocaleString()}</Text>
+            <Text>{Number(invoice.gst || 0).toLocaleString()}</Text>
           </View>
           <View style={[pdfStyles.totalRow, pdfStyles.grandTotal]}>
             <Text>TOTAL</Text>
-            <Text>Nu. {invoice.total.toLocaleString()}</Text>
+            <Text>Nu. {Number(invoice.total || 0).toLocaleString()}</Text>
           </View>
         </View>
 
@@ -773,65 +803,94 @@ const permissions = usePermissions(user);
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                {invoice.items.map((item, i) => (
-                  <tr key={i}>
-                    {/* <td className="px-6 py-5 text-sm font-bold text-gray-800 dark:text-gray-200">
-                      {item.name.slice(0, 1).toUpperCase() + item.name.slice(1)}{" "}
-                      <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter">
-                        No GST
-                      </span>
-                    </td> */}
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                          {item.name.charAt(0).toUpperCase() +
-                            item.name.slice(1)}
-                        </span>
-                        {item.isGSTExempt && (
-                          <span className="px-1.5 py-0.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                            Exempt
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-sm font-black text-gray-500 font-mono">
-                      {item.qty}
-                    </td>
-                    <td className="px-6 py-5 text-sm font-bold text-gray-600 dark:text-gray-400 font-mono">
-                      {item.unitPrice.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono">
-                      {(item.qty * item.unitPrice).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                {invoice.items.map((item, i) => {
+                  const hasItemDiscount = (item.discountPercent || 0) > 0;
+                  const unitPrice = Number(item.unitPrice || 0);
+                  const effectivePrice = Number(item.effectiveUnitPrice || (unitPrice * (1 - (item.discountPercent || 0) / 100)));
+                  
+                  return (
+                    <tr key={i}>
+                      <td className="px-6 py-5">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                              {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+                            </span>
+                            {item.isGSTExempt && (
+                              <span className="px-1.5 py-0.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                                Exempt
+                              </span>
+                            )}
+                          </div>
+                          {hasItemDiscount && (
+                            <span className="text-[10px] font-bold text-brand-pink uppercase tracking-tight">
+                              -{item.discountPercent}% Discount Applied
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-sm font-black text-gray-500 font-mono">
+                        {item.qty}
+                      </td>
+                      <td className="px-6 py-5 text-sm font-bold text-gray-600 dark:text-gray-400 font-mono">
+                        {unitPrice.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono">
+                        {(item.qty * effectivePrice).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Totals */}
           <div className="flex flex-col items-end">
-            <div className="w-full md:w-64 space-y-3">
-              <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
-                <span>Subtotal</span>
-                <span className="font-mono">
-                  {invoice.subtotal.toLocaleString()}
+            <div className="w-full md:w-80 space-y-3 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <span>Net Subtotal</span>
+                <span className="font-mono text-gray-900 dark:text-white">
+                  Nu. {Number(invoice.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
-                <span>GST (5%)</span>
-                <span className="font-mono">
-                  {invoice.gst.toLocaleString()}
+              
+              {invoice.globalDiscount && Number(invoice.globalDiscount.value || 0) > 0 && (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-black text-brand-pink uppercase tracking-wider">
+                    <span>Global Discount ({invoice.globalDiscount.type === "percent" ? `${invoice.globalDiscount.value}%` : "Fixed"})</span>
+                    <span className="font-mono">
+                      - Nu. {(invoice.globalDiscount.type === "percent" 
+                        ? (Number(invoice.subtotal || 0) * Number(invoice.globalDiscount.value) / 100) 
+                        : Number(invoice.globalDiscount.value)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {invoice.globalDiscount.reason && (
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tight text-right italic">
+                      Reason: {invoice.globalDiscount.reason}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <span>Tax (GST 5%)</span>
+                <span className="font-mono text-gray-900 dark:text-white">
+                  Nu. {Number(invoice.gst || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="h-px bg-gray-100 dark:bg-gray-800 my-4" />
-              <div className="flex justify-between items-baseline">
-                <span className="text-[10px] font-black text-brand-pink uppercase tracking-widest">
-                  Total Nu.
+
+              <div className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
+              
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] font-black text-brand-pink uppercase tracking-[0.2em] mb-1">
+                  Grand Total
                 </span>
-                <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter font-mono">
-                  {invoice.total.toLocaleString()}
-                </span>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter font-mono">
+                    Nu. {Number(invoice.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

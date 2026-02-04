@@ -200,17 +200,24 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
                 }
               `}
               >
-                <div className="flex flex-col">
+                <div className="flex flex-col items-start">
                   <span className="text-[9px] text-gray-400 uppercase font-black tracking-tighter">
                     Price
                   </span>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-[10px] font-normal text-gray-500">
-                      Nu.
-                    </span>
-                    <span className="text-lg font-black text-gray-900 dark:text-white leading-none">
-                      {product.price.toLocaleString()}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-[10px] font-normal text-gray-500">
+                        Nu.
+                      </span>
+                      <span className="text-lg font-black text-gray-900 dark:text-white leading-none">
+                        {product.price.toLocaleString()}
+                      </span>
+                    </div>
+                    {(product.discountPercent || 0) > 0 && (
+                      <span className="text-[9px] font-black bg-brand-pink/10 text-brand-pink px-1.5 py-0.5 rounded uppercase">
+                        -{product.discountPercent}%
+                      </span>
+                    )}
                   </div>
                 </div>
 

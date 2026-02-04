@@ -36,6 +36,7 @@ export async function POST(request) {
       customerId,
       customerAddress,
       isPaid,
+      globalDiscount,
     } = await request.json();
 
     if (!cartItems?.length) {
@@ -129,36 +130,45 @@ export async function POST(request) {
       let gstCollected = 0;
 
       const items = cartItems.map((item) => {
-        const lineTotal = item.qty * item.unitPrice;
+        // use item-level effective price for line total
+        const effectiveUnitPrice = Number(item.unitPrice || 0) * (1 - (item.discountPercent || 0) / 100);
+        const lineTotal = item.qty * effectiveUnitPrice;
 
         if (!item.isGSTExempt) {
           taxableSales += lineTotal;
-          gstCollected += lineTotal * GST_RATE;
+          // Note: Full GST collected logic should match the frontend logic (pro-rata distribution of global discount)
         }
 
-        // return {
-        //   itemId: item.id,
-        //   name: item.name,
-        //   unitPrice: item.unitPrice,
-        //   qty: item.qty,
-        //   lineTotal,
-        //   isGSTExempt: item.isGSTExempt ?? false,
-        // };
         return {
           itemId: item.id,
-          name: item.name || item.description, // fallback
-          unitPrice: Number(item.unitPrice ?? item.rate ?? 0),
+          name: item.name || item.description,
+          unitPrice: Number(item.unitPrice || 0),
+          effectiveUnitPrice,
+          discountPercent: Number(item.discountPercent || 0),
           qty: Number(item.qty || 0),
           lineTotal,
           isGSTExempt: item.isGSTExempt ?? false,
         };
       });
 
+      // Recalculate GST precisely based on global discount (logic from frontend)
+      const netSubtotal = items.reduce((s, i) => s + i.lineTotal, 0);
+      let finalBeforeTax = netSubtotal;
+      if (globalDiscount?.type === "percent") {
+        finalBeforeTax = netSubtotal * (1 - (globalDiscount.value || 0) / 100);
+      } else {
+        finalBeforeTax = Math.max(0, netSubtotal - (globalDiscount.value || 0));
+      }
+
+      const discountRatio = netSubtotal > 0 ? finalBeforeTax / netSubtotal : 1;
+      
+      gstCollected = items.reduce((sum, item) => {
+        if (item.isGSTExempt) return sum;
+        return sum + (item.lineTotal * discountRatio * GST_RATE);
+      }, 0);
+
       const saleDocRef = salesRef.doc();
       saleId = saleDocRef.id;
-      /* ---------------------------------------------
-       * D) WRITE EVERYTHING (AFTER ALL READS)
-       * --------------------------------------------- */
 
       // Update invoice counter
       if (!counterSnap.exists) {
@@ -171,10 +181,12 @@ export async function POST(request) {
       tx.set(saleDocRef, {
         invoiceNumber,
         items,
-        subtotal,
+        subtotal: netSubtotal,
+        globalDiscount: globalDiscount || null,
+        finalBeforeTax,
         gst: gstCollected,
         total,
-        taxableSales,
+        taxableSales: taxableSales * discountRatio, // record the taxable base after global discount
         customerName: customerName || null,
         customerCID: customerCID || null,
         contact: contact || customerAddress || null,
@@ -188,7 +200,7 @@ export async function POST(request) {
         tx.set(gstReportRef, {
           month: monthKey,
           totalSales: total,
-          taxableSales,
+          taxableSales: taxableSales * discountRatio,
           gstCollected,
           saleCount: 1,
           lastUpdated: now,
@@ -196,7 +208,7 @@ export async function POST(request) {
       } else {
         tx.update(gstReportRef, {
           totalSales: admin.firestore.FieldValue.increment(total),
-          taxableSales: admin.firestore.FieldValue.increment(taxableSales),
+          taxableSales: admin.firestore.FieldValue.increment(taxableSales * discountRatio),
           gstCollected: admin.firestore.FieldValue.increment(gstCollected),
           saleCount: admin.firestore.FieldValue.increment(1),
           lastUpdated: now,
@@ -215,7 +227,7 @@ export async function POST(request) {
             // Calculate new state
             const currentStock = Number(currentData.stock || 0);
             const minStock = Number(currentData.minStock || 0);
-            const newStock = currentStock - item.qty;
+            const newStock = Math.max(0, currentStock - item.qty);
             const isLowStock = newStock <= minStock;
 
             tx.update(itemRef, {
@@ -223,13 +235,10 @@ export async function POST(request) {
               isLowStock: isLowStock
             });
 
-            // Valuation Updates (Subtraction)
+            // Valuation Updates (Retail only: Current Stock * Base Price)
             retailDelta -= item.qty * Number(item.unitPrice || 0);
           }
         }
-
-        // Valuation Updates Logic moved below
-
 
         if (summarySnap.exists) {
           tx.update(summaryRef, {

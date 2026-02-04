@@ -808,6 +808,13 @@ export default function ItemScreen() {
               <h3 className="font-bold text-gray-800 dark:text-gray-100 text-sm md:text-base leading-tight uppercase group-hover:text-brand-pink transition-colors">
                 {item.name}
               </h3>
+              {Number(item.discountPercent) > 0 && (
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="text-[10px] font-black text-red-600 uppercase bg-red-500/5 px-2 py-0.5 rounded-full border border-brand-pink/10">
+                    -{item.discountPercent}% OFF
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Pricing Section */}
@@ -824,10 +831,17 @@ export default function ItemScreen() {
                 <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">
                   Unit Price
                 </p>
-                <p className="text-xl font-black text-gray-900 dark:text-white">
-                  <span className="text-xs font-normal mr-1">Nu.</span>
-                  {Number(item.price).toLocaleString()}
-                </p>
+                <div className="flex flex-col">
+                  {Number(item.discountPercent) > 0 && (
+                    <span className="text-[10px] text-gray-400 line-through font-mono">
+                      Nu. {Number(item.price).toLocaleString()}
+                    </span>
+                  )}
+                  <p className="text-xl font-black text-gray-900 dark:text-white">
+                    <span className="text-xs font-normal mr-1">Nu.</span>
+                    {(Number(item.price) * (1 - (Number(item.discountPercent) || 0) / 100)).toLocaleString()}
+                  </p>
+                </div>
               </div>
               {/* {viewMode === "grid" && (
                 <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
