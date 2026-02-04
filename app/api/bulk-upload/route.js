@@ -121,7 +121,6 @@ export async function POST(req) {
         category: category || "Uncategorized",
         price: numPrice,
         stock: numStock,
-        isActive: true,
         isGSTExempt: false,
       });
 

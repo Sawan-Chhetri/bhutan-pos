@@ -386,6 +386,18 @@ export default function PurchaseLedger() {
     [items],
   );
 
+  
+  const totalGST = useMemo(
+  () => items.reduce(
+    (s, it) => s + (it.isTaxable ? it.qty * it.cost * GST_RATE : 0),
+    0
+  ),
+  [items]
+);
+
+const grossTotal = totalCost + totalGST;
+
+
   const handleAddItem = () => {
     if (!tempItem.description || tempItem.cost <= 0) {
       return toast.error("Please enter a description and cost");
@@ -459,11 +471,10 @@ export default function PurchaseLedger() {
     try {
       const body = {
         items,
-        itc: totalITC,
-        totalPurchases: totalCost,
         supplierName,
         supplierTIN,
         billNumber,
+        // Purchase calculations all performed on the server side
       };
       const res = await authFetch(
         "/api/purchases",
@@ -511,7 +522,7 @@ export default function PurchaseLedger() {
                 Gross Total
               </p>
               <p className="text-sm font-bold">
-                Nu. {totalCost.toLocaleString()}
+                Nu. {grossTotal.toLocaleString()}
               </p>
             </div>
             <button

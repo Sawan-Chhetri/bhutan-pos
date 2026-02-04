@@ -27,8 +27,6 @@ export async function POST(request) {
      * ===================================================== */
     const {
       items,
-      itc,
-      totalPurchases,
       supplierName,
       supplierTIN,
       billNumber,
@@ -99,26 +97,48 @@ export async function POST(request) {
       /* ---------------------------------------------
        * B) PREPARE PURCHASE ITEMS + GST CALCULATION
        * --------------------------------------------- */
+      // let taxablePurchases = 0;
+      // let totalITC = 0;
       let taxablePurchases = 0;
-      let totalITC = 0;
+let nonTaxablePurchases = 0;
+let totalITC = 0;
+
 
       const cartItems = items.map((item) => {
-        const lineTotal = item.qty * item.cost;
+        // const lineTotal = item.qty * item.cost;
+        const qty = Number(item.qty || 0);
+        const cost = Number(item.cost || 0);
+        const lineTotal = qty * cost;
 
+        // if (item.isTaxable) {
+        //   taxablePurchases += lineTotal;
+        //   totalITC += lineTotal * GST_RATE;
+        // }
         if (item.isTaxable) {
           taxablePurchases += lineTotal;
           totalITC += lineTotal * GST_RATE;
+        } else {
+          nonTaxablePurchases += lineTotal;
         }
 
         return {
-          itemId: item.itemId || null, // Fix: Use itemId, fallback to null (not undefined)
-          name: item.description, // fallback
-          cost: Number(item.cost ?? 0),
-          qty: Number(item.qty || 0),
+          // itemId: item.itemId || null, // Fix: Use itemId, fallback to null (not undefined)
+          // name: item.description, // fallback
+          // cost: Number(item.cost ?? 0),
+          // qty: Number(item.qty || 0),
+          // lineTotal,
+          itemId: item.itemId || null,
+          name: item.description,
+          cost,
+          qty,
           lineTotal,
           isTaxable: item.isTaxable ?? false,
         };
       });
+
+      const grossPurchases =
+      taxablePurchases + nonTaxablePurchases + totalITC;
+
 
       const purchaseDocRef = purchaseRef.doc();
       purchaseId = purchaseDocRef.id;
@@ -128,10 +148,25 @@ export async function POST(request) {
 
       // Create purchase document
       tx.set(purchaseDocRef, {
+        // billNumber,
+        // cartItems,
+        // itc: totalITC,
+        // totalPurchases: grossPurchases,
+        // supplierName: supplierName || null,
+        // supplierTIN: supplierTIN || null,
+        // date: now,
+        // createdBy: uid,
         billNumber,
         cartItems,
+
+        // GST-critical
+        taxablePurchases,
+        nonTaxablePurchases,
         itc: totalITC,
-        totalPurchases,
+
+        // Accounting / reconciliation
+        grossPurchases,
+
         supplierName: supplierName || null,
         supplierTIN: supplierTIN || null,
         date: now,
@@ -142,22 +177,33 @@ export async function POST(request) {
       if (!gstSnap.exists) {
         tx.set(gstReportRef, {
           month: monthKey,
-          totalPurchases: Number(totalPurchases || 0),
-          taxablePurchases: taxablePurchases,
+          // totalPurchases: Number(totalPurchases || 0),
+          totalPurchases: grossPurchases,
+          taxablePurchases,
           itcClaimed: totalITC,
           purchaseCount: 1,
           lastUpdated: now,
         });
       } else {
+        // tx.update(gstReportRef, {
+        //   totalPurchases:
+        //     // admin.firestore.FieldValue.increment(Number(totalPurchases || 0)),
+        //     admin.firestore.FieldValue.increment(grossPurchases),
+        //   taxablePurchases:
+        //     admin.firestore.FieldValue.increment(taxablePurchases),
+        //   itcClaimed: admin.firestore.FieldValue.increment(totalITC),
+        //   purchaseCount: admin.firestore.FieldValue.increment(1),
+        //   lastUpdated: now,
+        // });
         tx.update(gstReportRef, {
-          totalPurchases:
-            admin.firestore.FieldValue.increment(Number(totalPurchases || 0)),
-          taxablePurchases:
-            admin.firestore.FieldValue.increment(taxablePurchases),
-          itcClaimed: admin.firestore.FieldValue.increment(totalITC),
-          purchaseCount: admin.firestore.FieldValue.increment(1),
-          lastUpdated: now,
-        });
+        taxablePurchases: admin.firestore.FieldValue.increment(taxablePurchases),
+        nonTaxablePurchases: admin.firestore.FieldValue.increment(nonTaxablePurchases),
+        itcClaimed: admin.firestore.FieldValue.increment(totalITC),
+        grossPurchases: admin.firestore.FieldValue.increment(grossPurchases),
+        purchaseCount: admin.firestore.FieldValue.increment(1),
+        lastUpdated: now,
+});
+
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION

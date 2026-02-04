@@ -510,23 +510,14 @@
 
 "use client";
 import { useContext, useEffect, useState } from "react";
-import {
-  FiEdit,
-  FiTrash2,
-  FiPlus,
-  FiTag,
-  FiArchive,
-  FiGrid,
-  FiList,
-  FiChevronLeft,
-  FiChevronRight,
-} from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiTag, FiArchive, FiGrid, FiList, FiChevronLeft, FiChevronRight, FiSearch, FiX } from "react-icons/fi";
 import AddItemModal from "./AddItemModal";
 import DeleteModal from "./DeleteModal";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
 import { UserContext } from "@/contexts/UserContext";
 import usePermissions from "@/hooks/usePermissions";
+import { toast } from "react-toastify";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -545,6 +536,12 @@ export default function ItemScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+
+  // Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   /* --------------------------------
    * FETCH LOGIC (UNTOUCHED)
@@ -605,6 +602,49 @@ export default function ItemScreen() {
     }
   };
 
+  /* --------------------------------
+   * SEARCH LOGIC
+   * -------------------------------- */
+  const handleSearch = async (e) => {
+    if (e && e.key !== "Enter") return;
+    if (!searchQuery.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    setIsSearching(true);
+    try {
+      const storeId = user?.storeId || "";
+      const res = await authFetch(
+        `/api/search-items?query=${encodeURIComponent(searchQuery)}&storeId=${storeId}`,
+        {},
+        idToken,
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data);
+      } else {
+        toast.error("Search failed");
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+      toast.error("Search failed");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setIsSearching(false);
+    setSearchResults([]);
+  };
+
+  const displayedItems = isSearching ? searchResults : items;
+
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-gray-50 dark:bg-gray-900">
@@ -627,8 +667,40 @@ export default function ItemScreen() {
             <span>{permissions.canTrackStock ? "INVENTORY" : "ITEMS"}</span>
           </h1>
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-            {items.length} Products on Page {currentPage}
+            {isSearching ? `${searchResults.length} Results Found` : `${items.length} Products on Page ${currentPage}`}
           </p>
+        </div>
+
+        {/* Search Bar - Modern & Responsive */}
+        <div className="w-full max-w-xl mx-auto px-4">
+          <div className="relative flex items-center group transition-all duration-300">
+            <div className="absolute left-4 text-gray-400 group-focus-within:text-brand-pink transition-colors">
+              {searchLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-brand-pink border-t-transparent" />
+              ) : (
+                <FiSearch size={18} strokeWidth={2.5} />
+              )
+            }
+            </div>
+
+            <input
+              type="text"
+              placeholder="Search by name or barcode..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-4 pl-12 pr-14 text-sm font-bold text-gray-800 dark:text-gray-100 placeholder-gray-400 outline-none transition-all focus:border-brand-pink focus:ring-4 focus:ring-brand-pink/10 shadow-sm"
+            />
+
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-4 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              >
+                <FiX size={20} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Action Controls */}
@@ -677,7 +749,8 @@ export default function ItemScreen() {
         }
       `}
       >
-        {items.map((item) => (
+        {displayedItems.length > 0 ? (
+          displayedItems.map((item) => (
           <div
             key={item.id}
             className={`
@@ -779,11 +852,29 @@ export default function ItemScreen() {
               )}
             </div>
           </div>
-        ))}
+        ))
+      ) : (
+        <div className="col-span-full py-20 text-center">
+          <div className="bg-gray-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiSearch className="text-gray-400" size={24} />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Items Found</h3>
+          <p className="text-gray-500">Try adjusting your search criteria</p>
+          {isSearching && (
+            <button
+              onClick={clearSearch}
+              className="mt-4 text-brand-pink font-bold uppercase text-xs tracking-widest hover:underline"
+            >
+              Clear Search
+            </button>
+          )}
+        </div>
+      )}
       </div>
 
       {/* --- PAGINATION (MODERN & RESPONSIVE) --- */}
-      <div className="mt-12 flex items-center justify-center gap-2 sm:gap-3">
+      {!isSearching && (
+        <div className="mt-12 flex items-center justify-center gap-2 sm:gap-3">
         {/* Previous Button */}
         <button
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -839,6 +930,7 @@ export default function ItemScreen() {
           <FiChevronRight className="dark:text-white" />
         </button>
       </div>
+      )}
 
       {/* Modals */}
       <AddItemModal

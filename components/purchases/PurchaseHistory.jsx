@@ -186,7 +186,7 @@ export default function PurchaseHistory() {
                       </p>
                       <p className="text-xl font-mono font-black text-gray-900 dark:text-white">
                         Nu.{" "}
-                        {Number(purchase.totalPurchases || 0).toLocaleString()}
+                        {Number(purchase.grossPurchases || 0).toLocaleString()}
                       </p>
                     </div>
 
