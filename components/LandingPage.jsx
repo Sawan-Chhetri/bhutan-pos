@@ -373,60 +373,92 @@ const LandingPage = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-0 rounded-[3rem] overflow-hidden border-2 border-slate-950 shadow-2xl">
-          <div className="p-12 bg-white flex flex-col justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Micro (Service) */}
+          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-[#EE4B6A]/30 transition-all">
             <div>
-              <h4 className="font-black text-slate-400 uppercase tracking-widest mb-2">
-                Monthly
-              </h4>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-6xl font-black text-slate-950">750</span>
-                <span className="text-slate-400 font-bold text-xl">/mo</span>
+              <h4 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-2">Service (Micro)</h4>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-4xl font-black text-slate-950">199</span>
+                <span className="text-slate-400 font-bold text-sm">/mo</span>
               </div>
-              <p className="text-sm font-bold text-slate-500 mb-8">
-                No commitment. Cancel when you want.
-              </p>
+              <p className="text-[11px] font-bold text-slate-500 mb-6">For Freelancers & Contractors. Professional PDF Invoices.</p>
+              <ul className="space-y-3 mb-8">
+                {["Unlimited Invoices", "PDF Generation", "Basic GST Report"].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+                    <span className="text-green-500">✔</span> {f}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <button
-              onClick={() => {
-                route.push("/get-started");
-              }}
-              className="w-full py-4 rounded-2xl border-2 border-slate-950 text-slate-950 font-black hover:bg-slate-50 transition"
-            >
-              Select Monthly
-            </button>
+            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-400 font-black text-[10px] uppercase hover:bg-slate-50 transition">Select Micro</button>
           </div>
 
-          <div className="p-12 bg-slate-950 text-white flex flex-col justify-between relative">
-            <div className="absolute top-6 right-6 bg-[#A8DF8E] text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full uppercase">
-              Save Nu. 1,800
-            </div>
+          {/* Shop (POS Lite) */}
+          <div className="p-8 bg-white border-2 border-[#EE4B6A] rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-brand-pink/5 relative scale-105 z-10">
+            <div className="absolute top-4 right-6 bg-[#EE4B6A] text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-brand-pink/20">Popular</div>
             <div>
-              <h4 className="font-black text-[#A8DF8E] uppercase tracking-widest mb-2">
-                Annual Growth
-              </h4>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-6xl font-black">600</span>
-                <span className="text-slate-400 font-bold text-xl">/mo</span>
+              <h4 className="font-black text-[#EE4B6A] uppercase tracking-widest text-[10px] mb-2">Shop (POS Lite)</h4>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-4xl font-black text-slate-950">399</span>
+                <span className="text-slate-400 font-bold text-sm">/mo</span>
               </div>
-              <p className="text-sm font-bold text-slate-400 mb-8">
-                The professional choice. Billed Nu. 7,200/yr.
-              </p>
+              <p className="text-[11px] font-bold text-slate-500 mb-6 italic">&quot;The Yeti Killer&quot;. Pan shops, small groceries.</p>
+              <ul className="space-y-3 mb-8">
+                {["Unlimited Products", "Full POS Interface", "Stock Counts", "Full GST Reporting"].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+                    <span className="text-[#EE4B6A]">✔</span> {f}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <button
-              onClick={() => {
-                route.push("/get-started");
-              }}
-              className="w-full py-4 rounded-2xl bg-[#A8DF8E] text-slate-950 font-black hover:scale-[1.02] transition shadow-lg shadow-[#A8DF8E]/20"
-            >
-              Start Annual Plan
-            </button>
+            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl bg-[#EE4B6A] text-white font-black text-[10px] uppercase hover:brightness-110 transition shadow-lg shadow-brand-pink/20">Get Lite</button>
+          </div>
+
+          {/* Business (POS Pro) */}
+          <div className="p-8 bg-slate-950 text-white rounded-[2.5rem] flex flex-col justify-between shadow-2xl">
+            <div>
+              <h4 className="font-black text-[#A8DF8E] uppercase tracking-widest text-[10px] mb-2">Business (Pro)</h4>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-4xl font-black">799</span>
+                <span className="text-slate-400 font-bold text-sm">/mo</span>
+              </div>
+              <p className="text-[11px] font-bold text-slate-400 mb-6">Large Hardware, Pharmacy, Multisession Stores.</p>
+              <ul className="space-y-3 mb-8">
+                {["Real-time Valuation", "Multi-device Access", "Bulk Import/Export", "Advanced Analytics"].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-300">
+                    <span className="text-[#A8DF8E]">✔</span> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl bg-[#A8DF8E] text-slate-950 font-black text-[10px] uppercase hover:brightness-110 transition">Select Pro</button>
+          </div>
+
+          {/* Restaurant */}
+          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-slate-400 transition-all">
+            <div>
+              <h4 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-2">Hospitality</h4>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-4xl font-black text-slate-950">699</span>
+                <span className="text-slate-400 font-bold text-sm">/mo</span>
+              </div>
+              <p className="text-[11px] font-bold text-slate-500 mb-6">Cafes, Bars and Restaurants. High volume sales.</p>
+              <ul className="space-y-3 mb-8">
+                {["KOT System (Planned)", "Table Management", "Kitchen Sync"].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-700">
+                    <span className="text-slate-400">✔</span> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button onClick={() => route.push("/get-started")} className="w-full py-3 rounded-xl border-2 border-slate-950 text-slate-950 font-black text-[10px] uppercase hover:bg-slate-950 hover:text-white transition">Select Hospitality</button>
           </div>
         </div>
       </section>
 
       {/* Final "Zen" Hook */}
-      <footer className="w-full py-32 bg-slate-50 text-center px-6">
+      <footer className="w-full py-24 bg-slate-50 text-center px-6">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl font-black mb-6 leading-tight text-slate-950">
             Stop letting your software <br /> dictate your stress.

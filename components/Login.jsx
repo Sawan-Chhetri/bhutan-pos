@@ -141,6 +141,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { UserContext } from "@/contexts/UserContext";
 import { FiLock, FiMail, FiArrowRight, FiShield } from "react-icons/fi";
 import ForgotPassword from "./ForgotPassword";
+import authFetch from "@/lib/authFetch";
 
 function Login({ onSuccess }) {
   const [email, setEmail] = useState("");
@@ -151,19 +152,24 @@ function Login({ onSuccess }) {
   const [errorMsg, setErrorMsg] = useState("");
   const { user } = useContext(UserContext);
 
+  // Redirect only if already logged in (not during an active login attempt)
   useEffect(() => {
-    if (!user) return;
+    if (!user || isLoading) return;
     if (user.type === "pos" || user.type === "restaurants") {
       router.push("/pos");
     } else {
       router.push("/invoice");
     }
-  }, [user, router]);
+  }, [user, router, isLoading]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg("");
+    
+    // Clear old session ID to prevent race condition with UserContext
+    localStorage.removeItem("activeSessionId");
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -171,7 +177,22 @@ function Login({ onSuccess }) {
         password,
       );
       if (userCredential.user) {
-        await userCredential.user.getIdToken(true);
+        const token = await userCredential.user.getIdToken(true);
+        
+        // --- DEVICE LOCKING ---
+        const activeSessionId = window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
+        
+        // 1. Update Firestore FIRST
+        await authFetch("/api/user/update-session", {
+          method: "POST",
+          body: JSON.stringify({ activeSessionId })
+        }, token);
+
+        // 2. Set LocalStorage SECOND
+        localStorage.setItem("activeSessionId", activeSessionId);
+
+        // 3. Success toast
+        toast.success("Identity Verified. Accessing system...");
       }
     } catch (error) {
       setErrorMsg("INVALID CREDENTIALS");
