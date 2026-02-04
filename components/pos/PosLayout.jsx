@@ -236,6 +236,9 @@ function PosLayout() {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [saleId, setSaleId] = useState(null);
 
+  // Global Discount State
+  const [globalDiscount, setGlobalDiscount] = useState({ value: 0, type: "percent", reason: "" });
+
   // LOGIC UNTOUCHED
   const handleAddToCart = (product) => {
     const existing = cartItems.find((item) => item.id === product.id);
@@ -251,7 +254,8 @@ function PosLayout() {
         {
           id: product.id,
           name: product.name,
-          unitPrice: product.price,
+          unitPrice: product.price, // Base Sale Price
+          discountPercent: product.discountPercent || 0, // Item-Level Discount
           qty: 1,
           isGSTExempt: product.isGSTExempt || false,
         },
@@ -259,15 +263,38 @@ function PosLayout() {
     }
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.qty * item.unitPrice,
-    0,
-  );
+  /* ---------------------------------------------
+   * 🧮 CALCULATION ENGINE (STACKED DISCOUNTS)
+   * --------------------------------------------- */
+  
+  // Step 1: Item-Level Calculation (Effective Price)
+  // Step 2: Net Subtotal (Sum of effectivePrices)
+  const netSubtotal = cartItems.reduce((sum, item) => {
+    const effectivePrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+    return sum + item.qty * effectivePrice;
+  }, 0);
+
+  // Step 3: Global Discount (Checkout Level)
+  let finalBeforeTax = netSubtotal;
+  if (globalDiscount.type === "percent") {
+    finalBeforeTax = netSubtotal * (1 - (globalDiscount.value || 0) / 100);
+  } else {
+    finalBeforeTax = Math.max(0, netSubtotal - (globalDiscount.value || 0));
+  }
+
+  // Step 4: Tax Calculation (Pro-rata applied to non-exempt items)
+  // We apply the global discount ratio to the taxable subtotal
+  const discountRatio = netSubtotal > 0 ? finalBeforeTax / netSubtotal : 1;
+  
   const gst = cartItems.reduce((sum, item) => {
     if (item.isGSTExempt) return sum;
-    return sum + item.qty * item.unitPrice * bhutanGST;
+    const itemEffectiveSubtotal = item.qty * item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+    const itemFinalSubtotal = itemEffectiveSubtotal * discountRatio;
+    return sum + itemFinalSubtotal * bhutanGST;
   }, 0);
-  const total = subtotal + gst;
+
+  // Step 5: Grand Total
+  const total = finalBeforeTax + gst;
 
   /* ---------------------------------------------
    * 🛒 BARCODE SCANNER LOGIC
@@ -411,7 +438,7 @@ function PosLayout() {
         <aside className="hidden lg:block w-[400px]">
           <Checkout
             cartItems={cartItems}
-            subtotal={subtotal}
+            subtotal={netSubtotal}
             gst={gst}
             total={total}
             setCartItems={setCartItems}
@@ -419,6 +446,8 @@ function PosLayout() {
             setShowPrintModal={setShowPrintModal}
             saleId={saleId}
             setSaleId={setSaleId}
+            globalDiscount={globalDiscount}
+            setGlobalDiscount={setGlobalDiscount}
           />
         </aside>
       </main>
@@ -467,7 +496,7 @@ function PosLayout() {
             <div className="flex-1 overflow-y-auto">
               <Checkout
                 cartItems={cartItems}
-                subtotal={subtotal}
+                subtotal={netSubtotal}
                 gst={gst}
                 total={total}
                 setCartItems={setCartItems}
@@ -475,6 +504,8 @@ function PosLayout() {
                 setShowPrintModal={setShowPrintModal}
                 saleId={saleId}
                 setSaleId={setSaleId}
+                globalDiscount={globalDiscount}
+                setGlobalDiscount={setGlobalDiscount}
               />
             </div>
           </div>

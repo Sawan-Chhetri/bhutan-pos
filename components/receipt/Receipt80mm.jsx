@@ -132,26 +132,33 @@ export default function Receipt80mm({ invoice }) {
             </tr>
           </thead>
           <tbody>
-            {invoice.items?.map((item, i) => (
-              <tr key={i}>
-                <td style={{ padding: "4px 0", fontWeight: "600" }}>
-                  {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)} <br />
-                  <span style={{ fontSize: "9px", fontWeight: "600" }}>
-                    {item.qty} x {item.unitPrice?.toLocaleString()}
-                  </span>
-                </td>
-                <td
-                  style={{
-                    textAlign: "right",
-                    verticalAlign: "top",
-                    padding: "4px 0",
-                    fontWeight: "600",
-                  }}
-                >
-                  {(item.qty * item.unitPrice)?.toLocaleString()}
-                </td>
-              </tr>
-            ))}
+            {invoice.items?.map((item, i) => {
+              const hasItemDiscount = (item.discountPercent || 0) > 0;
+              const unitPrice = Number(item.unitPrice || 0);
+              const effectivePrice = Number(item.effectiveUnitPrice || (unitPrice * (1 - (item.discountPercent || 0) / 100)));
+              
+              return (
+                <tr key={i}>
+                  <td style={{ padding: "4px 0", fontWeight: "600" }}>
+                    {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)} <br />
+                    <span style={{ fontSize: "9px", fontWeight: "600" }}>
+                      {item.qty} x {unitPrice.toLocaleString()}
+                      {hasItemDiscount && ` (-${item.discountPercent}%)`}
+                    </span>
+                  </td>
+                  <td
+                    style={{
+                      textAlign: "right",
+                      verticalAlign: "top",
+                      padding: "4px 0",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {(item.qty * effectivePrice).toLocaleString()}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
@@ -164,12 +171,24 @@ export default function Receipt80mm({ invoice }) {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
-            <span>SUBTOTAL:</span>
-            <span>{invoice.subtotal?.toLocaleString()}</span>
+            <span>NET SUBTOTAL:</span>
+            <span>{Number(invoice.subtotal || 0).toLocaleString()}</span>
           </div>
+
+          {invoice.globalDiscount && Number(invoice.globalDiscount.value || 0) > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
+              <span>DISCOUNT ({invoice.globalDiscount.type === "percent" ? `${invoice.globalDiscount.value}%` : "FIXED"}):</span>
+              <span>
+                -{(invoice.globalDiscount.type === "percent" 
+                  ? (Number(invoice.subtotal || 0) * Number(invoice.globalDiscount.value) / 100) 
+                  : Number(invoice.globalDiscount.value)).toLocaleString()}
+              </span>
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
             <span>GST (5%):</span>
-            <span>{invoice.gst?.toLocaleString()}</span>
+            <span>{Number(invoice.gst || 0).toLocaleString()}</span>
           </div>
           <div
             style={{
@@ -178,10 +197,12 @@ export default function Receipt80mm({ invoice }) {
               fontWeight: "900",
               fontSize: "14px",
               marginTop: "5px",
+              borderTop: "1px solid #000",
+              paddingTop: "5px"
             }}
           >
-            <span>TOTAL:</span>
-            <span>Nu. {invoice.total?.toLocaleString()}</span>
+            <span>GRAND TOTAL:</span>
+            <span>Nu. {Number(invoice.total || 0).toLocaleString()}</span>
           </div>
         </div>
 

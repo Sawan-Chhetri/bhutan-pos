@@ -216,23 +216,23 @@ let totalITC = 0;
             const currentData = loadedItems[item.itemId];
             
             // Calculate new state
-            const currentStock = Number(currentData.stock || 0);
+            const oldStock = Number(currentData.stock || 0);
+            const retailPrice = Number(currentData.price || 0);
+            
+            const newStock = oldStock + item.qty;
             const minStock = Number(currentData.minStock || 0);
-            const newStock = currentStock + item.qty;
             const isLowStock = newStock <= minStock;
 
             tx.update(itemRef, {
               stock: newStock,
-              isLowStock: isLowStock
+              isLowStock: isLowStock,
+              lastUpdatedAt: now
             });
 
-            // Valuation Updates
-            retailDelta += item.qty * Number(currentData.price || 0);
+            // Valuation Updates (Retail only: added stock)
+            retailDelta += item.qty * retailPrice;
           }
         }
-
-        // Valuation Updates Logic moved to writes below
-
 
         if (!summarySnap.exists) {
           tx.set(summaryRef, {

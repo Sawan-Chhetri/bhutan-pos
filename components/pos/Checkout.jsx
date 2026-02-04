@@ -156,10 +156,12 @@ export default function Checkout({
   setShowPrintModal,
   saleId,
   setSaleId,
+  globalDiscount,
+  setGlobalDiscount,
 }) {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  // const [showPrintModal, setShowPrintModal] = useState(false);
-  // const [saleId, setSaleId] = useState(null);
+  const [showCustomDiscount, setShowCustomDiscount] = useState(false);
+  const [customDiscountValue, setCustomDiscountValue] = useState("");
 
   const increment = (id) => {
     setCartItems((prev) =>
@@ -177,7 +179,26 @@ export default function Checkout({
     );
   };
 
-  const clearCart = () => setCartItems([]);
+  const clearCart = () => {
+    setCartItems([]);
+    setGlobalDiscount({ value: 0, type: "percent", reason: "" });
+  };
+
+  const handleApplyGlobalDiscount = (value, type = "percent") => {
+    setGlobalDiscount(prev => ({ ...prev, value, type }));
+    setShowCustomDiscount(false);
+  };
+
+  const handleApplyReason = (reason) => {
+    setGlobalDiscount(prev => ({ ...prev, reason }));
+  };
+
+  const handleCustomDiscountSubmit = (e) => {
+    if (e.key === "Enter") {
+      const val = parseFloat(customDiscountValue) || 0;
+      handleApplyGlobalDiscount(val, "fixed");
+    }
+  };
 
   return (
     <aside className="flex flex-col h-full bg-white dark:bg-gray-950 border-l border-gray-200 dark:border-gray-800 shadow-2xl">
@@ -210,65 +231,178 @@ export default function Checkout({
             </p>
           </div>
         ) : (
-          cartItems.map((item) => (
-            <div
-              key={item.id}
-              className="group bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 border border-transparent hover:border-brand-pink/20 transition-all"
-            >
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 dark:text-gray-100 uppercase text-xs leading-tight line-clamp-2">
-                    {item.name}
-                  </p>
-                  <p className="text-[10px] font-mono text-gray-500 mt-1 uppercase">
-                    Nu. {item.unitPrice.toLocaleString()} / unit
-                  </p>
-                </div>
-                <p className="font-black text-gray-900 dark:text-white text-sm">
-                  Nu. {(item.qty * item.unitPrice).toLocaleString()}
-                </p>
-              </div>
+          cartItems.map((item) => {
+            const hasItemDiscount = (item.discountPercent || 0) > 0;
+            const effectivePrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+            const lineTotal = item.qty * effectivePrice;
 
-              {/* Controls */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-                <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => decrement(item.id)}
-                    className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
-                  >
-                    <FiMinus size={14} />
-                  </button>
-                  <span className="w-8 text-center text-xs font-black text-gray-900 dark:text-white">
-                    {item.qty}
-                  </span>
-                  <button
-                    onClick={() => increment(item.id)}
-                    className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
-                  >
-                    <FiPlus size={14} />
-                  </button>
+            return (
+              <div
+                key={item.id}
+                className="group bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 border border-transparent hover:border-brand-pink/20 transition-all"
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 dark:text-gray-100 uppercase text-xs leading-tight line-clamp-2">
+                      {item.name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {hasItemDiscount && (
+                        <span className="text-[10px] font-mono text-gray-400 line-through">
+                          Nu. {item.unitPrice.toLocaleString()}
+                        </span>
+                      )}
+                      <p className="text-[10px] font-mono text-brand-pink font-bold uppercase">
+                        Nu. {effectivePrice.toLocaleString()} / unit
+                      </p>
+                    </div>
+                  </div>
+                  <p className="font-black text-gray-900 dark:text-white text-sm">
+                    Nu. {lineTotal.toLocaleString()}
+                  </p>
                 </div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                  Subtotal
-                </span>
+
+                {/* Controls */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+                  <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={() => decrement(item.id)}
+                      className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
+                    >
+                      <FiMinus size={14} />
+                    </button>
+                    <span className="w-8 text-center text-xs font-black text-gray-900 dark:text-white">
+                      {item.qty}
+                    </span>
+                    <button
+                      onClick={() => increment(item.id)}
+                      className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
+                    >
+                      <FiPlus size={14} />
+                    </button>
+                  </div>
+                  {hasItemDiscount && (
+                    <span className="text-[9px] font-black bg-brand-pink/10 text-brand-pink px-2 py-0.5 rounded uppercase">
+                      -{item.discountPercent}% Off
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
       {/* Summary & Checkout */}
       <div className="bg-gray-50 dark:bg-gray-900/80 p-6 space-y-4 border-t border-gray-200 dark:border-gray-800">
-        <div className="space-y-2">
+        
+        {/* Global Discount Section */}
+        {cartItems.length > 0 && (
+          <div className="space-y-3 pb-2">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Global Discount
+              </span>
+              {globalDiscount.value > 0 && (
+                <button 
+                  onClick={() => setGlobalDiscount({ value: 0, type: "percent", reason: "" })}
+                  className="text-[10px] font-black text-brand-pink py-1 px-2 hover:bg-brand-pink/5 rounded transition-colors"
+                >
+                  RESET
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {[5, 10, 15].map((pct) => (
+                <button
+                  key={pct}
+                  onClick={() => handleApplyGlobalDiscount(pct, "percent")}
+                  className={`flex-1 py-2 text-[10px] font-black rounded-xl border transition-all ${
+                    globalDiscount.type === "percent" && globalDiscount.value === pct
+                      ? "bg-brand-pink border-brand-pink text-white shadow-lg shadow-brand-pink/20 scale-105"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:border-brand-pink/50"
+                  }`}
+                >
+                  {pct}%
+                </button>
+              ))}
+              <button
+                onClick={() => setShowCustomDiscount(!showCustomDiscount)}
+                className={`flex-1 py-2 text-[10px] font-black rounded-xl border transition-all ${
+                  globalDiscount.type === "fixed" || showCustomDiscount
+                    ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:border-brand-pink/50"
+                }`}
+              >
+                {globalDiscount.type === "fixed" && globalDiscount.value > 0 
+                  ? `Nu. ${globalDiscount.value}` 
+                  : "CUSTOM"}
+              </button>
+            </div>
+            
+            {showCustomDiscount && (
+              <div className="animate-in slide-in-from-top-2 duration-300">
+                <input
+                  autoFocus
+                  type="number"
+                  placeholder="Enter fixed amount (Nu.)"
+                  value={customDiscountValue}
+                  onChange={(e) => setCustomDiscountValue(e.target.value)}
+                  onKeyDown={handleCustomDiscountSubmit}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-brand-pink/30 rounded-xl outline-none focus:border-brand-pink text-xs font-bold transition-all shadow-xl shadow-brand-pink/10"
+                />
+                <p className="text-[9px] text-gray-400 mt-1.5 ml-1 italic">
+                  Press Enter to apply fixed discount
+                </p>
+              </div>
+            )}
+
+            {/* Discount Reason (Only when discount applied) */}
+            {globalDiscount.value > 0 && (
+              <div className="animate-in slide-in-from-top-2 duration-300 mt-2">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">
+                  Reason for Discount
+                </label>
+                <select
+                  value={globalDiscount.reason}
+                  onChange={(e) => handleApplyReason(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-brand-pink text-xs font-bold transition-all appearance-none"
+                  required
+                >
+                  <option value="">Select Reason...</option>
+                  <option value="Staff Discount">Staff Discount</option>
+                  <option value="Damaged Goods">Damaged Goods</option>
+                  <option value="Loyalty">Loyalty</option>
+                  <option value="Promotion/Sales">Promotion/Sales</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-center text-xs">
             <span className="font-bold text-gray-500 uppercase tracking-widest">
-              Subtotal
+              Net Subtotal
             </span>
             <span className="font-mono text-gray-900 dark:text-gray-100">
               Nu.{" "}
               {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
+          
+          {globalDiscount.value > 0 && (
+            <div className="flex justify-between items-center text-xs text-brand-pink">
+              <span className="font-bold uppercase tracking-widest">
+                Discount ({globalDiscount.type === "percent" ? `${globalDiscount.value}%` : "Fixed"})
+              </span>
+              <span className="font-mono font-black">
+                - Nu. {(globalDiscount.type === "percent" ? (subtotal * globalDiscount.value / 100) : globalDiscount.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between items-center text-xs">
             <span className="font-bold text-gray-500 uppercase tracking-widest">
               Tax (GST 5%)
@@ -322,7 +456,8 @@ export default function Checkout({
         setShowPrintModal={setShowPrintModal}
         saleId={saleId}
         setSaleId={setSaleId}
-        onConfirm={(customerData) => {
+        globalDiscount={globalDiscount}
+        onConfirm={() => {
           setIsCheckoutOpen(false);
           setCartItems([]);
         }}

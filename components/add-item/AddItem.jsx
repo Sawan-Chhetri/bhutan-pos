@@ -28,6 +28,7 @@ export default function AddItem({
   const [price, setPrice] = useState(editingItem?.price || "");
   const [initialStock, setInitialStock] = useState(0);
   const [minStock, setMinStock] = useState(editingItem?.minStock || 5);
+  const [discountPercent, setDiscountPercent] = useState(editingItem?.discountPercent || 0);
   const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -35,6 +36,10 @@ export default function AddItem({
   const { idToken } = useAuthStatus();
   const { user, loading: userLoading } = useContext(UserContext);
   const permissions = usePermissions(user);
+
+  const discountedPrice = discountPercent > 0 
+    ? Number(price) * (1 - Number(discountPercent) / 100)
+    : Number(price);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +51,7 @@ export default function AddItem({
       name: name.trim().toLowerCase(),
       category: category.trim().toLowerCase(),
       price: Number(price),
+      discountPercent: Number(discountPercent),
       isGSTExempt,
       barcode: barcode.trim() || null,
       stock: permissions.canTrackStock ? Number(initialStock) : 0,
@@ -64,6 +70,7 @@ export default function AddItem({
               updates: {
                 name: payload.name,
                 price: Number(price),
+                discountPercent: Number(discountPercent),
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
@@ -84,6 +91,7 @@ export default function AddItem({
               item: {
                 name: payload.name,
                 price: Number(price),
+                discountPercent: Number(discountPercent),
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
@@ -100,6 +108,7 @@ export default function AddItem({
         setName("");
         setCategory("");
         setPrice("");
+        setDiscountPercent(0);
         setInitialStock(0);
         setMinStock(5);
         setIsGSTExempt(false);
@@ -152,19 +161,53 @@ export default function AddItem({
           </select>
         </div>
 
-        {/* Price */}
+        {/* Price & Discount */}
         <div className="col-span-full">
-          <label className={labelClasses}>
-            <FiDollarSign /> Selling Price (Nu.)
-          </label>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className={inputClasses}
-            placeholder="0.00"
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClasses}>
+                <FiDollarSign /> Base Selling Price (Nu.)
+              </label>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className={inputClasses}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            {/* Discount Percent (Editable only in Edit Mode) */}
+            <div>
+              <label className={`${labelClasses} ${!editingItem ? "opacity-50" : ""}`}>
+                <FiTag /> Item Discount (%)
+              </label>
+              <input
+                type="number"
+                value={discountPercent}
+                onChange={(e) => setDiscountPercent(e.target.value)}
+                disabled={!editingItem}
+                className={`${inputClasses} ${!editingItem ? "bg-gray-50 dark:bg-gray-900/50 cursor-not-allowed" : ""}`}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          {/* Real-time Preview */}
+          {editingItem && (
+            <div className="mt-4 p-3 bg-brand-pink/5 border border-brand-pink/10 rounded-xl flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase text-brand-pink tracking-widest">
+                Discount Preview
+              </span>
+              <p className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                Nu. {Number(price).toLocaleString()} <FiArrowRight className="inline mx-1" /> 
+                <span className="text-brand-pink font-black">
+                  Nu. {discountedPrice.toLocaleString()}
+                </span>
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

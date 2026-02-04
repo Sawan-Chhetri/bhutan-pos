@@ -36,6 +36,7 @@ export async function POST(request) {
     const stock = Number(item.stock) || 0;
     const minStock = Number(item.minStock) || 0;
     const price = Number(item.price) || 0;
+    const discountPercent = Number(item.discountPercent) || 0;
 
     await db.runTransaction(async (tx) => {
       const summarySnap = await tx.get(summaryRef); // Read before write
@@ -46,6 +47,7 @@ export async function POST(request) {
         stock,
         minStock,
         price,
+        discountPercent,
         isLowStock: stock <= minStock,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -115,7 +117,7 @@ export async function PATCH(request) {
     }
 
     // 4. Whitelist allowed fields
-    const allowedFields = ["name", "price", "category", "isGSTExempt", "minStock"];
+    const allowedFields = ["name", "price", "discountPercent", "category", "isGSTExempt", "minStock"];
     const safeUpdates = {};
 
     for (const key of allowedFields) {
@@ -156,11 +158,11 @@ export async function PATCH(request) {
         retailDelta = (newPrice - oldPrice) * currentStock;
       }
 
+      const updates_summary = {};
       if (retailDelta !== 0) {
-        tx.update(summaryRef, {
-          totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        updates_summary.totalRetailValue = admin.firestore.FieldValue.increment(retailDelta);
+        updates_summary.lastUpdated = admin.firestore.FieldValue.serverTimestamp();
+        tx.update(summaryRef, updates_summary);
       }
     });
 
