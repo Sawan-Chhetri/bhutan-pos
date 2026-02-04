@@ -343,7 +343,7 @@ function PosLayout() {
     }
   };
 
-  useBarcodeScanner(handleScan, user?.type === "pos");
+  useBarcodeScanner(handleScan, ["pos", "restaurants"].includes(user?.type));
 
   useEffect(() => {
     if (!activeCategory || !idToken) return;

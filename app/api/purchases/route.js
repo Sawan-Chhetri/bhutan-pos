@@ -82,7 +82,7 @@ export async function POST(request) {
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
        * --------------------------------------------- */
       const loadedItems = {};
-      if (storeId && userSnap.data()?.type === "pos") {
+      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
         for (const item of items) {
           if (item.itemId) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
@@ -207,7 +207,7 @@ let totalITC = 0;
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION
-      if (storeId && userSnap.data()?.type === "pos") {
+      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
         let retailDelta = 0;
 
         for (const item of cartItems) {

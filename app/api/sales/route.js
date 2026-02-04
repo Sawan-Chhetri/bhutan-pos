@@ -98,7 +98,7 @@ export async function POST(request) {
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
        * --------------------------------------------- */
       const loadedItems = {};
-      if (storeId && userSnap.data()?.type === "pos") {
+      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
         for (const item of cartItems) {
           if (item.id) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.id}`);
@@ -154,10 +154,12 @@ export async function POST(request) {
       // Recalculate GST precisely based on global discount (logic from frontend)
       const netSubtotal = items.reduce((s, i) => s + i.lineTotal, 0);
       let finalBeforeTax = netSubtotal;
-      if (globalDiscount?.type === "percent") {
-        finalBeforeTax = netSubtotal * (1 - (globalDiscount.value || 0) / 100);
-      } else {
-        finalBeforeTax = Math.max(0, netSubtotal - (globalDiscount.value || 0));
+      if (globalDiscount) {
+        if (globalDiscount.type === "percent") {
+          finalBeforeTax = netSubtotal * (1 - (globalDiscount.value || 0) / 100);
+        } else {
+          finalBeforeTax = Math.max(0, netSubtotal - (globalDiscount.value || 0));
+        }
       }
 
       const discountRatio = netSubtotal > 0 ? finalBeforeTax / netSubtotal : 1;
@@ -166,6 +168,8 @@ export async function POST(request) {
         if (item.isGSTExempt) return sum;
         return sum + (item.lineTotal * discountRatio * GST_RATE);
       }, 0);
+
+      const finalTotal = finalBeforeTax + gstCollected;
 
       const saleDocRef = salesRef.doc();
       saleId = saleDocRef.id;
@@ -185,7 +189,7 @@ export async function POST(request) {
         globalDiscount: globalDiscount || null,
         finalBeforeTax,
         gst: gstCollected,
-        total,
+        total: finalTotal,
         taxableSales: taxableSales * discountRatio, // record the taxable base after global discount
         customerName: customerName || null,
         customerCID: customerCID || null,
@@ -199,7 +203,7 @@ export async function POST(request) {
       if (!gstSnap.exists) {
         tx.set(gstReportRef, {
           month: monthKey,
-          totalSales: total,
+          totalSales: finalTotal,
           taxableSales: taxableSales * discountRatio,
           gstCollected,
           saleCount: 1,
@@ -207,7 +211,7 @@ export async function POST(request) {
         });
       } else {
         tx.update(gstReportRef, {
-          totalSales: admin.firestore.FieldValue.increment(total),
+          totalSales: admin.firestore.FieldValue.increment(finalTotal),
           taxableSales: admin.firestore.FieldValue.increment(taxableSales * discountRatio),
           gstCollected: admin.firestore.FieldValue.increment(gstCollected),
           saleCount: admin.firestore.FieldValue.increment(1),
@@ -216,7 +220,7 @@ export async function POST(request) {
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION
-      if (storeId && userSnap.data()?.type === "pos") {
+      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
         let retailDelta = 0;
 
         for (const item of items) {
