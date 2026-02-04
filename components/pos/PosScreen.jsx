@@ -163,11 +163,18 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
                   {product.category}
                 </span>
 
-                {product.isGSTExempt && (
-                  <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter">
-                    No GST
-                  </span>
-                )}
+                <div className="flex flex-col items-end gap-1.5">
+                  {product.isGSTExempt && (
+                    <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter">
+                      No GST
+                    </span>
+                  )}
+                  {(product.discountPercent || 0) > 0 && (
+                    <span className="text-[10px] font-black bg-brand-pink text-white px-2 py-0.5 rounded-lg shadow-sm shadow-brand-pink/20 uppercase animate-in zoom-in duration-300">
+                      {product.discountPercent}% OFF
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Product Name Area - Structured for long technical names */}
@@ -213,11 +220,6 @@ export default function PosScreen({ products, cartItems, onAddToCart }) {
                         {product.price.toLocaleString()}
                       </span>
                     </div>
-                    {(product.discountPercent || 0) > 0 && (
-                      <span className="text-[9px] font-black bg-brand-pink/10 text-brand-pink px-1.5 py-0.5 rounded uppercase">
-                        -{product.discountPercent}%
-                      </span>
-                    )}
                   </div>
                 </div>
 

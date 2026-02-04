@@ -24,8 +24,8 @@ export const usePermissions = (user) => {
 
   return {
     // Inventory & Stock
-    canTrackStock: ["pos", "restaurants"].includes(type), // POS & Restaurants track stock levels
-    canSearchInventory: ["pos", "restaurants"].includes(type), // POS & Restaurants search inventory in Purchase Ledger
+    canTrackStock: ["pos"].includes(type), // POS & Restaurants track stock levels
+    canSearchInventory: ["pos",].includes(type), // POS & Restaurants search inventory in Purchase Ledger
     canViewShoppingList: type === "pos" || type === "admin",
     
     // Core Features
