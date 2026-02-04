@@ -535,6 +535,7 @@ export default function ItemScreen() {
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'table'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [fixedCategory, setFixedCategory] = useState(null); // New State
   const [deleteItem, setDeleteItem] = useState(null);
 
   // Search States
@@ -578,6 +579,7 @@ export default function ItemScreen() {
   const onClose = () => {
     setIsModalOpen(false);
     setEditingItem(null);
+    setFixedCategory(null);
   };
 
   const handleUpdateItem = (updatedItem) => {
@@ -729,13 +731,38 @@ export default function ItemScreen() {
             </button>
           </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-gray-900 dark:bg-brand-pink text-white px-6 py-3 rounded-xl font-bold shadow-xl hover:scale-105 transition-all active:scale-95"
-          >
-            <FiPlus size={20} strokeWidth={3} />
-            <span>ADD NEW ITEM</span>
-          </button>
+          {permissions.isHotelUser ? (
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setFixedCategory("rooms");
+                  setIsModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-gray-900 dark:bg-brand-pink text-white px-6 py-3 rounded-xl font-bold shadow-xl hover:scale-105 transition-all active:scale-95"
+              >
+                <FiPlus size={20} strokeWidth={3} />
+                <span>ADD ROOM</span>
+              </button>
+              <button
+                onClick={() => {
+                  setFixedCategory(null);
+                  setIsModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 px-6 py-3 rounded-xl font-bold shadow-sm hover:scale-105 transition-all active:scale-95"
+              >
+                <FiPlus size={20} strokeWidth={3} />
+                <span>ADD ITEM</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-gray-900 dark:bg-brand-pink text-white px-6 py-3 rounded-xl font-bold shadow-xl hover:scale-105 transition-all active:scale-95"
+            >
+              <FiPlus size={20} strokeWidth={3} />
+              <span>ADD NEW ITEM</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -797,7 +824,11 @@ export default function ItemScreen() {
             {/* Product Body */}
             <div className={`flex-1 ${viewMode === "table" ? "md:pl-4" : ""}`}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-brand-pink/10 text-brand-pink border border-brand-pink/20">
+                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
+                  item.category === 'rooms' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+                    : 'bg-brand-pink/10 text-brand-pink border-brand-pink/20'
+                }`}>
                   {item.category}
                 </span>
                 <span className="text-[10px] text-gray-400 font-mono">
@@ -954,6 +985,7 @@ export default function ItemScreen() {
         onAddItem={(newItem) => setItems((prev) => [newItem, ...prev])}
         onUpdateItem={handleUpdateItem}
         idToken={idToken}
+        fixedCategory={fixedCategory}
       />
 
       <DeleteModal

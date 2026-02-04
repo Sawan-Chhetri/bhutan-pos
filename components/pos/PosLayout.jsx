@@ -215,10 +215,11 @@ import PosScreen from "@/components/pos/PosScreen";
 import { UserContext } from "@/contexts/UserContext";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
-import { FiShoppingCart, FiX, FiArrowLeft } from "react-icons/fi";
+import { FiShoppingCart, FiX, FiArrowLeft, FiHome, FiCoffee } from "react-icons/fi";
 import useBarcodeScanner from "@/hooks/useBarcodeScanner";
 import { toast } from "react-toastify";
 import PrintReceiptModal from "@/components/pos/PrintReceiptModal";
+import usePermissions from "@/hooks/usePermissions";
 
 const bhutanGST = 0.05;
 
@@ -228,6 +229,10 @@ function PosLayout() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { idToken } = useAuthStatus();
   const { user } = useContext(UserContext);
+  const permissions = usePermissions(user);
+  
+  // Dual-Mode State for Hotels
+  const [posMode, setPosMode] = useState(permissions.isHotelUser ? "rooms" : "restaurant");
 
   const [itemsByCategory, setItemsByCategory] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -372,6 +377,17 @@ function PosLayout() {
     setIsSearching(searchQuery.trim().length > 0);
   }, [searchQuery]);
 
+  // Hotel Mode: Ensure "rooms" category is fetched when in rooms mode
+  useEffect(() => {
+    if (posMode === "rooms") {
+      // Always switch to rooms category when in rooms mode
+      setActiveCategory("rooms");
+    } else if (posMode === "restaurant" && activeCategory === "rooms") {
+      // Reset to allow standard menu to pick first category
+      setActiveCategory(null);
+    }
+  }, [posMode, activeCategory]);
+
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
       {/* --- TOP BAR: SEARCH & LOGO --- */}
@@ -388,24 +404,58 @@ function PosLayout() {
         </div>
       </header>
 
-      {/* --- MOBILE CATEGORY BAR --- */}
-      <div className="lg:hidden bg-gray-50 dark:bg-gray-900/50 border-b dark:border-gray-800 shadow-inner">
-        <Menu
-          active={activeCategory}
-          onChange={setActiveCategory}
-          isSearching={isSearching}
-        />
-      </div>
+      {/* --- DESKTOP/MOBILE DUAL MODE TOGGLE (HOTELS ONLY) --- */}
+      {permissions.isDualModeUser && (
+        <div className="flex justify-center bg-gray-50/50 dark:bg-gray-950/20 py-3 border-b dark:border-gray-800">
+          <div className="flex p-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+            <button
+              onClick={() => setPosMode("rooms")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                posMode === "rooms"
+                  ? "bg-gray-900 dark:bg-brand-pink text-white shadow-lg"
+                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              }`}
+            >
+              <FiHome size={14} strokeWidth={3} />
+              Rooms
+            </button>
+            <button
+              onClick={() => setPosMode("restaurant")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                posMode === "restaurant"
+                  ? "bg-gray-900 dark:bg-brand-pink text-white shadow-lg"
+                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              }`}
+            >
+              <FiCoffee size={14} strokeWidth={3} />
+              Restaurant
+            </button>
+          </div>
+        </div>
+      )}
 
-      <main className="flex flex-1 overflow-hidden relative">
-        {/* --- DESKTOP CATEGORY SIDEBAR --- */}
-        <aside className="hidden lg:block w-72 overflow-y-auto border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/20">
+      {/* --- MOBILE CATEGORY BAR --- */}
+      {(!permissions.isDualModeUser || posMode === "restaurant") && (
+        <div className="lg:hidden bg-gray-50 dark:bg-gray-900/50 border-b dark:border-gray-800 shadow-inner">
           <Menu
             active={activeCategory}
             onChange={setActiveCategory}
             isSearching={isSearching}
           />
-        </aside>
+        </div>
+      )}
+
+      <main className="flex flex-1 overflow-hidden relative">
+        {/* --- DESKTOP CATEGORY SIDEBAR --- */}
+        {(!permissions.isDualModeUser || posMode === "restaurant") && (
+          <aside className="hidden lg:block w-72 overflow-y-auto border-r border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950/20">
+            <Menu
+              active={activeCategory}
+              onChange={setActiveCategory}
+              isSearching={isSearching}
+            />
+          </aside>
+        )}
 
         {/* --- PRODUCT GRID AREA --- */}
         <section className="flex-1 overflow-y-auto bg-white dark:bg-gray-900/20 custom-scrollbar">
@@ -425,7 +475,7 @@ function PosLayout() {
             <PosScreen
               products={
                 searchQuery
-                  ? searchResults
+                  ? searchResults.filter(p => posMode === 'rooms' ? p.category === 'rooms' : p.category !== 'rooms')
                   : itemsByCategory[activeCategory] || []
               }
               cartItems={cartItems}

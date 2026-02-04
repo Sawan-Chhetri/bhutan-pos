@@ -8,7 +8,7 @@ import useAuthGuard from "@/hooks/useAuthGuard";
 
 function AddItemsPage() {
   // Check auth
-  const { isAuthorized, isLoading } = useAuthGuard(["pos", "restaurants"]);
+  const { isAuthorized, isLoading } = useAuthGuard(["pos", "restaurants", "hotel"]);
   const { user } = useContext(UserContext);
   const router = useRouter();
   if (!isAuthorized) {

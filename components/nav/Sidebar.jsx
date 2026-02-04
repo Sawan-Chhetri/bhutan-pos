@@ -419,7 +419,7 @@ export default function Sidebar() {
       label: "POS DASHBOARD",
       icon: <FiGrid size={18} />,
       // roles: ["pos", "admin", "restaurants"]
-      condition: permissions.isPosUser || permissions.isAdmin || permissions.isRestaurantUser,
+      condition: permissions.isPosUser || permissions.isAdmin || permissions.isRestaurantUser || permissions.isHotelUser,
     },
     {
       href: "/add-items",

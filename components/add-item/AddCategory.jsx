@@ -15,6 +15,14 @@ export default function AddCategory({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
+    
+    // Prevent manual creation of 'rooms' or 'room' category
+    const normalizedName = categoryName.trim().toLowerCase();
+    if (normalizedName === 'rooms' || normalizedName === 'room') {
+      alert('The "rooms" category is system-managed and cannot be created manually.');
+      setCategoryName("");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -113,17 +121,24 @@ export default function AddCategory({
                 className="group flex justify-between items-center px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-brand-pink transition-all shadow-sm"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-pink" />
+                  <div className={`w-1.5 h-1.5 rounded-full ${cat.isSystemManaged ? 'bg-blue-500' : 'bg-brand-pink'}`} />
                   <span className="text-xs font-black text-gray-700 dark:text-gray-200 uppercase tracking-tight truncate max-w-[120px]">
                     {cat.name}
                   </span>
+                  {cat.isSystemManaged && (
+                    <span className="text-[8px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded uppercase">
+                      System
+                    </span>
+                  )}
                 </div>
-                <button
-                  onClick={() => handleRemove(cat.id)}
-                  className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
-                >
-                  <FiTrash2 size={16} />
-                </button>
+                {!cat.isSystemManaged && (
+                  <button
+                    onClick={() => handleRemove(cat.id)}
+                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

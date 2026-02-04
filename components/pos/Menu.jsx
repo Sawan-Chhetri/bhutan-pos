@@ -104,10 +104,12 @@ export default function Menu({ active, onChange, isSearching }) {
         }
 
         const data = await res.json();
-        setCategories(data);
+        // Filter out 'rooms' category from menu
+        const filteredCategories = data.filter(cat => cat.name !== 'rooms');
+        setCategories(filteredCategories);
 
-        if (data.length > 0 && !active) {
-          onChange(data[0].name);
+        if (filteredCategories.length > 0 && !active) {
+          onChange(filteredCategories[0].name);
         }
       } catch (err) {
         console.error("Fetch categories error:", err);

@@ -12,6 +12,7 @@ export default function AddItemModal({
   onUpdateItem,
   editingItem,
   idToken,
+  fixedCategory = null, // New Prop
 }) {
   const [activeTab, setActiveTab] = useState("item");
   const [categories, setCategories] = useState([]);
@@ -54,10 +55,10 @@ export default function AddItemModal({
         <div className="p-8 pb-0 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-              {editingItem ? "Edit Product" : "System Inventory"}
+              {editingItem ? "Edit Product" : fixedCategory === "rooms" ? "Add New Room" : "System Inventory"}
             </h2>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
-              {activeTab === "item" ? "Product Management" : "Category Management"}
+              {activeTab === "item" ? (fixedCategory === "rooms" ? "Room Registry" : "Product Management") : "Category Management"}
             </p>
           </div>
           <button
@@ -79,19 +80,21 @@ export default function AddItemModal({
             }`}
           >
             <FiPackage size={14} />
-            {editingItem ? "Edit Item" : "Add Item"}
+            {editingItem ? "Edit Item" : fixedCategory === "rooms" ? "Room Details" : "Add Item"}
           </button>
-          <button
-            onClick={() => setActiveTab("category")}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              activeTab === "category"
-                ? "bg-brand-pink text-white"
-                : "bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100"
-            }`}
-          >
-            <FiClipboard size={14} />
-            Category
-          </button>
+          {!fixedCategory && (
+            <button
+              onClick={() => setActiveTab("category")}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                activeTab === "category"
+                  ? "bg-brand-pink text-white"
+                  : "bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100"
+              }`}
+            >
+              <FiClipboard size={14} />
+              Category
+            </button>
+          )}
         </div>
 
         {/* Content Area with custom scrollbar */}
@@ -102,6 +105,7 @@ export default function AddItemModal({
               onUpdateItem={onUpdateItem}
               editingItem={editingItem}
               categories={categories}
+              fixedCategory={fixedCategory}
             />
           ) : (
             <AddCategory
