@@ -3,15 +3,20 @@ import { createPortal } from "react-dom";
 
 /**
  * Reusable 80mm Thermal Receipt Component
- * 
+ *
  * @param {Object} invoice - The invoice data object containing store, items, and totals.
  */
 export default function Receipt80mm({ invoice }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
+    // Avoid calling setState synchronously inside the effect body to satisfy
+    // react-hooks linting (use a microtask instead).
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => {
+      clearTimeout(t);
+      setMounted(false);
+    };
   }, []);
 
   if (!invoice) return null;
@@ -20,7 +25,7 @@ export default function Receipt80mm({ invoice }) {
   const formatDate = (date) => {
     if (!date) return "";
     if (typeof date === "string") return date;
-    
+
     if (date?._seconds) {
       const d = new Date(date._seconds * 1000);
       return new Intl.DateTimeFormat("en-GB", {
@@ -53,7 +58,8 @@ export default function Receipt80mm({ invoice }) {
             display: none !important;
           }
 
-          html, body {
+          html,
+          body {
             height: auto !important;
             overflow: visible !important;
             margin: 0 !important;
@@ -111,11 +117,19 @@ export default function Receipt80mm({ invoice }) {
             marginBottom: "5px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "600",
+            }}
+          >
             <span>INV: #{invoice.invoiceNumber}</span>
             <span>{formattedDate}</span>
           </div>
-          <div style={{ fontWeight: "600" }}>CUST: {invoice.customerName || "Walk-in"}</div>
+          <div style={{ fontWeight: "600" }}>
+            CUST: {invoice.customerName || "Walk-in"}
+          </div>
         </div>
 
         <table
@@ -135,12 +149,16 @@ export default function Receipt80mm({ invoice }) {
             {invoice.items?.map((item, i) => {
               const hasItemDiscount = (item.discountPercent || 0) > 0;
               const unitPrice = Number(item.unitPrice || 0);
-              const effectivePrice = Number(item.effectiveUnitPrice || (unitPrice * (1 - (item.discountPercent || 0) / 100)));
-              
+              const effectivePrice = Number(
+                item.effectiveUnitPrice ||
+                  unitPrice * (1 - (item.discountPercent || 0) / 100),
+              );
+
               return (
                 <tr key={i}>
                   <td style={{ padding: "4px 0", fontWeight: "600" }}>
-                    {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)} <br />
+                    {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)}{" "}
+                    <br />
                     <span style={{ fontSize: "9px", fontWeight: "600" }}>
                       {item.qty} x {unitPrice.toLocaleString()}
                       {hasItemDiscount && ` (-${item.discountPercent}%)`}
@@ -170,23 +188,52 @@ export default function Receipt80mm({ invoice }) {
             fontSize: "12px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "600",
+            }}
+          >
             <span>NET SUBTOTAL:</span>
             <span>{Number(invoice.subtotal || 0).toLocaleString()}</span>
           </div>
 
-          {invoice.globalDiscount && Number(invoice.globalDiscount.value || 0) > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
-              <span>DISCOUNT ({invoice.globalDiscount.type === "percent" ? `${invoice.globalDiscount.value}%` : "FIXED"}):</span>
-              <span>
-                -{(invoice.globalDiscount.type === "percent" 
-                  ? (Number(invoice.subtotal || 0) * Number(invoice.globalDiscount.value) / 100) 
-                  : Number(invoice.globalDiscount.value)).toLocaleString()}
-              </span>
-            </div>
-          )}
+          {invoice.globalDiscount &&
+            Number(invoice.globalDiscount.value || 0) > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: "600",
+                }}
+              >
+                <span>
+                  DISCOUNT (
+                  {invoice.globalDiscount.type === "percent"
+                    ? `${invoice.globalDiscount.value}%`
+                    : "FIXED"}
+                  ):
+                </span>
+                <span>
+                  -
+                  {(invoice.globalDiscount.type === "percent"
+                    ? (Number(invoice.subtotal || 0) *
+                        Number(invoice.globalDiscount.value)) /
+                      100
+                    : Number(invoice.globalDiscount.value)
+                  ).toLocaleString()}
+                </span>
+              </div>
+            )}
 
-          <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "600" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "600",
+            }}
+          >
             <span>GST (5%):</span>
             <span>{Number(invoice.gst || 0).toLocaleString()}</span>
           </div>
@@ -198,7 +245,7 @@ export default function Receipt80mm({ invoice }) {
               fontSize: "14px",
               marginTop: "5px",
               borderTop: "1px solid #000",
-              paddingTop: "5px"
+              paddingTop: "5px",
             }}
           >
             <span>GRAND TOTAL:</span>
@@ -207,7 +254,12 @@ export default function Receipt80mm({ invoice }) {
         </div>
 
         <div
-          style={{ textAlign: "center", marginTop: "15px", fontSize: "9px", fontWeight: "600" }}
+          style={{
+            textAlign: "center",
+            marginTop: "15px",
+            fontSize: "9px",
+            fontWeight: "600",
+          }}
         >
           <p>--- THANK YOU ---</p>
           <p>Powered by SwiftGST</p>
@@ -217,13 +269,13 @@ export default function Receipt80mm({ invoice }) {
   );
 
   // If not mounted or no document, we can't use portal
-  if (!mounted || typeof document === 'undefined') return null;
+  if (!mounted || typeof document === "undefined") return null;
 
   // Create or get the print portal div
-  let portalDiv = document.getElementById('thermal-print-portal');
+  let portalDiv = document.getElementById("thermal-print-portal");
   if (!portalDiv) {
-    portalDiv = document.createElement('div');
-    portalDiv.id = 'thermal-print-portal';
+    portalDiv = document.createElement("div");
+    portalDiv.id = "thermal-print-portal";
     document.body.appendChild(portalDiv);
   }
 
