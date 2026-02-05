@@ -371,11 +371,14 @@ export default function InvoicePage() {
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12 md:mb-20">
             <div className="w-full lg:w-auto">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter italic dark:text-white leading-none mb-4 break-words">
+              <h1 className="text-2xl md:text-5xl lg:text-3xl font-black tracking-tighter italic dark:text-white leading-none mb-4 break-words">
                 {invoice.store.name.toUpperCase()}
               </h1>
               <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
                 {invoice.store.address}
+              </p>
+              <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                {invoice.store.phone}
               </p>
               <p className="text-[9px] md:text-[10px] font-black text-brand-pink uppercase mt-1 tracking-widest">
                 GST TPN: {invoice.store.gstNumber}

@@ -58,9 +58,8 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 20;
-    const offset = (page - 1) * limit;
+    const lastDocId = searchParams.get("lastDocId");
 
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -84,18 +83,29 @@ export async function GET(request) {
     const totalSnap = await refundsCol.count().get();
     const totalCount = totalSnap.data().count;
 
-    // Fetch paginated data
-    const refundsSnap = await refundsCol
-      .orderBy("date", "desc")
-      .limit(limit)
-      .offset(offset)
-      .get();
+    // Fetch paginated data using cursor
+    let refundsQuery = refundsCol.orderBy("date", "desc").limit(limit);
+
+    if (lastDocId) {
+      const lastDoc = await refundsCol.doc(lastDocId).get();
+      if (lastDoc.exists) {
+        refundsQuery = refundsQuery.startAfter(lastDoc);
+      }
+    }
+
+    const refundsSnap = await refundsQuery.get();
 
     const refunds = refundsSnap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       date: doc.data().date?.toDate().toISOString(),
     }));
+
+    // Get the ID of the last document for the next page's cursor
+    const newLastDocId =
+      refundsSnap.docs.length === limit
+        ? refundsSnap.docs[refundsSnap.docs.length - 1].id
+        : null;
 
     // Calculate stats (Note: For large datasets, stats should be pre-computed in a metadata doc)
     // For now, we fetch a brief summary or use a fixed historical set
@@ -106,7 +116,12 @@ export async function GET(request) {
       ? statsSnap.data()
       : { totalReversed: 0, gstReclaimed: 0 };
 
-    return NextResponse.json({ refunds, totalCount, stats });
+    return NextResponse.json({
+      refunds,
+      totalCount,
+      stats,
+      lastDocId: newLastDocId,
+    });
   } catch (err) {
     console.error("Refund fetch error:", err);
     return NextResponse.json(

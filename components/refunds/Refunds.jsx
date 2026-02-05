@@ -83,7 +83,7 @@ export default function Refunds() {
         <div className="flex flex-col md:flex-row justify-between items-end gap-6">
           <div>
             <h1 className="text-4xl font-black tracking-tighter uppercase dark:text-white italic">
-              Credit <span className="text-brand-pink">Ledger</span>
+              Refund <span className="text-brand-pink">Ledger</span>
             </h1>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mt-2">
               Refund & Reversal Audit

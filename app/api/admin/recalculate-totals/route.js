@@ -24,7 +24,10 @@ export async function POST(request) {
     const { storeId, type } = userData;
 
     if (!storeId || type !== "pos") {
-      return NextResponse.json({ error: "Unauthorized access" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized access" },
+        { status: 403 },
+      );
     }
 
     // Recalculate logic
@@ -42,26 +45,28 @@ export async function POST(request) {
       const stock = Number(data.stock || 0);
       const retailPrice = Number(data.price || 0);
 
-      totalRetailValue += (stock * retailPrice);
+      totalRetailValue += stock * retailPrice;
     });
 
-    await summaryRef.set({
+    await summaryRef.set(
+      {
+        totalRetailValue,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        recalculatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    return NextResponse.json({
+      success: true,
       totalRetailValue,
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-      recalculatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    return NextResponse.json({ 
-      success: true, 
-      totalRetailValue, 
-      itemCount: snapshot.size
+      itemCount: snapshot.size,
     });
-
   } catch (err) {
     console.error("Recalculate totals error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

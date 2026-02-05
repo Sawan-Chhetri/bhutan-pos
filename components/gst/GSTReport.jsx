@@ -840,7 +840,7 @@ export default function GSTReport({ month }) {
               </p>
               <div className="mt-6 flex items-center gap-2 px-4 py-1.5 bg-white/10 rounded-full border border-white/20">
                 <span className="text-[8px] font-black text-white uppercase tracking-widest italic">
-                  Verified for BITS Filing v2.0
+                  Verified for BITS Filing
                 </span>
               </div>
             </div>
