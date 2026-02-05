@@ -37,17 +37,34 @@ export async function GET(request) {
       .collection(`stores/${storeId}/gstReports`)
       .get();
 
-    const gstReports = gstReportsSnap.docs.map((doc) => ({
-      month: doc.id, // document ID is YYYY-MM
-      totalSales: doc.data()?.totalSales || 0,
-      gstCollected: doc.data()?.gstCollected || 0,
-      purchaseCount: doc.data()?.purchaseCount || 0,
-      taxablePurchases: doc.data()?.taxablePurchases || 0,
-      // totalPurchases: doc.data()?.totalPurchases || 0,
-      saleCount: doc.data()?.saleCount || 0,
-      taxableSales: doc.data()?.taxableSales || 0,
-      itcClaimed: doc.data()?.itcClaimed || 0,
-    }));
+    // const gstReports = gstReportsSnap.docs.map((doc) => ({
+    //   month: doc.id, // document ID is YYYY-MM
+    //   totalSales: doc.data()?.totalSales || 0,
+    //   gstCollected: doc.data()?.gstCollected || 0,
+    //   purchaseCount: doc.data()?.purchaseCount || 0,
+    //   taxablePurchases: doc.data()?.taxablePurchases || 0,
+    //   // totalPurchases: doc.data()?.totalPurchases || 0,
+    //   saleCount: doc.data()?.saleCount || 0,
+    //   taxableSales: doc.data()?.taxableSales || 0,
+    //   itcClaimed: doc.data()?.itcClaimed || 0,
+    // }));
+    const gstReports = gstReportsSnap.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        month: doc.id,
+        totalSales: data?.totalSales || 0,
+        taxableSales: data?.taxableSales || 0,
+        gstCollected: data?.gstCollected || 0,
+        // NEW FIELDS
+        gstRefunded: data?.gstRefunded || 0,
+        refundCount: data?.refundCount || 0,
+        // PURCHASES
+        purchaseCount: data?.purchaseCount || 0,
+        taxablePurchases: data?.taxablePurchases || 0,
+        itcClaimed: data?.itcClaimed || 0,
+        saleCount: data?.saleCount || 0,
+      };
+    });
 
     // Sort descending by month
     gstReports.sort((a, b) => (a.month > b.month ? -1 : 1));

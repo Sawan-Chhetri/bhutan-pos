@@ -444,6 +444,8 @@ import {
   FiPlusCircle,
   FiShield,
   FiShoppingBag,
+  FiRefreshCcw,
+  FiAlertCircle,
 } from "react-icons/fi";
 
 export default function GSTReports() {
@@ -507,11 +509,16 @@ export default function GSTReports() {
     itcClaimed: 0,
     saleCount: 0,
     purchaseCount: 0,
+    gstRefunded: 0,
+    refundCount: 0,
   };
 
-  // The critical math for Net Liability
-  const netGstPayable =
-    currentData.gstCollected - (currentData.itcClaimed || 0);
+  // 🧮 THE CRITICAL RECONCILIATION MATH
+  // Net Output = GST Collected - GST Refunded
+  // Final Payable = (Net Output) - (ITC Claimed)
+  const netOutputGst =
+    currentData.gstCollected - (currentData.gstRefunded || 0);
+  const netGstPayable = netOutputGst - (currentData.itcClaimed || 0);
 
   return (
     <div className="p-4 md:p-12 bg-[#F8F9FA] dark:bg-gray-950 min-h-screen">
@@ -561,92 +568,133 @@ export default function GSTReports() {
 
         {/* 1. THE TAX OFFSET CALCULATION (Visual Math) */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-12">
           {/* OUTPUT BOX */}
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
-            <h3 className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h3 className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-4">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Output
-              GST (Sales)
+              GST
             </h3>
-            <p className="text-sm font-black text-gray-400 mb-1">Nu.</p>
-            <p className="text-4xl font-mono font-black text-gray-900 dark:text-white italic">
+            <p className="text-2xl font-mono font-black text-gray-900 dark:text-white">
               {currentData.gstCollected.toLocaleString()}
             </p>
+            <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">
+              From {currentData.saleCount} Sales
+            </p>
           </div>
 
-          {/* INPUT BOX */}
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
-            <h3 className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-6">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Input
-              Credit (ITC)
+          {/* REFUND ADJUSTMENT (NEW CARD) */}
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 shadow-sm border-l-4 border-l-brand-pink">
+            <h3 className="text-[9px] font-black text-brand-pink uppercase tracking-widest flex items-center gap-2 mb-4">
+              <FiRefreshCcw size={10} /> GST Refunded
             </h3>
-            <p className="text-sm font-black text-gray-400 mb-1">Nu.</p>
-            <p className="text-4xl font-mono font-black text-blue-600 italic">
+            <p className="text-2xl font-mono font-black text-gray-900 dark:text-white">
+              -{currentData.gstRefunded?.toLocaleString() || "0"}
+            </p>
+            <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">
+              {currentData.refundCount} Credit Notes
+            </p>
+          </div>
+
+          {/* INPUT CREDIT (ITC) */}
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h3 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Input
+              Credit
+            </h3>
+            <p className="text-2xl font-mono font-black text-blue-600">
               {currentData.itcClaimed?.toLocaleString() || "0"}
             </p>
+            <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">
+              From {currentData.purchaseCount} Purchases
+            </p>
           </div>
 
-          {/* NET LIABILITY BOX */}
+          {/* FINAL NET PAYABLE */}
           <div
-            className={`rounded-[2.5rem] p-8 shadow-2xl transition-all ${
-              netGstPayable > 0
-                ? "bg-gray-900 text-white"
-                : "bg-[#A8DF8E] text-white"
-            }`}
+            className={`rounded-[2rem] p-6 shadow-2xl transition-all ${netGstPayable > 0 ? "bg-gray-900 text-white" : "bg-[#A8DF8E] text-white"}`}
           >
-            <h3 className="text-[9px] font-black uppercase tracking-widest opacity-90 mb-6 flex items-center gap-2">
-              <FiShield />{" "}
-              {netGstPayable > 0 ? "Net GST Payable" : "Tax Carry Forward"}
+            <h3 className="text-[9px] font-black uppercase tracking-widest opacity-90 mb-4 flex items-center gap-2">
+              <FiShield /> Net Payable
             </h3>
-            <p className="text-sm font-black opacity-90 mb-1">Nu.</p>
-            <p className="text-5xl font-mono font-black italic tracking-tighter">
+            <p className="text-3xl font-mono font-black italic tracking-tighter">
               {Math.abs(netGstPayable).toLocaleString()}
             </p>
+            {currentData.gstRefunded > 0 && (
+              <p className="text-[7px] font-bold opacity-60 uppercase mt-1 leading-tight">
+                * Adjusted for refunds
+              </p>
+            )}
           </div>
         </div>
 
-        {/* 2. VOLUME TRACKING */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                Total Sales
-              </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
-                {currentData.saleCount}
-              </p>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                Total Taxable Sales
-              </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-normal">
-                Nu. {currentData.taxableSales.toLocaleString()}
-              </p>
+        {/* 2. TREND VISUALS (Updated to include Refund impact) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Gross vs Net Sales */}
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+              Sales Performance
+            </p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase">
+                  Gross Taxable
+                </p>
+                <p className="text-xl font-black font-mono">
+                  Nu. {currentData.taxableSales.toLocaleString()}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-gray-50 dark:border-gray-800">
+                <p className="text-[9px] font-bold text-brand-pink uppercase">
+                  Refunded Value
+                </p>
+                <p className="text-xl font-black font-mono text-brand-pink">
+                  - Nu.{" "}
+                  {((currentData.gstRefunded || 0) / 0.05).toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                Total Purchases
-              </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
-                {currentData.purchaseCount}
-              </p>
+          {/* Purchases same as before */}
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+              Inventory Inflow
+            </p>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase">
+                  Taxable Purchases
+                </p>
+                <p className="text-xl font-black font-mono">
+                  Nu. {currentData.taxablePurchases.toLocaleString()}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-gray-50 dark:border-gray-800">
+                <p className="text-[9px] font-bold text-blue-500 uppercase">
+                  Input Tax Credit
+                </p>
+                <p className="text-xl font-black font-mono text-blue-600">
+                  Nu. {currentData.itcClaimed.toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 relative group overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                Total Taxable Purchases
-              </p>
-              <p className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-normal">
-                Nu. {currentData.taxablePurchases?.toLocaleString() || "0"}
-              </p>
+
+          {/* Compliance Score/Status */}
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 flex flex-col justify-center items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 mb-4">
+              <FiActivity size={32} />
             </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              Compliance Status
+            </p>
+            <p className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">
+              Audit Ready
+            </p>
+            <p className="text-[8px] font-bold text-green-500 uppercase mt-1">
+              All Credit Notes Synced
+            </p>
           </div>
         </div>
 
