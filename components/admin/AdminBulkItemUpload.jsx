@@ -49,7 +49,11 @@ export default function AdminBulkItemUpload() {
       barcode: csvHeaders.find((h) => h.toLowerCase() === "barcode") || "",
       name: csvHeaders.find((h) => h.toLowerCase() === "name") || "",
       category: csvHeaders.find((h) => h.toLowerCase() === "category") || "",
-      price: csvHeaders.find((h) => h.toLowerCase() === "price" || h.toLowerCase() === "selling price") || "",
+      price:
+        csvHeaders.find(
+          (h) =>
+            h.toLowerCase() === "price" || h.toLowerCase() === "selling price",
+        ) || "",
       stock: csvHeaders.find((h) => h.toLowerCase() === "stock") || "",
     });
   }, [csvHeaders]);
