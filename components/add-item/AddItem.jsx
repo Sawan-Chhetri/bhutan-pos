@@ -5,14 +5,14 @@ import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
 import { UserContext } from "@/contexts/UserContext";
 import usePermissions from "@/hooks/usePermissions";
-import { 
-  FiPackage, 
-  FiTag, 
-  FiDollarSign, 
-  FiLayers, 
-  FiBarChart2, 
+import {
+  FiPackage,
+  FiTag,
+  FiDollarSign,
+  FiLayers,
+  FiBarChart2,
   FiCheck,
-  FiArrowRight
+  FiArrowRight,
 } from "react-icons/fi";
 
 export default function AddItem({
@@ -25,25 +25,30 @@ export default function AddItem({
   // Initialize state directly from the prop
   const [name, setName] = useState(editingItem?.name || "");
   const [barcode, setBarcode] = useState(editingItem?.barcode || "");
-  const [category, setCategory] = useState(fixedCategory || editingItem?.category || "");
+  const [category, setCategory] = useState(
+    fixedCategory || editingItem?.category || "",
+  );
   const [price, setPrice] = useState(editingItem?.price || "");
   const [initialStock, setInitialStock] = useState(0);
   const [minStock, setMinStock] = useState(editingItem?.minStock || 5);
-  const [discountPercent, setDiscountPercent] = useState(editingItem?.discountPercent || 0);
+  const [discountPercent, setDiscountPercent] = useState(
+    editingItem?.discountPercent || 0,
+  );
   const [isGSTExempt, setIsGSTExempt] = useState(!!editingItem?.isGSTExempt);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const itemId = editingItem ? editingItem.id : null;
   const { idToken } = useAuthStatus();
   const { user, loading: userLoading } = useContext(UserContext);
   const permissions = usePermissions(user);
-  
-  // Detect if editing a room item
-  const isEditingRoom = editingItem?.category === 'rooms';
 
-  const discountedPrice = discountPercent > 0 
-    ? Number(price) * (1 - Number(discountPercent) / 100)
-    : Number(price);
+  // Detect if editing a room item
+  const isEditingRoom = editingItem?.category === "rooms";
+
+  const discountedPrice =
+    discountPercent > 0
+      ? Number(price) * (1 - Number(discountPercent) / 100)
+      : Number(price);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,11 +83,13 @@ export default function AddItem({
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
-                minStock: permissions.canTrackStock ? Number(minStock) : undefined,
+                minStock: permissions.canTrackStock
+                  ? Number(minStock)
+                  : undefined,
               },
             }),
           },
-          idToken
+          idToken,
         );
       } else {
         const res = await authFetch(
@@ -103,7 +110,7 @@ export default function AddItem({
               },
             }),
           },
-          idToken
+          idToken,
         );
 
         if (res.ok) {
@@ -128,22 +135,29 @@ export default function AddItem({
     }
   };
 
-  const inputClasses = "w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-brand-pink outline-none dark:bg-gray-800 transition-all text-sm font-medium";
-  const labelClasses = "text-[11px] font-black uppercase tracking-wider text-gray-400 mb-1.5 flex items-center gap-2";
+  const inputClasses =
+    "w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-brand-pink outline-none dark:bg-gray-800 transition-all text-sm font-medium";
+  const labelClasses =
+    "text-[11px] font-black uppercase tracking-wider text-gray-400 mb-1.5 flex items-center gap-2";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Item Name */}
       <div>
         <label className={labelClasses}>
-          <FiPackage /> {fixedCategory === "rooms" ? "Room Number / Name" : "Item Description"}
+          <FiPackage />{" "}
+          {fixedCategory === "rooms"
+            ? "Room Number / Name"
+            : "Item Description"}
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputClasses}
-          placeholder="e.g. Deluxe Room"
+          placeholder={
+            fixedCategory === "rooms" ? "e.g. Deluxe Room" : "e.g. Item name"
+          }
           required
         />
       </div>
@@ -163,7 +177,7 @@ export default function AddItem({
             >
               <option value="">Select Category</option>
               {categories
-                .filter(cat => cat.name !== 'rooms') // Hide rooms from dropdown
+                .filter((cat) => cat.name !== "rooms") // Hide rooms from dropdown
                 .map((cat) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.name.toUpperCase()}
@@ -192,7 +206,9 @@ export default function AddItem({
 
             {/* Discount Percent (Editable only in Edit Mode) */}
             <div>
-              <label className={`${labelClasses} ${!editingItem ? "opacity-50" : ""}`}>
+              <label
+                className={`${labelClasses} ${!editingItem ? "opacity-50" : ""}`}
+              >
                 <FiTag /> Item Discount (%)
               </label>
               <input
@@ -213,7 +229,8 @@ export default function AddItem({
                 Discount Preview
               </span>
               <p className="text-xs font-bold text-gray-600 dark:text-gray-300">
-                Nu. {Number(price).toLocaleString()} <FiArrowRight className="inline mx-1" /> 
+                Nu. {Number(price).toLocaleString()}{" "}
+                <FiArrowRight className="inline mx-1" />
                 <span className="text-brand-pink font-black">
                   Nu. {discountedPrice.toLocaleString()}
                 </span>
@@ -224,19 +241,20 @@ export default function AddItem({
       </div>
 
       {/* Barcode */}
-      {fixedCategory !== "rooms" && (<div>
-        <label className={labelClasses}>
-          <FiTag /> Barcode / SKU (Optional)
-        </label>
-        <input
-          type="text"
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          className={inputClasses}
-          placeholder="Scan or type barcode"
-        />
-      </div>)}
-      
+      {fixedCategory !== "rooms" && (
+        <div>
+          <label className={labelClasses}>
+            <FiTag /> Barcode / SKU (Optional)
+          </label>
+          <input
+            type="text"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            className={inputClasses}
+            placeholder="Scan or type barcode"
+          />
+        </div>
+      )}
 
       {permissions.canTrackStock && fixedCategory !== "rooms" && (
         <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
@@ -277,7 +295,9 @@ export default function AddItem({
       {/* GST Exempt Toggle */}
       <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isGSTExempt ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"}`}>
+          <div
+            className={`p-2 rounded-lg ${isGSTExempt ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"}`}
+          >
             <FiCheck size={16} />
           </div>
           <div>
@@ -310,7 +330,9 @@ export default function AddItem({
         disabled={isSubmitting}
         className="w-full h-14 bg-brand-pink text-white flex items-center justify-center gap-3 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em]  hover:scale-[1.02] active:scale-95 transition-all disabled:bg-gray-400"
       >
-        {isSubmitting ? "Processing..." : (
+        {isSubmitting ? (
+          "Processing..."
+        ) : (
           <>
             {editingItem ? "Update System Item" : "Confirm & Add to System"}
             <FiArrowRight size={18} />

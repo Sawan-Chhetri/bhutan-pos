@@ -208,6 +208,8 @@
 
 "use client";
 import { useEffect, useState, useContext } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import Search from "@/components/pos/Search";
 import Menu from "@/components/pos/Menu";
 import Checkout from "@/components/pos/Checkout";
@@ -215,7 +217,13 @@ import PosScreen from "@/components/pos/PosScreen";
 import { UserContext } from "@/contexts/UserContext";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
-import { FiShoppingCart, FiX, FiArrowLeft, FiHome, FiCoffee } from "react-icons/fi";
+import {
+  FiShoppingCart,
+  FiX,
+  FiArrowLeft,
+  FiHome,
+  FiCoffee,
+} from "react-icons/fi";
 import useBarcodeScanner from "@/hooks/useBarcodeScanner";
 import { toast } from "react-toastify";
 import PrintReceiptModal from "@/components/pos/PrintReceiptModal";
@@ -227,14 +235,22 @@ function PosLayout() {
   const [cartItems, setCartItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const { idToken } = useAuthStatus();
   const { user } = useContext(UserContext);
   const permissions = usePermissions(user);
-  
-  // Dual-Mode State for Hotels
-  const [posMode, setPosMode] = useState(permissions.isHotelUser ? "rooms" : "restaurant");
 
-  const [itemsByCategory, setItemsByCategory] = useState({});
+  // Dual-Mode State for Hotels
+  const [posMode, setPosMode] = useState(
+    permissions.isHotelUser ? "rooms" : "restaurant",
+  );
+
+  // SWR will now manage the items for the active category
+  const { data: itemsForCategory, error: itemsError } = useSWR(
+    activeCategory
+      ? `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}`
+      : null,
+    fetcher,
+  );
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -242,7 +258,11 @@ function PosLayout() {
   const [saleId, setSaleId] = useState(null);
 
   // Global Discount State
-  const [globalDiscount, setGlobalDiscount] = useState({ value: 0, type: "percent", reason: "" });
+  const [globalDiscount, setGlobalDiscount] = useState({
+    value: 0,
+    type: "percent",
+    reason: "",
+  });
 
   // LOGIC UNTOUCHED
   const handleAddToCart = (product) => {
@@ -271,11 +291,12 @@ function PosLayout() {
   /* ---------------------------------------------
    * 🧮 CALCULATION ENGINE (STACKED DISCOUNTS)
    * --------------------------------------------- */
-  
+
   // Step 1: Item-Level Calculation (Effective Price)
   // Step 2: Net Subtotal (Sum of effectivePrices)
   const netSubtotal = cartItems.reduce((sum, item) => {
-    const effectivePrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+    const effectivePrice =
+      item.unitPrice * (1 - (item.discountPercent || 0) / 100);
     return sum + item.qty * effectivePrice;
   }, 0);
 
@@ -290,10 +311,11 @@ function PosLayout() {
   // Step 4: Tax Calculation (Pro-rata applied to non-exempt items)
   // We apply the global discount ratio to the taxable subtotal
   const discountRatio = netSubtotal > 0 ? finalBeforeTax / netSubtotal : 1;
-  
+
   const gst = cartItems.reduce((sum, item) => {
     if (item.isGSTExempt) return sum;
-    const itemEffectiveSubtotal = item.qty * item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+    const itemEffectiveSubtotal =
+      item.qty * item.unitPrice * (1 - (item.discountPercent || 0) / 100);
     const itemFinalSubtotal = itemEffectiveSubtotal * discountRatio;
     return sum + itemFinalSubtotal * bhutanGST;
   }, 0);
@@ -308,9 +330,9 @@ function PosLayout() {
     if (!barcode) return;
 
     // 1. Key: Search LOCAL cache first (fastest)
-    const allLocalItems = Object.values(itemsByCategory).flat();
+    const allLocalItems = itemsForCategory || [];
     const localMatch = allLocalItems.find(
-      (item) => item.barcode === barcode || item.name === barcode
+      (item) => item.barcode === barcode || item.name === barcode,
     );
 
     if (localMatch) {
@@ -325,14 +347,14 @@ function PosLayout() {
       const res = await authFetch(
         `/api/search-items?query=${encodeURIComponent(barcode)}&storeId=${storeId}`,
         {},
-        idToken
+        idToken,
       );
-      
+
       if (res.ok) {
         const results = await res.json();
         // Priority: Exact Barcode Match
-        const exactMatch = results.find(i => i.barcode === barcode);
-        const match = exactMatch || results[0]; 
+        const exactMatch = results.find((i) => i.barcode === barcode);
+        const match = exactMatch || results[0];
 
         if (match) {
           handleAddToCart(match);
@@ -349,29 +371,6 @@ function PosLayout() {
   };
 
   useBarcodeScanner(handleScan, ["pos", "restaurants"].includes(user?.type));
-
-  useEffect(() => {
-    if (!activeCategory || !idToken) return;
-    if (itemsByCategory[activeCategory]) return;
-
-    const fetchItemsForCategory = async () => {
-      try {
-        const res = await authFetch(
-          `/api/readItemsByCategory?category=${encodeURIComponent(
-            activeCategory,
-          )}`,
-          {},
-          idToken,
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        setItemsByCategory((prev) => ({ ...prev, [activeCategory]: data }));
-      } catch (err) {
-        console.error("Fetch items error:", err);
-      }
-    };
-    fetchItemsForCategory();
-  }, [activeCategory, idToken, itemsByCategory]);
 
   useEffect(() => {
     setIsSearching(searchQuery.trim().length > 0);
@@ -396,7 +395,7 @@ function PosLayout() {
           <Search
             value={searchQuery}
             onChange={setSearchQuery}
-            itemsByCategory={itemsByCategory}
+            itemsForCurrentCategory={itemsForCategory || []}
             activeCategory={activeCategory}
             user={user}
             onSearchResult={(results) => setSearchResults(results)}
@@ -475,8 +474,12 @@ function PosLayout() {
             <PosScreen
               products={
                 searchQuery
-                  ? searchResults.filter(p => posMode === 'rooms' ? p.category === 'rooms' : p.category !== 'rooms')
-                  : itemsByCategory[activeCategory] || []
+                  ? searchResults.filter((p) =>
+                      posMode === "rooms"
+                        ? p.category === "rooms"
+                        : p.category !== "rooms",
+                    )
+                  : itemsForCategory || []
               }
               cartItems={cartItems}
               onAddToCart={handleAddToCart}

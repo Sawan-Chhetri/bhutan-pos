@@ -82,49 +82,57 @@
 // }
 
 "use client";
-import { useEffect, useState } from "react";
-import useAuthStatus from "@/hooks/useAuthStatus";
-import { FiLayers, FiChevronRight, FiCircle } from "react-icons/fi";
+import { useEffect } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
+import { FiLayers, FiChevronRight } from "react-icons/fi";
 
 export default function Menu({ active, onChange, isSearching }) {
-  const [categories, setCategories] = useState([]);
-  const { idToken } = useAuthStatus();
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR("/api/categories", fetcher);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      if (!idToken) return;
-      try {
-        const res = await (
-          await import("@/lib/authFetch")
-        ).default("/api/categories", {}, idToken);
-
-        if (!res.ok) {
-          setCategories([]);
-          return;
-        }
-
-        const data = await res.json();
-        // Filter out 'rooms' category from menu
-        const filteredCategories = data.filter(cat => cat.name !== 'rooms');
-        setCategories(filteredCategories);
-
-        if (filteredCategories.length > 0 && !active) {
-          onChange(filteredCategories[0].name);
-        }
-      } catch (err) {
-        console.error("Fetch categories error:", err);
-        setCategories([]);
+    if (categories && categories.length > 0 && !active) {
+      const filteredCategories = categories.filter(
+        (cat) => cat.name !== "rooms",
+      );
+      if (filteredCategories.length > 0) {
+        onChange(filteredCategories[0].name);
       }
-    };
+    }
+  }, [categories, active, onChange]);
 
-    fetchCategories();
-  }, [idToken, onChange, active]);
+  const filteredCategories =
+    categories?.filter((cat) => cat.name !== "rooms") || [];
+
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <div className="animate-pulse flex flex-col gap-2">
+          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-700"></div>
+          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-700"></div>
+          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-700"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-500 text-xs font-bold">
+        Error loading categories.
+      </div>
+    );
+  }
 
   return (
     <nav className="w-full">
       {/* --- MOBILE: Elegant Scrollable Pills --- */}
       <div className="lg:hidden flex items-center gap-3 overflow-x-auto px-6 py-4 no-scrollbar">
-        {categories.map((category) => {
+        {filteredCategories.map((category) => {
           const isActive = !isSearching && active === category.name;
           return (
             <button
@@ -154,7 +162,7 @@ export default function Menu({ active, onChange, isSearching }) {
           <div className="h-px flex-1 bg-gray-200 dark:bg-gray-800"></div>
         </div>
 
-        {categories.map((category) => {
+        {filteredCategories.map((category) => {
           const isActive = !isSearching && active === category.name;
           return (
             <button
