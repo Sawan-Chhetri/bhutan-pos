@@ -112,6 +112,7 @@ export async function GET(request) {
     const items = itemsSnap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
+      unitType: doc.data().unitType || "default", // Ensure unitType is returned, fallback to 'default'
     }));
 
     return NextResponse.json({
@@ -122,7 +123,7 @@ export async function GET(request) {
     console.error("read-items error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

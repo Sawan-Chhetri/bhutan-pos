@@ -184,21 +184,51 @@ export default function RefundModal({ invoice, open, onClose, onRefund }) {
                           </span>
                         </div>
                       ) : (
-                        <input
-                          type="number"
-                          value={returnQtys[item.itemId] || ""}
-                          max={maxRefundable}
-                          min={0}
-                          onChange={(e) =>
-                            handleQtyChange(
-                              item.itemId,
-                              e.target.value,
-                              maxRefundable,
-                            )
-                          }
-                          placeholder="0"
-                          className="w-20 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 focus:border-brand-pink rounded-xl p-2 text-center font-black text-sm transition-all outline-none"
-                        />
+                        <div className="flex justify-end">
+                          {item.unitType === "kg" || item.unitType === "l" ? (
+                            <button
+                              onClick={() => {
+                                const current = returnQtys[item.itemId] || 0;
+                                const newVal =
+                                  current === 0 ? maxRefundable : 0;
+                                handleQtyChange(
+                                  item.itemId,
+                                  newVal,
+                                  maxRefundable,
+                                );
+                              }}
+                              className={`px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                                (returnQtys[item.itemId] || 0) > 0
+                                  ? "bg-red-500 text-white"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200"
+                              }`}
+                            >
+                              {(returnQtys[item.itemId] || 0) > 0
+                                ? "REFUND ALL"
+                                : "REFUND"}
+                            </button>
+                          ) : (
+                            <input
+                              type="number"
+                              value={returnQtys[item.itemId] || ""}
+                              max={maxRefundable}
+                              min={0}
+                              step="1"
+                              onWheel={(e) => e.target.blur()}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.includes(".")) return;
+                                handleQtyChange(
+                                  item.itemId,
+                                  val,
+                                  maxRefundable,
+                                );
+                              }}
+                              placeholder="0"
+                              className="w-24 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 focus:border-brand-pink rounded-xl p-2 text-center font-black text-sm transition-all outline-none"
+                            />
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>

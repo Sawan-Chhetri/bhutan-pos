@@ -37,6 +37,7 @@ export async function POST(request) {
     const minStock = Number(item.minStock) || 0;
     const price = Number(item.price) || 0;
     const discountPercent = Number(item.discountPercent) || 0;
+    const unitType = item.unitType || "default";
 
     await db.runTransaction(async (tx) => {
       const summarySnap = await tx.get(summaryRef); // Read before write
@@ -48,6 +49,7 @@ export async function POST(request) {
         minStock,
         price,
         discountPercent,
+        unitType,
         isLowStock: stock <= minStock,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -72,7 +74,7 @@ export async function POST(request) {
     console.error("modify-items POST error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -94,7 +96,7 @@ export async function PATCH(request) {
     if (!itemId || !updates) {
       return NextResponse.json(
         { error: "Missing itemId or updates" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -117,7 +119,16 @@ export async function PATCH(request) {
     }
 
     // 4. Whitelist allowed fields
-    const allowedFields = ["name", "price", "discountPercent", "category", "isGSTExempt", "minStock"];
+    const allowedFields = [
+      "name",
+      "price",
+      "discountPercent",
+      "category",
+      "isGSTExempt",
+      "minStock",
+      "unitType",
+      "barcode",
+    ];
     const safeUpdates = {};
 
     for (const key of allowedFields) {
@@ -129,7 +140,7 @@ export async function PATCH(request) {
     if (Object.keys(safeUpdates).length === 0) {
       return NextResponse.json(
         { error: "No valid fields to update" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -160,8 +171,10 @@ export async function PATCH(request) {
 
       const updates_summary = {};
       if (retailDelta !== 0) {
-        updates_summary.totalRetailValue = admin.firestore.FieldValue.increment(retailDelta);
-        updates_summary.lastUpdated = admin.firestore.FieldValue.serverTimestamp();
+        updates_summary.totalRetailValue =
+          admin.firestore.FieldValue.increment(retailDelta);
+        updates_summary.lastUpdated =
+          admin.firestore.FieldValue.serverTimestamp();
         tx.update(summaryRef, updates_summary);
       }
     });
@@ -171,7 +184,7 @@ export async function PATCH(request) {
     console.error("modify-items PATCH error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -163,20 +163,46 @@ export default function Checkout({
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [customDiscountValue, setCustomDiscountValue] = useState("");
 
-  const increment = (id) => {
+  const increment = (id, unitType) => {
     setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, qty: item.qty + 1 } : item
-      )
+      prev.map((item) => {
+        if (item.id === id) {
+          // If weighted item (kg/l), increment by 0.1
+          const incrementAmount = unitType && unitType !== "default" ? 0.1 : 1;
+          // Use parseFloat to fix floating point math issues (e.g. 0.1 + 0.2 = 0.300000004)
+          const newQty = parseFloat((item.qty + incrementAmount).toFixed(3));
+          return { ...item, qty: newQty };
+        }
+        return item;
+      }),
     );
   };
 
-  const decrement = (id) => {
+  const decrement = (id, unitType) => {
     setCartItems((prev) =>
       prev
-        .map((item) => (item.id === id ? { ...item, qty: item.qty - 1 } : item))
-        .filter((item) => item.qty > 0)
+        .map((item) => {
+          if (item.id === id) {
+            const decrementAmount =
+              unitType && unitType !== "default" ? 0.1 : 1;
+            const newQty = parseFloat((item.qty - decrementAmount).toFixed(3));
+            return { ...item, qty: newQty };
+          }
+          return item;
+        })
+        .filter((item) => item.qty > 0),
     );
+  };
+
+  const handleManualQtyChange = (id, newQty) => {
+    const qty = parseFloat(newQty);
+    if (!isNaN(qty) && qty >= 0) {
+      setCartItems((prev) =>
+        prev
+          .map((item) => (item.id === id ? { ...item, qty } : item))
+          .filter((item) => item.qty > 0),
+      );
+    }
   };
 
   const clearCart = () => {
@@ -185,12 +211,12 @@ export default function Checkout({
   };
 
   const handleApplyGlobalDiscount = (value, type = "percent") => {
-    setGlobalDiscount(prev => ({ ...prev, value, type }));
+    setGlobalDiscount((prev) => ({ ...prev, value, type }));
     setShowCustomDiscount(false);
   };
 
   const handleApplyReason = (reason) => {
-    setGlobalDiscount(prev => ({ ...prev, reason }));
+    setGlobalDiscount((prev) => ({ ...prev, reason }));
   };
 
   const handleCustomDiscountSubmit = (e) => {
@@ -233,7 +259,8 @@ export default function Checkout({
         ) : (
           cartItems.map((item) => {
             const hasItemDiscount = (item.discountPercent || 0) > 0;
-            const effectivePrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+            const effectivePrice =
+              item.unitPrice * (1 - (item.discountPercent || 0) / 100);
             const lineTotal = item.qty * effectivePrice;
 
             return (
@@ -249,16 +276,29 @@ export default function Checkout({
                     <div className="flex items-center gap-2 mt-1">
                       {hasItemDiscount && (
                         <span className="text-[10px] font-mono text-gray-400 line-through">
-                          Nu. {item.unitPrice.toLocaleString()}
+                          Nu.{" "}
+                          {item.unitPrice.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </span>
                       )}
                       <p className="text-[10px] font-mono text-brand-pink font-bold uppercase">
-                        Nu. {effectivePrice.toLocaleString()} / unit
+                        Nu.{" "}
+                        {effectivePrice.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        / {item.unitType === "default" ? "unit" : item.unitType}
                       </p>
                     </div>
                   </div>
                   <p className="font-black text-gray-900 dark:text-white text-sm">
-                    Nu. {lineTotal.toLocaleString()}
+                    Nu.{" "}
+                    {lineTotal.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </p>
                 </div>
 
@@ -266,16 +306,28 @@ export default function Checkout({
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
                   <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
                     <button
-                      onClick={() => decrement(item.id)}
+                      onClick={() => decrement(item.id, item.unitType)}
                       className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
                     >
                       <FiMinus size={14} />
                     </button>
-                    <span className="w-8 text-center text-xs font-black text-gray-900 dark:text-white">
-                      {item.qty}
-                    </span>
+                    {item.unitType !== "default" ? (
+                      <input
+                        type="number"
+                        className="w-12 text-center text-xs font-black text-gray-900 dark:text-white bg-transparent outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                        value={item.qty}
+                        onChange={(e) =>
+                          handleManualQtyChange(item.id, e.target.value)
+                        }
+                        step="0.001"
+                      />
+                    ) : (
+                      <span className="w-8 text-center text-xs font-black text-gray-900 dark:text-white">
+                        {item.qty}
+                      </span>
+                    )}
                     <button
-                      onClick={() => increment(item.id)}
+                      onClick={() => increment(item.id, item.unitType)}
                       className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
                     >
                       <FiPlus size={14} />
@@ -295,7 +347,6 @@ export default function Checkout({
 
       {/* Summary & Checkout */}
       <div className="bg-gray-50 dark:bg-gray-900/80 p-6 space-y-4 border-t border-gray-200 dark:border-gray-800">
-        
         {/* Global Discount Section */}
         {cartItems.length > 0 && (
           <div className="space-y-3 pb-2">
@@ -304,8 +355,10 @@ export default function Checkout({
                 Global Discount
               </span>
               {globalDiscount.value > 0 && (
-                <button 
-                  onClick={() => setGlobalDiscount({ value: 0, type: "percent", reason: "" })}
+                <button
+                  onClick={() =>
+                    setGlobalDiscount({ value: 0, type: "percent", reason: "" })
+                  }
                   className="text-[10px] font-black text-brand-pink py-1 px-2 hover:bg-brand-pink/5 rounded transition-colors"
                 >
                   RESET
@@ -318,7 +371,8 @@ export default function Checkout({
                   key={pct}
                   onClick={() => handleApplyGlobalDiscount(pct, "percent")}
                   className={`flex-1 py-2 text-[10px] font-black rounded-xl border transition-all ${
-                    globalDiscount.type === "percent" && globalDiscount.value === pct
+                    globalDiscount.type === "percent" &&
+                    globalDiscount.value === pct
                       ? "bg-brand-pink border-brand-pink text-white shadow-lg shadow-brand-pink/20 scale-105"
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:border-brand-pink/50"
                   }`}
@@ -334,12 +388,12 @@ export default function Checkout({
                     : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:border-brand-pink/50"
                 }`}
               >
-                {globalDiscount.type === "fixed" && globalDiscount.value > 0 
-                  ? `Nu. ${globalDiscount.value}` 
+                {globalDiscount.type === "fixed" && globalDiscount.value > 0
+                  ? `Nu. ${globalDiscount.value}`
                   : "CUSTOM"}
               </button>
             </div>
-            
+
             {showCustomDiscount && (
               <div className="animate-in slide-in-from-top-2 duration-300">
                 <input
@@ -388,17 +442,31 @@ export default function Checkout({
             </span>
             <span className="font-mono text-gray-900 dark:text-gray-100">
               Nu.{" "}
-              {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {subtotal.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
-          
+
           {globalDiscount.value > 0 && (
             <div className="flex justify-between items-center text-xs text-brand-pink">
               <span className="font-bold uppercase tracking-widest">
-                Discount ({globalDiscount.type === "percent" ? `${globalDiscount.value}%` : "Fixed"})
+                Discount (
+                {globalDiscount.type === "percent"
+                  ? `${globalDiscount.value}%`
+                  : "Fixed"}
+                )
               </span>
               <span className="font-mono font-black">
-                - Nu. {(globalDiscount.type === "percent" ? (subtotal * globalDiscount.value / 100) : globalDiscount.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                - Nu.{" "}
+                {(globalDiscount.type === "percent"
+                  ? (subtotal * globalDiscount.value) / 100
+                  : globalDiscount.value
+                ).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           )}
@@ -408,7 +476,11 @@ export default function Checkout({
               Tax (GST 5%)
             </span>
             <span className="font-mono text-gray-900 dark:text-gray-100">
-              Nu. {gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              Nu.{" "}
+              {gst.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           </div>
 
@@ -419,7 +491,10 @@ export default function Checkout({
               </span>
               <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
                 Nu.{" "}
-                {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {total.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>
