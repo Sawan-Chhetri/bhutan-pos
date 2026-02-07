@@ -124,13 +124,16 @@ const InvoicePDF = ({ invoice }) => (
     <Page size="A4" style={pdfStyles.page}>
       {/* HEADER */}
       <View style={pdfStyles.header}>
-        <View>
+        <View style={{ maxWidth: "70%" }}>
           <Text style={pdfStyles.storeTitle}>{invoice.store.name}</Text>
           <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
             {invoice.store.address}
           </Text>
-          <Text style={pdfStyles.metaLabel}>
-            TPN: {invoice.store.gstNumber}
+          <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
+            Phone: {invoice.store.phone}
+          </Text>
+          <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
+            GST TPN: {invoice.store.gstNumber}
           </Text>
         </View>
         <View style={{ textAlign: "right" }}>

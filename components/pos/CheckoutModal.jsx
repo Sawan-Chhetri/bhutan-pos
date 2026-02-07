@@ -363,17 +363,25 @@ export default function CheckoutModal({
               <div className="space-y-3">
                 {cartItems.map((item) => {
                   const hasItemDiscount = (item.discountPercent || 0) > 0;
-                  const effectiveUnitPrice = item.unitPrice * (1 - (item.discountPercent || 0) / 100);
+                  const effectiveUnitPrice =
+                    item.unitPrice * (1 - (item.discountPercent || 0) / 100);
                   const lineTotal = item.qty * effectiveUnitPrice;
-                  
+
                   return (
-                    <div key={item.id} className="flex justify-between text-sm group">
+                    <div
+                      key={item.id}
+                      className="flex justify-between text-sm group"
+                    >
                       <div className="flex-1">
                         <p className="font-bold text-gray-800 dark:text-gray-100 uppercase text-[11px]">
                           {item.name}
                         </p>
                         <p className="text-[10px] text-gray-400 font-mono">
-                          {item.qty} × Nu. {item.unitPrice.toLocaleString()}
+                          {item.qty}
+                          {item.unitType === "default"
+                            ? ""
+                            : ` ${item.unitType}`}{" "}
+                          × Nu. {item.unitPrice.toLocaleString()}
                           {hasItemDiscount && (
                             <span className="ml-2 text-brand-pink font-bold">
                               (-{item.discountPercent}%)
@@ -392,18 +400,35 @@ export default function CheckoutModal({
               {/* Stacked Discount Breakdown */}
               <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-500 font-bold uppercase tracking-wider">Net Subtotal</span>
-                  <span className="font-mono font-bold">Nu. {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="text-gray-500 font-bold uppercase tracking-wider">
+                    Net Subtotal
+                  </span>
+                  <span className="font-mono font-bold">
+                    Nu.{" "}
+                    {subtotal.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
 
                 {globalDiscount && globalDiscount.value > 0 && (
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs text-brand-pink">
                       <span className="font-black uppercase tracking-wider">
-                        Global Discount ({globalDiscount.type === "percent" ? `${globalDiscount.value}%` : "Fixed"})
+                        Global Discount (
+                        {globalDiscount.type === "percent"
+                          ? `${globalDiscount.value}%`
+                          : "Fixed"}
+                        )
                       </span>
                       <span className="font-mono font-black">
-                        - Nu. {(globalDiscount.type === "percent" ? (subtotal * globalDiscount.value / 100) : globalDiscount.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        - Nu.{" "}
+                        {(globalDiscount.type === "percent"
+                          ? (subtotal * globalDiscount.value) / 100
+                          : globalDiscount.value
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                     {globalDiscount.reason && (
@@ -415,14 +440,26 @@ export default function CheckoutModal({
                 )}
 
                 <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-gray-500 font-bold uppercase tracking-wider">Tax (GST 5%)</span>
-                  <span className="font-mono font-bold">Nu. {gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="text-gray-500 font-bold uppercase tracking-wider">
+                    Tax (GST 5%)
+                  </span>
+                  <span className="font-mono font-bold">
+                    Nu.{" "}
+                    {gst.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center pt-4">
-                  <span className="text-sm font-black text-brand-pink uppercase tracking-[0.2em]">Grand Total</span>
+                  <span className="text-sm font-black text-brand-pink uppercase tracking-[0.2em]">
+                    Grand Total
+                  </span>
                   <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                    Nu. {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    Nu.{" "}
+                    {total.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               </div>
@@ -457,7 +494,6 @@ export default function CheckoutModal({
           </div>
         </div>
       </div>
-      </div>
-    
+    </div>
   );
 }

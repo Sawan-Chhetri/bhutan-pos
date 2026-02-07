@@ -43,6 +43,7 @@ export async function GET(request, { params }) {
         name: storeData.name || "Our Store",
         address: storeData.address || "",
         tpn: storeData.tpn || storeData.gstNumber || "N/A",
+        phone: storeData.phone || "",
       },
     });
   } catch (err) {

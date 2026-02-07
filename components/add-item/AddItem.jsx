@@ -298,30 +298,33 @@ export default function AddItem({
           <div className="grid grid-cols-2 gap-4">
             {!editingItem && (
               <div>
-                <label className={labelClasses}>Initial Count</label>
+                <label className={labelClasses}>
+                  Initial Count {unitType !== "default" && `(${unitType})`}
+                </label>
                 <input
                   type="number"
-                  step="0.001"
+                  step={unitType === "default" ? "1" : "0.25"}
                   onWheel={(e) => e.target.blur()}
                   value={initialStock}
                   onChange={(e) => setInitialStock(e.target.value)}
                   className={inputClasses}
-                  placeholder="0.000"
+                  placeholder={unitType === "default" ? "0" : "0.000"}
                 />
               </div>
             )}
             <div className={editingItem ? "col-span-2" : ""}>
               <label className={labelClasses}>
-                <FiBarChart2 /> Min Alert Level
+                <FiBarChart2 /> Min Alert Level{" "}
+                {unitType !== "default" && `(${unitType})`}
               </label>
               <input
                 type="number"
-                step="0.001"
+                step={unitType === "default" ? "1" : "0.25"}
                 onWheel={(e) => e.target.blur()}
                 value={minStock}
                 onChange={(e) => setMinStock(e.target.value)}
                 className={inputClasses}
-                placeholder="5"
+                placeholder={unitType === "default" ? "5" : "0.500"}
               />
             </div>
           </div>

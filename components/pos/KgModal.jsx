@@ -22,10 +22,10 @@ export default function KgModal({ isOpen, onClose, product, onConfirm }) {
       <div className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 ring-1 ring-gray-200 dark:ring-gray-700 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-blue-600 dark:text-blue-400"
+              className="h-6 w-6 text-brand-pink dark:text-brand-pink"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -54,7 +54,7 @@ export default function KgModal({ isOpen, onClose, product, onConfirm }) {
           <input
             type="number"
             step="0.25"
-            className="w-full px-4 py-4 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white text-2xl text-center font-bold focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors"
+            className="w-full px-4 py-4 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white text-2xl text-center font-bold focus:border-green-500 focus:ring-0 focus:outline-none transition-colors"
             placeholder="0.0"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
@@ -80,7 +80,7 @@ export default function KgModal({ isOpen, onClose, product, onConfirm }) {
           <button
             onClick={handleConfirm}
             disabled={!weight || parseFloat(weight) <= 0}
-            className="px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-500/30 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-4 py-3.5 bg-brand-pink text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-500/30 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Confirm
           </button>

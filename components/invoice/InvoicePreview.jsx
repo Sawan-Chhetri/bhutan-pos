@@ -85,20 +85,11 @@
 // }
 
 "use client";
-import { FiHash, FiCalendar, FiMapPin } from "react-icons/fi";
+import { FiHash, FiCalendar, FiMapPin, FiUser } from "react-icons/fi";
 
 export default function InvoicePreview({ invoice }) {
-  const {
-    companyName,
-    projectName,
-    companyAddress,
-    gstNumber,
-    items,
-    subtotal,
-    gst,
-    total,
-    notes,
-  } = invoice;
+  const { companyDetails, projectName, items, subtotal, gst, total, notes } =
+    invoice;
 
   return (
     <div className="bg-white dark:bg-gray-900 w-full rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-all duration-300">
@@ -107,7 +98,7 @@ export default function InvoicePreview({ invoice }) {
 
       <div className="p-8 md:p-16">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-16">
-          <div>
+          {/* <div>
             <h3 className="text-3xl font-black tracking-tighter text-gray-900 dark:text-white uppercase mb-2">
               {companyName || "DRAFT DOCUMENT"}
             </h3>
@@ -117,11 +108,25 @@ export default function InvoicePreview({ invoice }) {
                 {companyAddress}
               </p>
             )}
+          </div> */}
+          <div className="w-full lg:w-auto">
+            <h1 className="text-2xl md:text-5xl lg:text-3xl font-black tracking-tighter italic dark:text-white leading-none mb-4 break-words">
+              {companyDetails.name}
+            </h1>
+            <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {companyDetails.address}
+            </p>
+            <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+              {companyDetails.phone}
+            </p>
+            <p className="text-[9px] md:text-[10px] font-black text-brand-pink uppercase mt-1 tracking-widest">
+              GST TPN: {companyDetails.gstNumber}
+            </p>
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 min-w-[200px] text-right">
             <h4 className="text-[10px] font-black text-brand-pink uppercase tracking-widest mb-2">
-              Proforma Invoice
+              Tax Invoice
             </h4>
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
               Generated:{" "}
@@ -134,7 +139,37 @@ export default function InvoicePreview({ invoice }) {
           </div>
         </div>
 
-        <div className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-hidden mb-12">
+        {/* Billed To Card */}
+        <div className="p-6 md:p-8 bg-gray-50 dark:bg-gray-800/40 rounded-[1.5rem] md:rounded-[2.5rem] mb-10 md:mb-16 border border-gray-100 dark:border-gray-700">
+          <p className="text-[8px] md:text-[9px] font-black text-brand-pink uppercase tracking-widest flex items-center gap-2 mb-2">
+            <FiUser /> Billed To
+          </p>
+          <h3 className="text-lg md:text-2xl font-black dark:text-white uppercase tracking-tight">
+            {invoice.customerName || "Walk-in Customer"}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {invoice.customerCID && (
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                CID/Reference:{" "}
+                <span className="text-gray-900">{invoice.customerCID}</span>
+              </p>
+            )}
+            {invoice.customerTIN && (
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                TPN:{" "}
+                <span className="text-gray-900">{invoice.customerTIN}</span>
+              </p>
+            )}
+            {invoice.customerAddress && (
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider md:col-span-2">
+                Address:{" "}
+                <span className="text-gray-900">{invoice.customerAddress}</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="border border-gray-100 dark:border-gray-800 rounded-3xl overflow-x-auto mb-12">
           <table className="w-full text-left">
             <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
@@ -167,12 +202,12 @@ export default function InvoicePreview({ invoice }) {
                     {it.qty}
                   </td>
                   <td className="px-6 py-5 text-sm font-bold text-gray-600 dark:text-gray-400 font-mono text-right">
-                    {Number(it.unitPrice || 0).toFixed(2)}
+                    {Number(it.unitPrice || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-5 text-sm font-black text-gray-900 dark:text-white font-mono text-right">
-                    {(Number(it.qty || 0) * Number(it.unitPrice || 0)).toFixed(
-                      2,
-                    )}
+                    {(
+                      Number(it.qty || 0) * Number(it.unitPrice || 0)
+                    ).toLocaleString()}
                   </td>
                 </tr>
               ))}
@@ -185,13 +220,13 @@ export default function InvoicePreview({ invoice }) {
             <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
               <span>Subtotal</span>
               <span className="font-mono">
-                Nu. {Number(subtotal || 0).toFixed(2)}
+                Nu. {Number(subtotal || 0).toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
               <span>GST</span>
               <span className="font-mono">
-                Nu. {Number(gst || 0).toFixed(2)}
+                Nu. {Number(gst || 0).toLocaleString()}
               </span>
             </div>
             <div className="h-px bg-gray-100 dark:bg-gray-800 my-4" />
@@ -200,7 +235,7 @@ export default function InvoicePreview({ invoice }) {
                 Payable Nu.
               </span>
               <span className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter font-mono">
-                {Number(total || 0).toFixed(2)}
+                {Number(total || 0).toLocaleString()}
               </span>
             </div>
           </div>

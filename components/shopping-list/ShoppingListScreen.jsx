@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import useAuthStatus from "@/hooks/useAuthStatus";
 import authFetch from "@/lib/authFetch";
-import { FiAlertCircle, FiClipboard, FiPrinter, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  FiAlertCircle,
+  FiClipboard,
+  FiPrinter,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
 
 export default function ShoppingListScreen() {
   const { user, idToken } = useAuthStatus();
@@ -18,7 +24,11 @@ export default function ShoppingListScreen() {
     const fetchLowStock = async () => {
       setLoading(true);
       try {
-        const res = await authFetch(`/api/read-low-stock-items?page=${currentPage}&limit=20`, {}, idToken);
+        const res = await authFetch(
+          `/api/read-low-stock-items?page=${currentPage}&limit=20`,
+          {},
+          idToken,
+        );
         if (res.ok) {
           const data = await res.json();
           setItems(data.items);
@@ -90,7 +100,7 @@ export default function ShoppingListScreen() {
                 <div className="col-span-2 text-center">Min Req</div>
                 <div className="col-span-2 text-right">Status</div>
               </div>
-              
+
               {items.map((item) => (
                 <div
                   key={item.id}
@@ -115,34 +125,39 @@ export default function ShoppingListScreen() {
 
                   {/* Stock Levels (Mobile: Flex, Desktop: Grid) */}
                   <div className="col-span-6 md:col-span-6 flex justify-between md:grid md:grid-cols-6 items-center w-full">
-                    
                     {/* Current Stock */}
                     <div className="md:col-span-2 text-center">
-                      <span className="md:hidden text-xs font-bold text-gray-400 uppercase mr-2">Stock:</span>
+                      <span className="md:hidden text-xs font-bold text-gray-400 uppercase mr-2">
+                        Stock:
+                      </span>
                       <span className="text-xl font-mono font-black text-red-500">
                         {item.stock}
+                        {item.unitType === "default" ? "" : ` ${item.unitType}`}
                       </span>
                     </div>
 
                     {/* Min Stock */}
                     <div className="md:col-span-2 text-center">
-                      <span className="md:hidden text-xs font-bold text-gray-400 uppercase mr-2">Min:</span>
+                      <span className="md:hidden text-xs font-bold text-gray-400 uppercase mr-2">
+                        Min:
+                      </span>
                       <span className="text-base font-mono font-bold text-gray-400">
                         {item.minStock}
+                        {item.unitType === "default" ? "" : ` ${item.unitType}`}
                       </span>
                     </div>
 
                     {/* Status Badge */}
                     <div className="md:col-span-2 text-right">
-                       {item.stock === 0 ? (
-                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider">
-                               Out of Stock
-                           </span>
-                       ) : (
-                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider">
-                               Low Stock
-                           </span>
-                       )}
+                      {item.stock === 0 ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          Out of Stock
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          Low Stock
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -153,27 +168,27 @@ export default function ShoppingListScreen() {
 
         {/* Pagination Controls - Print Hidden */}
         {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 print:hidden">
+          <div className="flex items-center justify-center gap-4 print:hidden">
             <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-20 hover:border-brand-pink transition-colors"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-20 hover:border-brand-pink transition-colors"
             >
-                <FiChevronLeft className="dark:text-white" />
+              <FiChevronLeft className="dark:text-white" />
             </button>
 
             <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-                Page {currentPage} of {totalPages}
+              Page {currentPage} of {totalPages}
             </span>
 
             <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-20 hover:border-brand-pink transition-colors"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 disabled:opacity-20 hover:border-brand-pink transition-colors"
             >
-                <FiChevronRight className="dark:text-white" />
+              <FiChevronRight className="dark:text-white" />
             </button>
-            </div>
+          </div>
         )}
       </div>
     </div>
