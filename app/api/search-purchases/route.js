@@ -25,7 +25,6 @@ export async function GET(request) {
     // NOTE: 'billNumber' and 'supplierName' are string fields in your DB.
 
     const lowerQuery = query.toLowerCase();
-    console.log(lowerQuery);
 
     // 1. Search by Bill Number (Exact Match)
     const billPromise = purchasesRef
