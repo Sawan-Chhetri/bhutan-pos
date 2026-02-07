@@ -4,6 +4,7 @@ import useAuthStatus from "@/hooks/useAuthStatus";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiFileText, FiChevronRight, FiChevronLeft } from "react-icons/fi";
+import GlobalInvoiceSearch from "../common/GlobalInvoiceSearch";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -89,6 +90,7 @@ export default function Refunds() {
               Refund & Reversal Audit
             </p>
           </div>
+          <GlobalInvoiceSearch />
           {/* <div className="flex gap-4">
             <StatCard
               label="Total Reversed"

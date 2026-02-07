@@ -25,12 +25,8 @@ export async function POST(request) {
     /* =====================================================
      * 2️⃣ REQUEST BODY VALIDATION
      * ===================================================== */
-    const {
-      items,
-      supplierName,
-      supplierTIN,
-      billNumber,
-    } = await request.json();
+    const { items, supplierName, supplierTIN, billNumber } =
+      await request.json();
 
     if (!items?.length) {
       return NextResponse.json({ error: "Empty cart" }, { status: 400 });
@@ -82,7 +78,10 @@ export async function POST(request) {
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
        * --------------------------------------------- */
       const loadedItems = {};
-      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
+      if (
+        storeId &&
+        ["pos", "restaurants", "other"].includes(userSnap.data()?.type)
+      ) {
         for (const item of items) {
           if (item.itemId) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
@@ -100,9 +99,8 @@ export async function POST(request) {
       // let taxablePurchases = 0;
       // let totalITC = 0;
       let taxablePurchases = 0;
-let nonTaxablePurchases = 0;
-let totalITC = 0;
-
+      let nonTaxablePurchases = 0;
+      let totalITC = 0;
 
       const cartItems = items.map((item) => {
         // const lineTotal = item.qty * item.cost;
@@ -136,9 +134,7 @@ let totalITC = 0;
         };
       });
 
-      const grossPurchases =
-      taxablePurchases + nonTaxablePurchases + totalITC;
-
+      const grossPurchases = taxablePurchases + nonTaxablePurchases + totalITC;
 
       const purchaseDocRef = purchaseRef.doc();
       purchaseId = purchaseDocRef.id;
@@ -167,7 +163,7 @@ let totalITC = 0;
         // Accounting / reconciliation
         grossPurchases,
 
-        supplierName: supplierName || null,
+        supplierName: supplierName.toLowerCase() || null,
         supplierTIN: supplierTIN || null,
         date: now,
         createdBy: uid,
@@ -196,29 +192,33 @@ let totalITC = 0;
         //   lastUpdated: now,
         // });
         tx.update(gstReportRef, {
-        taxablePurchases: admin.firestore.FieldValue.increment(taxablePurchases),
-        nonTaxablePurchases: admin.firestore.FieldValue.increment(nonTaxablePurchases),
-        itcClaimed: admin.firestore.FieldValue.increment(totalITC),
-        grossPurchases: admin.firestore.FieldValue.increment(grossPurchases),
-        purchaseCount: admin.firestore.FieldValue.increment(1),
-        lastUpdated: now,
-});
-
+          taxablePurchases:
+            admin.firestore.FieldValue.increment(taxablePurchases),
+          nonTaxablePurchases:
+            admin.firestore.FieldValue.increment(nonTaxablePurchases),
+          itcClaimed: admin.firestore.FieldValue.increment(totalITC),
+          grossPurchases: admin.firestore.FieldValue.increment(grossPurchases),
+          purchaseCount: admin.firestore.FieldValue.increment(1),
+          lastUpdated: now,
+        });
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION
-      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
+      if (
+        storeId &&
+        ["pos", "restaurants", "other"].includes(userSnap.data()?.type)
+      ) {
         let retailDelta = 0;
 
         for (const item of cartItems) {
           if (item.itemId && loadedItems[item.itemId]) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
             const currentData = loadedItems[item.itemId];
-            
+
             // Calculate new state
             const oldStock = Number(currentData.stock || 0);
             const retailPrice = Number(currentData.price || 0);
-            
+
             const newStock = oldStock + item.qty;
             const minStock = Number(currentData.minStock || 0);
             const isLowStock = newStock <= minStock;
@@ -226,7 +226,7 @@ let totalITC = 0;
             tx.update(itemRef, {
               stock: newStock,
               isLowStock: isLowStock,
-              lastUpdatedAt: now
+              lastUpdatedAt: now,
             });
 
             // Valuation Updates (Retail only: added stock)
