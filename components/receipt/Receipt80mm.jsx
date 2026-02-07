@@ -105,7 +105,7 @@ export default function Receipt80mm({ invoice }) {
             {invoice.store?.address}
           </p>
           <p style={{ fontSize: "10px", fontWeight: "bold" }}>
-            TPN: {invoice.store?.gstNumber}
+            GST TPN: {invoice.store?.gstNumber}
           </p>
         </div>
 

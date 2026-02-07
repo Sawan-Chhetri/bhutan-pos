@@ -74,6 +74,27 @@ export async function POST(request, { params }) {
       let refundSubtotal = 0;
       let retailValuationIncrease = 0;
 
+      // 🔍 PRE-CHECK: Verify item existence to avoid "No document to update" errors
+      const validItemIds = new Set();
+      if (userType === "pos") {
+        const itemRefsToCheck = [];
+        saleData.items.forEach((item) => {
+          if (cartItems.find((r) => r.itemId === item.itemId)) {
+            if (item.itemId)
+              itemRefsToCheck.push(
+                db.doc(`stores/${storeId}/items/${item.itemId}`),
+              );
+          }
+        });
+
+        if (itemRefsToCheck.length > 0) {
+          const itemSnaps = await tx.getAll(...itemRefsToCheck);
+          itemSnaps.forEach((snap) => {
+            if (snap.exists) validItemIds.add(snap.id);
+          });
+        }
+      }
+
       // D) Process Items & Build the reversal
       const updatedSaleItems = saleData.items.map((saleItem) => {
         const refundItem = cartItems.find((r) => r.itemId === saleItem.itemId);
@@ -99,7 +120,11 @@ export async function POST(request, { params }) {
           }
 
           // 📦 STOCK INCREMENT LOGIC (Only for POS users)
-          if (userType === "pos" && saleItem.itemId) {
+          if (
+            userType === "pos" &&
+            saleItem.itemId &&
+            validItemIds.has(saleItem.itemId)
+          ) {
             const itemRef = db.doc(
               `stores/${storeId}/items/${saleItem.itemId}`,
             );

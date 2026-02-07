@@ -70,7 +70,7 @@ export default function RefundReceipt80mm({ refund }) {
             {refund.store?.name}
           </p>
           <p style={{ fontSize: "10px", fontWeight: "600" }}>
-            TPN: {refund.store?.tpn}
+            GST TPN: {refund.store?.tpn}
           </p>
         </div>
 

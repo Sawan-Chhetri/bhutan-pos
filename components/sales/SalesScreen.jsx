@@ -316,6 +316,7 @@ import {
   FiRefreshCcw,
   FiCheckCircle,
 } from "react-icons/fi";
+import GlobalInvoiceSearch from "../common/GlobalInvoiceSearch";
 
 const ITEMS_PER_PAGE = 15;
 
@@ -449,6 +450,7 @@ export default function SalesScreen() {
               Central Revenue Audit & Invoice Stream
             </p>
           </div>
+          <GlobalInvoiceSearch />
         </div>
 
         {/* Table Container */}
@@ -535,34 +537,45 @@ export default function SalesScreen() {
                       {/* SETTLEMENT COLUMN (Conditional) */}
                       {user?.type === "other" && (
                         <td className="px-8 py-6 text-right relative z-20">
-                          <div
-                            className="flex items-center justify-end gap-3"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span
-                              className={`text-[9px] font-black uppercase tracking-[0.2em] ${paidStatus[sale.id] ? "text-emerald-500" : "text-amber-500"}`}
+                          {sale.refundStatus === "fully-refunded" ? (
+                            <div className="flex items-center justify-end gap-3 opacity-40 grayscale cursor-not-allowed">
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
+                                Settled
+                              </span>
+                              <div className="w-10 h-5 rounded-full bg-gray-200 dark:bg-gray-700 relative">
+                                <div className="absolute top-1 left-1 w-3 h-3 bg-gray-400 rounded-full" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              className="flex items-center justify-end gap-3"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {paidStatus[sale.id] ? "Paid" : "Debt"}
-                            </span>
-                            <button
-                              onClick={(e) =>
-                                handleTogglePaid(
-                                  e,
-                                  sale.id,
-                                  !paidStatus[sale.id],
-                                )
-                              }
-                              className={`w-10 h-5 rounded-full relative transition-all duration-300 shadow-inner ${
-                                paidStatus[sale.id]
-                                  ? "bg-emerald-500"
-                                  : "bg-gray-200 dark:bg-gray-700"
-                              }`}
-                            >
-                              <div
-                                className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-md transition-all duration-300 ${paidStatus[sale.id] ? "left-6" : "left-1"}`}
-                              />
-                            </button>
-                          </div>
+                              <span
+                                className={`text-[9px] font-black uppercase tracking-[0.2em] ${paidStatus[sale.id] ? "text-emerald-500" : "text-amber-500"}`}
+                              >
+                                {paidStatus[sale.id] ? "Paid" : "Debt"}
+                              </span>
+                              <button
+                                onClick={(e) =>
+                                  handleTogglePaid(
+                                    e,
+                                    sale.id,
+                                    !paidStatus[sale.id],
+                                  )
+                                }
+                                className={`w-10 h-5 rounded-full relative transition-all duration-300 shadow-inner ${
+                                  paidStatus[sale.id]
+                                    ? "bg-emerald-500"
+                                    : "bg-gray-200 dark:bg-gray-700"
+                                }`}
+                              >
+                                <div
+                                  className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow-md transition-all duration-300 ${paidStatus[sale.id] ? "left-6" : "left-1"}`}
+                                />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       )}
 

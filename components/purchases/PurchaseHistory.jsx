@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   FiSearch,
   FiCalendar,
@@ -9,9 +9,11 @@ import {
   FiHash,
 } from "react-icons/fi";
 import useAuthStatus from "@/hooks/useAuthStatus";
+import usePermissions from "@/hooks/usePermissions";
+import GlobalPurchaseSearch from "../common/GlobalPurchaseSearch";
 
 // Constants for pagination
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 20;
 
 export default function PurchaseHistory() {
   const { idToken } = useAuthStatus();
@@ -102,6 +104,7 @@ export default function PurchaseHistory() {
       >
         {page}
       </button>
+
     ));
   };
 
@@ -109,32 +112,20 @@ export default function PurchaseHistory() {
     <div className="min-h-screen bg-[#F8F9FA] p-6 md:p-12">
       <div className="max-w-6xl mx-auto">
         {/* Header & Search */}
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl text-center md:text-4xl md:text-left font-black tracking-tighter uppercase">
+            <h1 className="text-3xl text-center md:text-left md:text-4xl font-black tracking-tighter uppercase">
               Purchase <span className="text-blue-600">History</span>
             </h1>
-            <p className="text-[10px] text-center md:text-left font-bold text-gray-400 uppercase tracking-[0.4em] mt-1">
-              Input Tax Credit Records
+            <p className="text-[10px] text-center md:text-left font-black text-gray-400 uppercase tracking-[0.4em] mt-2">
+              Log of Incoming Inventory
             </p>
           </div>
-
-          {/* <div className="relative group w-full md:w-96">
-            <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search Supplier or Bill #"
-              className="w-full pl-14 pr-6 py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-blue-100 uppercase text-[10px] font-black tracking-widest outline-none"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1); // Reset to page 1 on search
-              }}
-            />
-          </div> */}
+          <GlobalPurchaseSearch />
         </header>
 
         {/* List Content */}
+
         {loading ? (
           <div className="p-20 text-center font-black uppercase tracking-widest animate-pulse text-blue-600">
             Loading Ledger...
