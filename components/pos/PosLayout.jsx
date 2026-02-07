@@ -227,6 +227,7 @@ import {
 import useBarcodeScanner from "@/hooks/useBarcodeScanner";
 import { toast } from "react-toastify";
 import PrintReceiptModal from "@/components/pos/PrintReceiptModal";
+import KgModal from "@/components/pos/KgModal";
 import usePermissions from "@/hooks/usePermissions";
 
 const bhutanGST = 0.05;
@@ -256,6 +257,8 @@ function PosLayout() {
   const [isSearching, setIsSearching] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [saleId, setSaleId] = useState(null);
+  const [isKgModalOpen, setIsKgModalOpen] = useState(false);
+  const [pendingWeightedItem, setPendingWeightedItem] = useState(null);
 
   // Global Discount State
   const [globalDiscount, setGlobalDiscount] = useState({
@@ -264,13 +267,12 @@ function PosLayout() {
     reason: "",
   });
 
-  // LOGIC UNTOUCHED
-  const handleAddToCart = (product) => {
+  const addItemToCart = (product, qty) => {
     const existing = cartItems.find((item) => item.id === product.id);
     if (existing) {
       setCartItems((prev) =>
         prev.map((item) =>
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item,
+          item.id === product.id ? { ...item, qty: item.qty + qty } : item,
         ),
       );
     } else {
@@ -281,11 +283,28 @@ function PosLayout() {
           name: product.name,
           unitPrice: product.price, // Base Sale Price
           discountPercent: product.discountPercent || 0, // Item-Level Discount
-          qty: 1,
+          qty: qty,
           isGSTExempt: product.isGSTExempt || false,
+          unitType: product.unitType || "default",
         },
       ]);
     }
+  };
+
+  const handleWeightConfirm = (qty) => {
+    if (pendingWeightedItem) {
+      addItemToCart(pendingWeightedItem, qty);
+      setPendingWeightedItem(null);
+    }
+  };
+
+  const handleAddToCart = (product) => {
+    if (product.unitType && product.unitType !== "default") {
+      setPendingWeightedItem(product);
+      setIsKgModalOpen(true);
+      return;
+    }
+    addItemToCart(product, 1);
   };
 
   /* ---------------------------------------------
@@ -571,6 +590,15 @@ function PosLayout() {
           saleId={saleId}
         />
       )}
+      <KgModal
+        isOpen={isKgModalOpen}
+        onClose={() => {
+          setIsKgModalOpen(false);
+          setPendingWeightedItem(null);
+        }}
+        product={pendingWeightedItem}
+        onConfirm={handleWeightConfirm}
+      />
     </div>
   );
 }

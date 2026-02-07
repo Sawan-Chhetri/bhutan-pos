@@ -89,7 +89,7 @@ export default function Sidebar() {
       ],
     },
     {
-      title: "Purchasing & Tax",
+      title: "Purchasing",
       links: [
         {
           href: "/purchases",
@@ -103,6 +103,11 @@ export default function Sidebar() {
           icon: <FiShoppingCart size={18} />,
           condition: true,
         },
+      ],
+    },
+    {
+      title: "Taxation",
+      links: [
         {
           href: "/gst-reports",
           label: "GST REPORTS",

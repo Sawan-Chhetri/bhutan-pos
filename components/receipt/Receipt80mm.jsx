@@ -160,7 +160,9 @@ export default function Receipt80mm({ invoice }) {
                     {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)}{" "}
                     <br />
                     <span style={{ fontSize: "9px", fontWeight: "600" }}>
-                      {item.qty} x {unitPrice.toLocaleString()}
+                      {item.qty}
+                      {item.unitType !== "unit" ? item.unitType : ""} x{" "}
+                      {unitPrice.toLocaleString()}
                       {hasItemDiscount && ` (-${item.discountPercent}%)`}
                     </span>
                   </td>

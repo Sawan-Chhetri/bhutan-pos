@@ -98,7 +98,10 @@ export async function POST(request) {
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
        * --------------------------------------------- */
       const loadedItems = {};
-      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
+      if (
+        storeId &&
+        ["pos", "restaurants", "other"].includes(userSnap.data()?.type)
+      ) {
         for (const item of cartItems) {
           if (item.id) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.id}`);
@@ -109,7 +112,7 @@ export async function POST(request) {
           }
         }
       }
-      
+
       const gstSnap = await tx.get(gstReportRef);
       const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
       const summarySnap = await tx.get(summaryRef);
@@ -131,7 +134,8 @@ export async function POST(request) {
 
       const items = cartItems.map((item) => {
         // use item-level effective price for line total
-        const effectiveUnitPrice = Number(item.unitPrice || 0) * (1 - (item.discountPercent || 0) / 100);
+        const effectiveUnitPrice =
+          Number(item.unitPrice || 0) * (1 - (item.discountPercent || 0) / 100);
         const lineTotal = item.qty * effectiveUnitPrice;
 
         if (!item.isGSTExempt) {
@@ -146,6 +150,7 @@ export async function POST(request) {
           effectiveUnitPrice,
           discountPercent: Number(item.discountPercent || 0),
           qty: Number(item.qty || 0),
+          unitType: item.unitType || "default", // Save unit type
           lineTotal,
           isGSTExempt: item.isGSTExempt ?? false,
         };
@@ -156,17 +161,21 @@ export async function POST(request) {
       let finalBeforeTax = netSubtotal;
       if (globalDiscount) {
         if (globalDiscount.type === "percent") {
-          finalBeforeTax = netSubtotal * (1 - (globalDiscount.value || 0) / 100);
+          finalBeforeTax =
+            netSubtotal * (1 - (globalDiscount.value || 0) / 100);
         } else {
-          finalBeforeTax = Math.max(0, netSubtotal - (globalDiscount.value || 0));
+          finalBeforeTax = Math.max(
+            0,
+            netSubtotal - (globalDiscount.value || 0),
+          );
         }
       }
 
       const discountRatio = netSubtotal > 0 ? finalBeforeTax / netSubtotal : 1;
-      
+
       gstCollected = items.reduce((sum, item) => {
         if (item.isGSTExempt) return sum;
-        return sum + (item.lineTotal * discountRatio * GST_RATE);
+        return sum + item.lineTotal * discountRatio * GST_RATE;
       }, 0);
 
       const finalTotal = finalBeforeTax + gstCollected;
@@ -212,7 +221,9 @@ export async function POST(request) {
       } else {
         tx.update(gstReportRef, {
           totalSales: admin.firestore.FieldValue.increment(finalTotal),
-          taxableSales: admin.firestore.FieldValue.increment(taxableSales * discountRatio),
+          taxableSales: admin.firestore.FieldValue.increment(
+            taxableSales * discountRatio,
+          ),
           gstCollected: admin.firestore.FieldValue.increment(gstCollected),
           saleCount: admin.firestore.FieldValue.increment(1),
           lastUpdated: now,
@@ -220,14 +231,17 @@ export async function POST(request) {
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION
-      if (storeId && ["pos", "restaurants", "other"].includes(userSnap.data()?.type)) {
+      if (
+        storeId &&
+        ["pos", "restaurants", "other"].includes(userSnap.data()?.type)
+      ) {
         let retailDelta = 0;
 
         for (const item of items) {
           if (item.itemId && loadedItems[item.itemId]) {
             const itemRef = db.doc(`stores/${storeId}/items/${item.itemId}`);
             const currentData = loadedItems[item.itemId];
-            
+
             // Calculate new state
             const currentStock = Number(currentData.stock || 0);
             const minStock = Number(currentData.minStock || 0);
@@ -236,7 +250,7 @@ export async function POST(request) {
 
             tx.update(itemRef, {
               stock: newStock,
-              isLowStock: isLowStock
+              isLowStock: isLowStock,
             });
 
             // Valuation Updates (Retail only: Current Stock * Base Price)
@@ -381,7 +395,10 @@ export async function GET(request) {
     }
 
     // Fetch total count for pagination (Optimized with .count())
-    const totalCountSnap = await db.collection(`stores/${storeId}/sales`).count().get();
+    const totalCountSnap = await db
+      .collection(`stores/${storeId}/sales`)
+      .count()
+      .get();
     const totalCount = totalCountSnap.data().count;
 
     // Calculate offset

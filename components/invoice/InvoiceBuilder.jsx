@@ -1,350 +1,3 @@
-// "use client";
-
-// import { useState, useMemo, useEffect } from "react";
-// import { useRouter } from "next/navigation";
-// import useAuthStatus from "@/hooks/useAuthStatus";
-// import authFetch from "@/lib/authFetch";
-// import InvoicePreview from "./InvoicePreview";
-// import { toast } from "react-toastify";
-
-// export default function InvoiceBuilder() {
-//   const router = useRouter();
-//   const { idToken } = useAuthStatus();
-
-//   const [companyName, setCompanyName] = useState("");
-//   const [companyAddress, setCompanyAddress] = useState("");
-//   const [gstNumber, setGstNumber] = useState("");
-//   const [customerName, setCustomerName] = useState("");
-//   const [customerAddress, setCustomerAddress] = useState("");
-//   const [customerCID, setcustomerCID] = useState("");
-//   const [items, setItems] = useState([
-//     {
-//       id: Date.now().toString(),
-//       description: "",
-//       qty: 1,
-//       rate: 0,
-//       gstPercent: 0.05, // default 5%
-//       isGSTExempt: false,
-//     },
-//   ]);
-//   const [saving, setSaving] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [showPreview, setShowPreview] = useState(false);
-
-//   const subtotal = useMemo(() => {
-//     return items.reduce(
-//       (s, it) => s + Number(it.qty || 0) * Number(it.rate || 0),
-//       0
-//     );
-//   }, [items]);
-
-//   const gstTotal = useMemo(() => {
-//     return items.reduce((g, it) => {
-//       if (it.isGSTExempt) return g;
-//       const lineAmount = Number(it.qty || 0) * Number(it.rate || 0);
-//       return g + lineAmount * Number(it.gstPercent || 0); // gstPercent is already in decimal (0.05)
-//     }, 0);
-//   }, [items]);
-
-//   const total = useMemo(() => subtotal + gstTotal, [subtotal, gstTotal]);
-
-//   function addItem() {
-//     setItems((s) => [
-//       ...s,
-//       {
-//         id: Date.now().toString(),
-//         description: "",
-//         qty: 1,
-//         rate: 0,
-//         gstPercent: 0.05, // default 5%
-//         isGSTExempt: false,
-//       },
-//     ]);
-//   }
-
-//   function updateItem(idx, patch) {
-//     setItems((s) => s.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-//   }
-
-//   function removeItem(idx) {
-//     setItems((s) => s.filter((_, i) => i !== idx));
-//   }
-
-//   async function handleSave() {
-//     setError(null);
-
-//     if (!companyName.trim()) {
-//       setError("Company name is required");
-//       return;
-//     }
-//     if (!items.length) {
-//       setError("Add at least one line item");
-//       return;
-//     }
-
-//     setSaving(true);
-
-//     const cartItems = items.map((it) => ({
-//       id: it.id,
-//       name: it.description || "Unnamed item", // <-- updated here
-//       unitPrice: Number(it.rate || 0), // renamed from 'rate'
-//       qty: Number(it.qty || 0),
-//       isGSTExempt: it.isGSTExempt ?? false,
-//     }));
-
-//     try {
-//       const body = {
-//         gstNumber,
-//         cartItems,
-//         subtotal,
-//         gst: gstTotal,
-//         total,
-//         customerName,
-//         customerAddress,
-//         customerCID,
-//         isPaid: false,
-//       };
-
-//       const res = await authFetch(
-//         "/api/sales",
-//         {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify(body),
-//         },
-//         idToken
-//       );
-
-//       const json = await res.json();
-
-//       if (!res.ok) {
-//         throw new Error(json?.error || "Failed to save");
-//       }
-
-//       // On success, navigate to invoice view if id returned
-//       if (json?.saleId) {
-//         router.push(`/invoice/${json.saleId}`);
-//       } else {
-//         // fallback: show preview or success state
-//         toast.success("Invoice created successfully!");
-//         setShowPreview(true);
-//       }
-//     } catch (err) {
-//       setError(err.message || "Failed to save");
-//     } finally {
-//       setSaving(false);
-//       resetInvoice();
-//     }
-//   }
-
-//   function resetInvoice() {
-//     setCompanyName("");
-//     setCompanyAddress("");
-//     setGstNumber("");
-//     setCustomerName("");
-//     setCustomerAddress("");
-//     setcustomerCID("");
-
-//     setItems([
-//       {
-//         id: Date.now().toString(),
-//         description: "",
-//         qty: 1,
-//         rate: 0,
-//         gstPercent: 0.05,
-//         isGSTExempt: false,
-//       },
-//     ]);
-
-//     setShowPreview(false);
-//     setError(null);
-//   }
-
-//   useEffect(() => {
-//     // Fetch store details (only when idToken available)
-//     if (!idToken) return;
-
-//     const fetchStoreDetails = async () => {
-//       const res = await authFetch("/api/read-company-details", {}, idToken);
-//       const data = await res.json();
-//       if (res.ok) {
-//         // Populate form fields with fetched data
-//         setCompanyName(data.name);
-//         setCompanyAddress(data.address);
-//         setGstNumber(data.gstNumber);
-//       }
-//     };
-//     fetchStoreDetails();
-//   }, [idToken]);
-
-//   return (
-//     <div className="p-6">
-//       <h2 className="text-xl font-semibold mb-4">Create Invoice</h2>
-
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//         <div>
-//           <label className="block text-sm font-medium mb-1">Customer</label>
-//           <input
-//             className="w-full px-3 py-2 rounded border border-gray-200"
-//             value={customerName}
-//             onChange={(e) => setCustomerName(e.target.value)}
-//             placeholder="Customer name"
-//           />
-//         </div>
-//         <div>
-//           <label className="block text-sm font-medium mb-1">ID #</label>
-//           <input
-//             className="w-full px-3 py-2 rounded border border-gray-200"
-//             value={customerCID}
-//             onChange={(e) => setcustomerCID(e.target.value)}
-//             placeholder="Customer ID (CID/Passport No.)"
-//           />
-//         </div>
-
-//         <div className="md:col-span-2">
-//           <label className="block text-sm font-medium mb-1">Address</label>
-//           <textarea
-//             className="w-full px-3 py-2 rounded border border-gray-200"
-//             value={customerAddress}
-//             onChange={(e) => setCustomerAddress(e.target.value)}
-//             placeholder="Customer Address"
-//           />
-//         </div>
-//       </div>
-
-//       <div className="mt-6">
-//         <h3 className="font-medium mb-2">Line items</h3>
-
-//         <div className="space-y-2">
-//           {items.map((it, idx) => (
-//             <div
-//               key={it.id}
-//               className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded border border-gray-100 bg-white/50"
-//             >
-//               <input
-//                 className="flex-1 min-w-0 px-2 py-1 rounded border border-gray-200"
-//                 placeholder="Description"
-//                 value={it.description}
-//                 onChange={(e) =>
-//                   updateItem(idx, { description: e.target.value })
-//                 }
-//               />
-
-//               <input
-//                 type="number"
-//                 className="w-full sm:w-20 px-2 py-1 rounded border border-gray-200"
-//                 value={it.qty}
-//                 min={0}
-//                 onChange={(e) =>
-//                   updateItem(idx, { qty: Number(e.target.value) })
-//                 }
-//               />
-
-//               <input
-//                 type="number"
-//                 className="w-full sm:w-28 px-2 py-1 rounded border border-gray-200"
-//                 value={it.rate}
-//                 step="0.01"
-//                 min={0}
-//                 onChange={(e) =>
-//                   updateItem(idx, { rate: Number(e.target.value) })
-//                 }
-//               />
-
-//               <label className="flex items-center gap-2">
-//                 <input
-//                   type="checkbox"
-//                   checked={it.isGSTExempt}
-//                   onChange={(e) =>
-//                     updateItem(idx, { isGSTExempt: e.target.checked })
-//                   }
-//                 />
-//                 <span className="text-xs">Exempt</span>
-//               </label>
-
-//               <div className="ml-auto text-right text-sm w-full sm:w-auto">
-//                 Nu. {(Number(it.qty || 0) * Number(it.rate || 0)).toFixed(2)}
-//               </div>
-
-//               <button
-//                 className="text-sm text-red-500 mt-1 sm:mt-0 sm:ml-2"
-//                 onClick={() => removeItem(idx)}
-//               >
-//                 Remove
-//               </button>
-//             </div>
-//           ))}
-//         </div>
-
-//         <div className="mt-3 flex flex-col sm:flex-row gap-2">
-//           <button
-//             className="btn-primary px-3 py-2 w-full sm:w-auto"
-//             onClick={addItem}
-//             type="button"
-//           >
-//             + Add item
-//           </button>
-
-//           <button
-//             className="px-3 py-2 border rounded w-full sm:w-auto"
-//             onClick={() => setShowPreview((s) => !s)}
-//             type="button"
-//           >
-//             {showPreview ? "Hide Preview" : "Toggle Preview"}
-//           </button>
-//         </div>
-//       </div>
-
-//       <div className="mt-6 p-4 border rounded bg-white dark:bg-gray-800">
-//         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
-//           <div className="mb-2 sm:mb-0">
-//             <div className="text-sm text-gray-600">Subtotal</div>
-//             <div className="text-lg font-medium">Nu. {subtotal.toFixed(2)}</div>
-//           </div>
-
-//           <div className="mb-2 sm:mb-0">
-//             <div className="text-sm text-gray-600">GST</div>
-//             <div className="text-lg font-medium">Nu. {gstTotal.toFixed(2)}</div>
-//           </div>
-
-//           <div className="mb-2 sm:mb-0">
-//             <div className="text-sm text-gray-600">Total</div>
-//             <div className="text-xl font-semibold">Nu. {total.toFixed(2)}</div>
-//           </div>
-
-//           <div className="w-full sm:w-auto">
-//             <button
-//               className="btn-primary px-4 py-2 w-full sm:w-auto"
-//               onClick={handleSave}
-//               disabled={saving}
-//             >
-//               {saving ? "Saving..." : "Save & Issue"}
-//             </button>
-//           </div>
-//         </div>
-
-//         {error && <div className="mt-2 text-red-500">{error}</div>}
-//       </div>
-
-//       {showPreview && (
-//         <div className="mt-6">
-//           <InvoicePreview
-//             invoice={{
-//               companyName,
-//               companyAddress,
-//               gstNumber,
-//               items,
-//               subtotal,
-//               gst: gstTotal,
-//               total,
-//             }}
-//           />
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -372,8 +25,15 @@ export default function InvoiceBuilder() {
   const [customerName, setCustomerName] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerCID, setcustomerCID] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  const [customerTIN, setCustomerTIN] = useState(""); // New State for TPN
+  const [companyDetails, setCompanyDetails] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    gstNumber: "",
+  });
   const [items, setItems] = useState([]);
+  const [errors, setErrors] = useState({});
 
   // UI Controls
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -411,7 +71,12 @@ export default function InvoiceBuilder() {
         const res = await authFetch("/api/read-company-details", {}, idToken);
         const data = await res.json();
         if (res.ok) {
-          setCompanyName(data.name);
+          setCompanyDetails({
+            name: data.name,
+            address: data.address,
+            phone: data.phone,
+            gstNumber: data.gstNumber,
+          });
         }
       } catch (e) {
         console.error("Failed to load company info");
@@ -420,9 +85,31 @@ export default function InvoiceBuilder() {
   }, [idToken]);
 
   const handleSave = async () => {
-    if (!customerName) return toast.error("Client Name is required");
-    if (items.length === 0)
-      return toast.error("Add at least one item to the ledger");
+    // Reset errors
+    setErrors({});
+    let newErrors = {};
+    let isValid = true;
+
+    if (!customerName.trim()) {
+      newErrors.customerName = "Client Name is required";
+      isValid = false;
+    }
+
+    if (items.length === 0) {
+      newErrors.items = "Add at least one item to the ledger";
+      isValid = false;
+    }
+
+    if (total >= 50000 && !customerCID.trim()) {
+      newErrors.customerCID = "CID is required for amounts over Nu. 50,000";
+      isValid = false;
+    }
+
+    if (!isValid) {
+      setErrors(newErrors);
+      // Scroll to top or first error could be good, but for now just showing visual cues
+      return;
+    }
 
     setSaving(true);
     try {
@@ -434,6 +121,7 @@ export default function InvoiceBuilder() {
         customerName,
         customerAddress,
         customerCID,
+        customerTIN, // Added Customer TPN to payload
         isPaid: false,
       };
       const res = await authFetch(
@@ -461,9 +149,16 @@ export default function InvoiceBuilder() {
   };
 
   const confirmAddItem = () => {
-    if (!tempItem.description || tempItem.unitPrice <= 0) {
-      return toast.error("Please provide description and price");
+    setErrors({});
+    if (!tempItem.description) {
+      setErrors({ modalDescription: "Description is required" });
+      return;
     }
+    if (tempItem.unitPrice <= 0) {
+      setErrors({ modalPrice: "Price must be greater than 0" });
+      return;
+    }
+
     const newItem = { ...tempItem, id: Date.now().toString() };
     setItems([...items, newItem]);
 
@@ -477,8 +172,42 @@ export default function InvoiceBuilder() {
       isGSTExempt: false,
       gstPercent: 0.05,
     });
-    toast.success("Item added to ledger");
+    // Removed toast.success("Item added to ledger"); to reduce noise
   };
+
+  // Clear errors when input changes
+  useEffect(() => {
+    if (errors.customerName && customerName.trim()) {
+      setErrors((prev) => ({ ...prev, customerName: null }));
+    }
+  }, [customerName, errors.customerName]);
+
+  useEffect(() => {
+    if (errors.customerCID && customerCID.trim()) {
+      setErrors((prev) => ({ ...prev, customerCID: null }));
+    }
+  }, [customerCID, errors.customerCID]);
+
+  useEffect(() => {
+    if (errors.items && items.length > 0) {
+      setErrors((prev) => ({ ...prev, items: null }));
+    }
+  }, [items, errors.items]);
+
+  // Clear modal errors
+  useEffect(() => {
+    if (errors.modalDescription && tempItem.description) {
+      setErrors((prev) => ({ ...prev, modalDescription: null }));
+    }
+    if (errors.modalPrice && tempItem.unitPrice > 0) {
+      setErrors((prev) => ({ ...prev, modalPrice: null }));
+    }
+  }, [
+    tempItem.description,
+    tempItem.unitPrice,
+    errors.modalDescription,
+    errors.modalPrice,
+  ]);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-black transition-all duration-300">
@@ -527,21 +256,33 @@ export default function InvoiceBuilder() {
               value={customerName}
               onChange={setCustomerName}
               placeholder="Client Name"
+              error={errors.customerName}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <HorizonInput
-                label="CID / Passport Number"
+                label={
+                  total >= 50000
+                    ? "CID / Passport Number (Required)"
+                    : "CID / Passport Number (Optional)"
+                }
                 value={customerCID}
                 onChange={setcustomerCID}
                 placeholder="CID / License No."
+                error={errors.customerCID}
               />
               <HorizonInput
-                label="Address"
-                value={customerAddress}
-                onChange={setCustomerAddress}
-                placeholder="Physical Address"
+                label="Customer TPN (Optional)"
+                value={customerTIN}
+                onChange={setCustomerTIN}
+                placeholder="Tax Payer Number"
               />
             </div>
+            <HorizonInput
+              label="Address"
+              value={customerAddress}
+              onChange={setCustomerAddress}
+              placeholder="Physical Address"
+            />
           </div>
         </section>
 
@@ -566,12 +307,24 @@ export default function InvoiceBuilder() {
             {items.length === 0 ? (
               <div
                 onClick={() => setIsModalOpen(true)}
-                className="py-20 border-2 border-dashed border-gray-50 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer group"
+                className={`py-20 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center cursor-pointer group transition-all ${errors.items ? "border-red-300 bg-red-50" : "border-gray-50 hover:border-green-200"}`}
               >
-                <p className="text-[10px] font-black text-gray-300 group-hover:text-green-600 uppercase tracking-widest transition-colors text-center px-6">
-                  Workspace is currently empty.
-                  <br />
-                  Tap to add your first billable item.
+                <p
+                  className={`text-[10px] font-black uppercase tracking-widest transition-colors text-center px-6 ${errors.items ? "text-red-500" : "text-gray-300 group-hover:text-green-600"}`}
+                >
+                  {errors.items ? (
+                    <>
+                      Validation Error
+                      <br />
+                      <span className="text-red-400">{errors.items}</span>
+                    </>
+                  ) : (
+                    <>
+                      Workspace is currently empty.
+                      <br />
+                      Tap to add your first billable item.
+                    </>
+                  )}
                 </p>
               </div>
             ) : (
@@ -677,6 +430,7 @@ export default function InvoiceBuilder() {
                   value={tempItem.description}
                   onChange={(v) => setTempItem({ ...tempItem, description: v })}
                   autoFocus
+                  error={errors.modalDescription}
                 />
                 <div className="grid grid-cols-2 gap-10">
                   <HorizonInput
@@ -694,6 +448,7 @@ export default function InvoiceBuilder() {
                     onChange={(v) =>
                       setTempItem({ ...tempItem, unitPrice: Number(v) })
                     }
+                    error={errors.modalPrice}
                   />
                 </div>
               </div>
@@ -754,7 +509,17 @@ export default function InvoiceBuilder() {
               </button>
             </div>
             <InvoicePreview
-              invoice={{ companyName, items, subtotal, gst: gstTotal, total }}
+              invoice={{
+                companyDetails,
+                customerName,
+                customerAddress,
+                customerCID,
+                customerTIN,
+                items,
+                subtotal,
+                gst: gstTotal,
+                total,
+              }}
             />
           </div>
         </div>
@@ -772,21 +537,27 @@ function HorizonInput({
   placeholder,
   type = "text",
   autoFocus = false,
+  error,
 }) {
   return (
     <div className="group space-y-4">
-      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-focus-within:text-green-600 transition-colors">
+      <label
+        className={`text-[9px] font-black uppercase tracking-widest ${error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-600"} transition-colors`}
+      >
         {label}
       </label>
       <input
         autoFocus={autoFocus}
         type={type}
-        className="w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold focus:ring-0 focus:outline-none placeholder:text-gray-200"
+        onWheel={(e) => type === "number" && e.target.blur()}
+        className={`w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold focus:ring-0 focus:outline-none ${error ? "text-red-600 placeholder:text-red-200" : "placeholder:text-gray-200"}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
       />
-      <div className="h-[2px] w-full bg-gray-200 group-focus-within:bg-green-500 transition-all" />
+      <div
+        className={`h-[2px] w-full ${error ? "bg-red-500" : "bg-gray-200 group-focus-within:bg-green-500"} transition-all`}
+      />
     </div>
   );
 }

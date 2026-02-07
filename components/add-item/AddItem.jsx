@@ -31,6 +31,7 @@ export default function AddItem({
   const [price, setPrice] = useState(editingItem?.price || "");
   const [initialStock, setInitialStock] = useState(0);
   const [minStock, setMinStock] = useState(editingItem?.minStock || 5);
+  const [unitType, setUnitType] = useState(editingItem?.unitType || "default"); // New state for unit type
   const [discountPercent, setDiscountPercent] = useState(
     editingItem?.discountPercent || 0,
   );
@@ -63,7 +64,14 @@ export default function AddItem({
       discountPercent: Number(discountPercent),
       isGSTExempt,
       barcode: barcode.trim() || null,
-      stock: permissions.canTrackStock ? Number(initialStock) : 0,
+      unitType, // Add unitType to payload
+      // Fix: Preserve existing stock when editing, use initialStock only for new items
+      stock: editingItem
+        ? editingItem.stock
+        : permissions.canTrackStock
+          ? Number(initialStock)
+          : 0,
+      minStock: permissions.canTrackStock ? Number(minStock) : 0,
     };
 
     try {
@@ -83,6 +91,7 @@ export default function AddItem({
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
+                unitType, // Add unitType to updates
                 minStock: permissions.canTrackStock
                   ? Number(minStock)
                   : undefined,
@@ -105,6 +114,7 @@ export default function AddItem({
                 category: payload.category,
                 isGSTExempt,
                 barcode: barcode.trim() || null,
+                unitType, // Add unitType to new item
                 stock: permissions.canTrackStock ? Number(initialStock) : 0,
                 minStock: permissions.canTrackStock ? Number(minStock) : 0,
               },
@@ -126,6 +136,7 @@ export default function AddItem({
         setDiscountPercent(0);
         setInitialStock(0);
         setMinStock(5);
+        setUnitType("default");
         setIsGSTExempt(false);
       }
     } catch (err) {
@@ -187,6 +198,24 @@ export default function AddItem({
           </div>
         )}
 
+        {/* Unit Type Selection */}
+        {!fixedCategory && !isEditingRoom && (
+          <div>
+            <label className={labelClasses}>
+              <FiPackage /> Unit Type
+            </label>
+            <select
+              value={unitType}
+              onChange={(e) => setUnitType(e.target.value)}
+              className={inputClasses}
+            >
+              <option value="default">Per Item</option>
+              <option value="kg">Per Kilogram (kg)</option>
+              <option value="l">Per Liter (l)</option>
+            </select>
+          </div>
+        )}
+
         {/* Price & Discount */}
         <div className="col-span-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,6 +225,8 @@ export default function AddItem({
               </label>
               <input
                 type="number"
+                step="0.01"
+                onWheel={(e) => e.target.blur()}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 className={inputClasses}
@@ -213,6 +244,7 @@ export default function AddItem({
               </label>
               <input
                 type="number"
+                onWheel={(e) => e.target.blur()}
                 value={discountPercent}
                 onChange={(e) => setDiscountPercent(e.target.value)}
                 disabled={!editingItem}
@@ -266,26 +298,33 @@ export default function AddItem({
           <div className="grid grid-cols-2 gap-4">
             {!editingItem && (
               <div>
-                <label className={labelClasses}>Initial Count</label>
+                <label className={labelClasses}>
+                  Initial Count {unitType !== "default" && `(${unitType})`}
+                </label>
                 <input
                   type="number"
+                  step={unitType === "default" ? "1" : "0.25"}
+                  onWheel={(e) => e.target.blur()}
                   value={initialStock}
                   onChange={(e) => setInitialStock(e.target.value)}
                   className={inputClasses}
-                  placeholder="0"
+                  placeholder={unitType === "default" ? "0" : "0.000"}
                 />
               </div>
             )}
             <div className={editingItem ? "col-span-2" : ""}>
               <label className={labelClasses}>
-                <FiBarChart2 /> Min Alert Level
+                <FiBarChart2 /> Min Alert Level{" "}
+                {unitType !== "default" && `(${unitType})`}
               </label>
               <input
                 type="number"
+                step={unitType === "default" ? "1" : "0.25"}
+                onWheel={(e) => e.target.blur()}
                 value={minStock}
                 onChange={(e) => setMinStock(e.target.value)}
                 className={inputClasses}
-                placeholder="5"
+                placeholder={unitType === "default" ? "5" : "0.500"}
               />
             </div>
           </div>

@@ -124,13 +124,16 @@ const InvoicePDF = ({ invoice }) => (
     <Page size="A4" style={pdfStyles.page}>
       {/* HEADER */}
       <View style={pdfStyles.header}>
-        <View>
+        <View style={{ maxWidth: "70%" }}>
           <Text style={pdfStyles.storeTitle}>{invoice.store.name}</Text>
           <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
             {invoice.store.address}
           </Text>
-          <Text style={pdfStyles.metaLabel}>
-            TPN: {invoice.store.gstNumber}
+          <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
+            Phone: {invoice.store.phone}
+          </Text>
+          <Text style={[pdfStyles.metaLabel, { marginTop: 4 }]}>
+            GST TPN: {invoice.store.gstNumber}
           </Text>
         </View>
         <View style={{ textAlign: "right" }}>
@@ -181,6 +184,7 @@ const InvoicePDF = ({ invoice }) => (
           </View>
           <Text style={[pdfStyles.td, { flex: 0.5, textAlign: "center" }]}>
             {item.qty}
+            {item.unitType === "default" ? "" : ` ${item.unitType}`}
           </Text>
           <Text style={[pdfStyles.td, { flex: 1, textAlign: "right" }]}>
             {Number(item.unitPrice).toLocaleString()}
@@ -488,7 +492,7 @@ export default function InvoicePage() {
                     Item
                   </th>
                   <th className="pb-4 md:pb-6 text-center text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    Qty
+                    Qty / Unit
                   </th>
                   <th className="pb-4 md:pb-6 text-right text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                     Total
@@ -500,6 +504,12 @@ export default function InvoicePage() {
                   // Logic to check if this specific item was part of a refund
                   const isRefunded = item.refundedQty > 0;
                   const isFullyRefunded = item.refundedQty >= item.qty;
+
+                  // Determine Unit Label
+                  const unitLabel =
+                    item.unitType && item.unitType !== "default"
+                      ? item.unitType
+                      : "";
 
                   return (
                     <tr key={i} className={isFullyRefunded ? "opacity-50" : ""}>
@@ -520,13 +530,19 @@ export default function InvoicePage() {
                       </td>
                       <td className="py-6 md:py-8 text-center font-mono font-black text-gray-500 text-xs md:text-sm">
                         <div className="flex flex-col items-center">
-                          <span>{item.qty}</span>
+                          <span>
+                            {item.qty} {unitLabel}
+                          </span>
                         </div>
                       </td>
                       <td className="py-6 md:py-8 text-right font-mono font-black dark:text-white text-xs md:text-sm">
+                        Nu.{" "}
                         {(
                           item.qty * (item.effectiveUnitPrice || item.unitPrice)
-                        ).toLocaleString()}
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   );
@@ -568,14 +584,21 @@ export default function InvoicePage() {
                     {(invoice.globalDiscount.type === "percent"
                       ? (invoice.subtotal * invoice.globalDiscount.value) / 100
                       : invoice.globalDiscount.value
-                    ).toLocaleString()}
+                    ).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               )}
               <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                 <span>GST (5%)</span>
                 <span className="dark:text-white font-mono">
-                  Nu. {Number(invoice.gst).toLocaleString()}
+                  Nu.{" "}
+                  {Number(invoice.gst).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
               <div className="pt-6 border-t-2 md:border-t-4 border-gray-900 dark:border-white flex justify-between items-end">
@@ -586,6 +609,7 @@ export default function InvoicePage() {
                   Nu.{" "}
                   {Number(invoice.total).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </span>
               </div>

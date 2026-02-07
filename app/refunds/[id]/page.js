@@ -48,6 +48,14 @@ const cnStyles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 2,
   },
+  storeLabel: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "black",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
   metaValue: { fontSize: 10, fontWeight: "bold", marginBottom: 8 },
 
   // Reference Box (Linking to Original Invoice)
@@ -115,12 +123,20 @@ const CreditNotePDF = ({ refund }) => (
     <Page size="A4" style={cnStyles.page}>
       {/* Header */}
       <View style={cnStyles.header}>
-        <View>
+        <View style={{ maxWidth: "70%" }}>
           <Text style={cnStyles.title}>CREDIT NOTE</Text>
-          <Text style={[cnStyles.metaLabel, { marginTop: 4 }]}>
+          <Text style={[cnStyles.storeLabel, { marginTop: 4 }]}>
             {refund.store.name}
           </Text>
-          <Text style={cnStyles.metaLabel}>TPN: {refund.store.tpn}</Text>
+          <Text style={[cnStyles.metaLabel, { marginTop: 4 }]}>
+            Address: {refund.store.address}
+          </Text>
+          <Text style={[cnStyles.metaLabel, { marginTop: 4 }]}>
+            Phone: {refund.store.phone}
+          </Text>
+          <Text style={[cnStyles.metaLabel, { marginTop: 4 }]}>
+            GST TPN: {refund.store.tpn}
+          </Text>
         </View>
         <View style={{ textAlign: "right" }}>
           <Text style={cnStyles.metaLabel}>Reference Number</Text>
@@ -182,6 +198,7 @@ const CreditNotePDF = ({ refund }) => (
             ]}
           >
             -{item.qty}
+            {item.unitType === "default" ? "" : ` ${item.unitType}`}
           </Text>
           <Text style={[cnStyles.td, { flex: 1, textAlign: "right" }]}>
             {item.unitPrice?.toLocaleString()}
@@ -383,9 +400,12 @@ export default function RefundDetailPage({ params }) {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider max-w-[200px] ml-auto">
                   {refund.store.address}
                 </p>
+                <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                  {refund.store.phone}
+                </p>
                 <div className="mt-4 py-2 px-4 bg-red-50 dark:bg-red-950/30 rounded-full inline-block">
                   <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">
-                    TPN: {refund.store.tpn}
+                    GST TPN: {refund.store.tpn}
                   </p>
                 </div>
               </div>
@@ -442,7 +462,8 @@ export default function RefundDetailPage({ params }) {
                       )}
                     </td>
                     <td className="py-6 text-center font-mono font-black text-red-500">
-                      -{item.qty}
+                      -{item.qty}{" "}
+                      {item.unitType === "default" ? "" : item.unitType}
                     </td>
                     <td className="py-6 text-right font-mono text-xs text-gray-500">
                       Nu. {item.unitPrice?.toLocaleString()}
