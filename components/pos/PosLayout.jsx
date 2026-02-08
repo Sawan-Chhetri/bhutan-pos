@@ -279,11 +279,15 @@ function PosLayout() {
 
       // 4. Save new data and timestamp
       if (json.items) {
-        localStorage.setItem(
-          `cat_data_${activeCategory}`,
-          JSON.stringify(json.items),
-        );
-        localStorage.setItem(cacheKey, json.timestamp.toString());
+        try {
+          localStorage.setItem(
+            `cat_data_${activeCategory}`,
+            JSON.stringify(json.items),
+          );
+          localStorage.setItem(cacheKey, json.timestamp.toString());
+        } catch (error) {
+          console.warn("LocalStorage quota exceeded. Skipping cache.");
+        }
         return json.items;
       }
 

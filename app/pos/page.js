@@ -16,7 +16,7 @@ function Page() {
     return null;
   }
   return (
-    <SWRConfig value={{ provider: localStorageProvider, ...stablePosOptions }}>
+    <SWRConfig value={{ ...stablePosOptions }}>
       <div className="h-screen">
         <Sidebar />
         <PosLayout />
