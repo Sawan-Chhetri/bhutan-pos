@@ -230,6 +230,8 @@ import PrintReceiptModal from "@/components/pos/PrintReceiptModal";
 import KgModal from "@/components/pos/KgModal";
 import usePermissions from "@/hooks/usePermissions";
 
+import { addToScanCache, getFromScanCache } from "@/lib/scanCache";
+
 const bhutanGST = 0.05;
 
 function PosLayout() {
@@ -237,6 +239,7 @@ function PosLayout() {
   const [activeCategory, setActiveCategory] = useState();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const { user } = useContext(UserContext);
+  const { idToken } = useAuthStatus(); // <--- Added this line
   const permissions = usePermissions(user);
 
   // Dual-Mode State for Hotels
@@ -394,11 +397,17 @@ function PosLayout() {
 
     if (localMatch) {
       handleAddToCart(localMatch);
-      toast.success(`Added ${localMatch.name}`);
       return;
     }
 
-    // 2. Search GLOBAL database
+    // 2. Search GLOBAL SCAN CACHE (Fast - 0 Reads)
+    const cachedItem = getFromScanCache(barcode);
+    if (cachedItem) {
+      handleAddToCart(cachedItem);
+      return;
+    }
+
+    // 3. Search GLOBAL database
     try {
       const storeId = user?.storeId || "";
       const res = await authFetch(
@@ -415,12 +424,13 @@ function PosLayout() {
 
         if (match) {
           handleAddToCart(match);
-          toast.success(`Added ${match.name}`);
+          // Add to Global Cache for next time
+          addToScanCache(barcode, match);
         } else {
-          toast.error(`Product not found: ${barcode}`);
+          console.error(`Product not found: ${barcode}`);
         }
       } else {
-        toast.error("Scanner error");
+        console.error("Scanner error");
       }
     } catch (err) {
       console.error("Scanner fetch error", err);
