@@ -414,7 +414,9 @@ function PosLayout() {
           <Search
             value={searchQuery}
             onChange={setSearchQuery}
-            itemsForCurrentCategory={itemsForCategory || []}
+            itemsByCategory={
+              itemsForCategory ? { [activeCategory]: itemsForCategory } : {}
+            }
             activeCategory={activeCategory}
             user={user}
             onSearchResult={(results) => setSearchResults(results)}

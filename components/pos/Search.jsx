@@ -143,10 +143,16 @@ export default function Search({
   const handleKeyDown = async (e) => {
     if (e.key !== "Enter") return;
 
+    // Mobile UX: Blur to close keyboard
+    inputRef.current?.blur();
+
     // 1️⃣ Check local cache first
     const localItems = itemsByCategory[activeCategory] || [];
-    const filtered = localItems.filter((item) =>
-      item.name.toLowerCase().includes(value.toLowerCase())
+    // Ensure localItems is an array (itemsByCategory might be undefined initially)
+    const safeLocalItems = Array.isArray(localItems) ? localItems : [];
+
+    const filtered = safeLocalItems.filter((item) =>
+      item.name.toLowerCase().includes(value.toLowerCase()),
     );
 
     if (filtered.length > 0) {
@@ -158,8 +164,8 @@ export default function Search({
     try {
       const res = await fetch(
         `/api/search-items?query=${encodeURIComponent(
-          value
-        )}&storeId=${storeId}`
+          value,
+        )}&storeId=${storeId}`,
       );
 
       if (!res.ok) {

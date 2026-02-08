@@ -34,7 +34,12 @@ export default function GlobalInvoiceSearch() {
   };
 
   const handleKeyDown = async (e) => {
+    // Mobile 'Go' key check: e.key === "Enter" works on most virtual keyboards
+    // but sometimes only onKeyDown isn't enough on mobile depending on browser.
     if (e.key !== "Enter" || !storeId) return;
+
+    // Force blur to hide keyboard on mobile
+    if (e.key === "Enter") inputRef.current?.blur();
 
     setLoading(true);
     setResults([]);
