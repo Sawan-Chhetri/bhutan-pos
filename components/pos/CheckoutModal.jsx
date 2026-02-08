@@ -223,13 +223,20 @@ export default function CheckoutModal({
       setIsSubmitting(true);
       setErrorMsg("");
       const authFetch = (await import("@/lib/authFetch")).default;
+
+      // Transform cart items before sending
+      const processedCartItems = cartItems.map((item) => ({
+        ...item,
+        unitType: item.category === "rooms" ? "nights" : item.unitType,
+      }));
+
       const res = await authFetch(
         "/api/sales",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            cartItems,
+            cartItems: processedCartItems,
             subtotal,
             gst,
             total,
@@ -369,7 +376,7 @@ export default function CheckoutModal({
 
                   return (
                     <div
-                      key={item.id}
+                      key={item.cartId || item.id}
                       className="flex justify-between text-sm group"
                     >
                       <div className="flex-1">

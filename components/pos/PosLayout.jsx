@@ -313,6 +313,29 @@ function PosLayout() {
   });
 
   const addItemToCart = (product, qty) => {
+    // Hotel Room Check: Do not stack rooms
+    const isHotelRoom =
+      permissions?.isHotelUser &&
+      (product.category === "rooms" || product.category === "room");
+
+    if (isHotelRoom) {
+      setCartItems((prev) => [
+        ...prev,
+        {
+          cartId: Math.random().toString(36).substr(2, 9),
+          id: product.id,
+          name: product.name,
+          unitPrice: product.price, // Base Sale Price
+          discountPercent: product.discountPercent || 0, // Item-Level Discount
+          qty: qty,
+          isGSTExempt: product.isGSTExempt || false,
+          unitType: product.unitType || "default",
+          category: product.category,
+        },
+      ]);
+      return;
+    }
+
     const existing = cartItems.find((item) => item.id === product.id);
     if (existing) {
       setCartItems((prev) =>
@@ -324,6 +347,7 @@ function PosLayout() {
       setCartItems((prev) => [
         ...prev,
         {
+          cartId: Math.random().toString(36).substr(2, 9),
           id: product.id,
           name: product.name,
           unitPrice: product.price, // Base Sale Price
@@ -331,6 +355,7 @@ function PosLayout() {
           qty: qty,
           isGSTExempt: product.isGSTExempt || false,
           unitType: product.unitType || "default",
+          category: product.category || "general",
         },
       ]);
     }

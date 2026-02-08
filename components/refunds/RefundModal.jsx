@@ -160,6 +160,9 @@ export default function RefundModal({ invoice, open, onClose, onRefund }) {
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-[9px] font-bold text-gray-400 uppercase">
                           Sold: {item.qty}
+                          {item.unitType !== "default"
+                            ? ` ${item.unitType}`
+                            : ""}
                         </p>
                         {alreadyRefunded > 0 && (
                           <p className="text-[9px] font-black text-brand-pink uppercase">

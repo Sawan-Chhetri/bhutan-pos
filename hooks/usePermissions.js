@@ -1,7 +1,7 @@
 /**
  * usePermissions Hook
  * Centralizes all permission logic based on user roles/types.
- * 
+ *
  * Usage:
  * const { canTrackStock, canManageInventory } = usePermissions(user);
  */
@@ -27,17 +27,24 @@ export const usePermissions = (user) => {
     canTrackStock: ["pos"].includes(type), // POS & Hotels track stock levels
     canSearchInventory: ["pos", "restaurants"].includes(type), // POS & Restaurants & Hotels
     canViewShoppingList: ["pos", "admin"].includes(type),
-    
+
     // Core Features
-    canPrintReceipts: ["pos", "restaurants", "hotel"].includes(type),
-    canManageInventory: ["pos", "restaurants", "admin", "hotel"].includes(type), // Add/Edit items
-    
+    canPrintReceipts: ["pos", "restaurants", "hotel", "combo"].includes(type),
+    canManageInventory: [
+      "pos",
+      "restaurants",
+      "admin",
+      "hotel",
+      "combo",
+    ].includes(type), // Add/Edit items
+
     // User Roles
     isPosUser: type === "pos",
     isRestaurantUser: type === "restaurants",
     isHotelUser: type === "hotel",
     isDualModeUser: type === "hotel", // Hotels have Room vs Restaurant toggle
     isBasicUser: type === "other", // Only Invoice Builder
+    isComboUser: type === "combo",
     isAdmin: type === "admin",
   };
 };

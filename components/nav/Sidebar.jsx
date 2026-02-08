@@ -66,13 +66,17 @@ export default function Sidebar() {
             permissions.isPosUser ||
             permissions.isAdmin ||
             permissions.isRestaurantUser ||
-            permissions.isHotelUser,
+            permissions.isHotelUser ||
+            permissions.isComboUser,
         },
         {
           href: "/invoice",
           label: "CREATE INVOICE",
           icon: <FiFileText size={18} />,
-          condition: permissions.isBasicUser || permissions.isAdmin,
+          condition:
+            permissions.isBasicUser ||
+            permissions.isAdmin ||
+            permissions.isComboUser,
         },
         {
           href: "/invoices",
