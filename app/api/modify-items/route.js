@@ -40,8 +40,23 @@ export async function POST(request) {
     const unitType = item.unitType || "default";
 
     await db.runTransaction(async (tx) => {
-      const summarySnap = await tx.get(summaryRef); // Read before write
+      // 1. All Reads First
+      const summarySnap = await tx.get(summaryRef);
 
+      let catDocRef = null;
+      if (item.category) {
+        const catQuery = await tx.get(
+          db
+            .collection(`stores/${storeId}/categories`)
+            .where("name", "==", item.category)
+            .limit(1),
+        );
+        if (!catQuery.empty) {
+          catDocRef = catQuery.docs[0].ref;
+        }
+      }
+
+      // 2. Writes
       tx.set(itemRef, {
         ...item,
         isActive: true,
@@ -64,6 +79,13 @@ export async function POST(request) {
       } else {
         tx.update(summaryRef, {
           totalRetailValue: admin.firestore.FieldValue.increment(retailDelta),
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Update category timestamp if found
+      if (catDocRef) {
+        tx.update(catDocRef, {
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
@@ -176,6 +198,47 @@ export async function PATCH(request) {
         updates_summary.lastUpdated =
           admin.firestore.FieldValue.serverTimestamp();
         tx.update(summaryRef, updates_summary);
+      }
+
+      // 6. Update Category Timestamp if category changed or item renamed
+      if (
+        safeUpdates.name ||
+        safeUpdates.category ||
+        safeUpdates.price !== undefined
+      ) {
+        // We update the timestamp of the new category (or current if unchanged)
+        const catName = safeUpdates.category || currentData.category;
+        // Note: This is a PATCH, not a transaction here for simplicity, but strictly should be atomic.
+        // Given the requirements, a simple fire-and-forget update is acceptable for cache busting.
+        const catQuery = await db
+          .collection(`stores/${storeId}/categories`)
+          .where("name", "==", catName)
+          .limit(1)
+          .get();
+
+        if (!catQuery.empty) {
+          await catQuery.docs[0].ref.update({
+            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
+        // If category CHANGED, also update the old category so it invalidates too?
+        // Usually, removing an item from a category demands a refresh of that category list too.
+        if (
+          safeUpdates.category &&
+          safeUpdates.category !== currentData.category
+        ) {
+          const oldCatQuery = await db
+            .collection(`stores/${storeId}/categories`)
+            .where("name", "==", currentData.category)
+            .limit(1)
+            .get();
+          if (!oldCatQuery.empty) {
+            await oldCatQuery.docs[0].ref.update({
+              lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+        }
       }
     });
 

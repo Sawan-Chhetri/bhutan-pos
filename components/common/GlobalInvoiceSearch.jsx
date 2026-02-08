@@ -103,7 +103,8 @@ export default function GlobalInvoiceSearch() {
               <input
                 ref={inputRef}
                 type="text"
-                inputMode="numeric"
+                inputMode="search"
+                enterKeyHint="search"
                 placeholder="Search Invoice #..."
                 value={value}
                 onChange={(e) => handleSearch(e.target.value)}

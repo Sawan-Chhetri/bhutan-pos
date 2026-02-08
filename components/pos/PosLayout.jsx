@@ -244,13 +244,51 @@ function PosLayout() {
     permissions.isHotelUser ? "rooms" : "restaurant",
   );
 
-  // SWR will now manage the items for the active category
-  const { data: itemsForCategory, error: itemsError } = useSWR(
-    activeCategory
-      ? `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}`
-      : null,
-    fetcher,
+  // SWR for items with Smart Timestamp Caching
+  // We use a custom fetcher wrapper to handle the "Not Modified" signal
+  const activeCategoryKey = activeCategory
+    ? `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}`
+    : null;
+
+  const { data: itemsData, error: itemsError } = useSWR(
+    activeCategoryKey,
+    async (url) => {
+      // 1. Get last fetch timestamp for this category from localStorage
+      const cacheKey = `cat_ts_${activeCategory}`;
+      const lastTs = localStorage.getItem(cacheKey);
+
+      // 2. Append timestamp to URL
+      const fullUrl = lastTs ? `${url}&ts=${lastTs}` : url;
+
+      const res = await (
+        await import("@/lib/authFetch")
+      ).default(fullUrl, {}, null); // authFetch will grab current user token automatically
+      if (!res.ok) throw new Error("Fetch failed");
+
+      const json = await res.json();
+
+      // 3. Handle 304 Not Modified
+      if (json.notModified) {
+        // Return cached data from localStorage
+        const cachedItems = localStorage.getItem(`cat_data_${activeCategory}`);
+        return cachedItems ? JSON.parse(cachedItems) : [];
+      }
+
+      // 4. Save new data and timestamp
+      if (json.items) {
+        localStorage.setItem(
+          `cat_data_${activeCategory}`,
+          JSON.stringify(json.items),
+        );
+        localStorage.setItem(cacheKey, json.timestamp.toString());
+        return json.items;
+      }
+
+      return [];
+    },
   );
+
+  const itemsForCategory = itemsData || [];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -509,7 +547,7 @@ function PosLayout() {
         </section>
 
         {/* --- DESKTOP CHECKOUT SIDEBAR --- */}
-        <aside className="hidden lg:block w-[400px]">
+        <aside className="hidden lg:block w-100">
           <Checkout
             cartItems={cartItems}
             subtotal={netSubtotal}
@@ -553,7 +591,7 @@ function PosLayout() {
 
       {/* --- MOBILE CHECKOUT MODAL (FULL SCREEN) --- */}
       {isCheckoutOpen && (
-        <div className="lg:hidden fixed inset-0 z-[100] bg-white dark:bg-gray-950 animate-in slide-in-from-bottom duration-300">
+        <div className="lg:hidden fixed inset-0 z-100 bg-white dark:bg-gray-950 animate-in slide-in-from-bottom duration-300">
           <div className="flex flex-col h-full">
             <header className="p-6 border-b dark:border-gray-800 flex items-center gap-4">
               <button
