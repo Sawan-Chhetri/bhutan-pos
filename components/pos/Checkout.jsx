@@ -163,10 +163,13 @@ export default function Checkout({
   const [showCustomDiscount, setShowCustomDiscount] = useState(false);
   const [customDiscountValue, setCustomDiscountValue] = useState("");
 
-  const increment = (id, unitType) => {
+  const increment = (cartId, unitType) => {
     setCartItems((prev) =>
       prev.map((item) => {
-        if (item.id === id) {
+        const idMatch = item.cartId
+          ? item.cartId === cartId
+          : item.id === cartId;
+        if (idMatch) {
           // If weighted item (kg/l), increment by 0.1
           const incrementAmount = unitType && unitType !== "default" ? 0.1 : 1;
           // Use parseFloat to fix floating point math issues (e.g. 0.1 + 0.2 = 0.300000004)
@@ -178,11 +181,14 @@ export default function Checkout({
     );
   };
 
-  const decrement = (id, unitType) => {
+  const decrement = (cartId, unitType) => {
     setCartItems((prev) =>
       prev
         .map((item) => {
-          if (item.id === id) {
+          const idMatch = item.cartId
+            ? item.cartId === cartId
+            : item.id === cartId;
+          if (idMatch) {
             const decrementAmount =
               unitType && unitType !== "default" ? 0.1 : 1;
             const newQty = parseFloat((item.qty - decrementAmount).toFixed(3));
@@ -194,12 +200,17 @@ export default function Checkout({
     );
   };
 
-  const handleManualQtyChange = (id, newQty) => {
+  const handleManualQtyChange = (cartId, newQty) => {
     const qty = parseFloat(newQty);
     if (!isNaN(qty) && qty >= 0) {
       setCartItems((prev) =>
         prev
-          .map((item) => (item.id === id ? { ...item, qty } : item))
+          .map((item) => {
+            const idMatch = item.cartId
+              ? item.cartId === cartId
+              : item.id === cartId;
+            return idMatch ? { ...item, qty } : item;
+          })
           .filter((item) => item.qty > 0),
       );
     }
@@ -257,7 +268,7 @@ export default function Checkout({
             </p>
           </div>
         ) : (
-          cartItems.map((item) => {
+          cartItems.map((item, index) => {
             const hasItemDiscount = (item.discountPercent || 0) > 0;
             const effectivePrice =
               item.unitPrice * (1 - (item.discountPercent || 0) / 100);
@@ -265,7 +276,7 @@ export default function Checkout({
 
             return (
               <div
-                key={item.id}
+                key={item.cartId || `${item.id}-${index}`}
                 className="group bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 border border-transparent hover:border-brand-pink/20 transition-all"
               >
                 <div className="flex justify-between items-start gap-3">
@@ -289,7 +300,12 @@ export default function Checkout({
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}{" "}
-                        / {item.unitType === "default" ? "unit" : item.unitType}
+                        /{" "}
+                        {item.category === "rooms"
+                          ? "night"
+                          : item.unitType === "default"
+                            ? "unit"
+                            : item.unitType}
                       </p>
                     </div>
                   </div>
@@ -306,7 +322,9 @@ export default function Checkout({
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
                   <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
                     <button
-                      onClick={() => decrement(item.id, item.unitType)}
+                      onClick={() =>
+                        decrement(item.cartId || item.id, item.unitType)
+                      }
                       className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
                     >
                       <FiMinus size={14} />
@@ -317,7 +335,10 @@ export default function Checkout({
                         className="w-12 text-center text-xs font-black text-gray-900 dark:text-white bg-transparent outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                         value={item.qty}
                         onChange={(e) =>
-                          handleManualQtyChange(item.id, e.target.value)
+                          handleManualQtyChange(
+                            item.cartId || item.id,
+                            e.target.value,
+                          )
                         }
                         step="0.001"
                       />
@@ -327,7 +348,9 @@ export default function Checkout({
                       </span>
                     )}
                     <button
-                      onClick={() => increment(item.id, item.unitType)}
+                      onClick={() =>
+                        increment(item.cartId || item.id, item.unitType)
+                      }
                       className="p-1 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/5 rounded transition-colors"
                     >
                       <FiPlus size={14} />

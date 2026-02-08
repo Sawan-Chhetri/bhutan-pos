@@ -10,6 +10,7 @@ function Page() {
     "pos",
     "restaurants",
     "hotel",
+    "combo",
   ]);
 
   if (!isAuthorized) {

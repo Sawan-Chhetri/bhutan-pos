@@ -155,7 +155,12 @@ function Login({ onSuccess }) {
   // Redirect only if already logged in (not during an active login attempt)
   useEffect(() => {
     if (!user || isLoading) return;
-    if (user.type === "pos" || user.type === "restaurants" || user.type === "hotel") {
+    if (
+      user.type === "pos" ||
+      user.type === "restaurants" ||
+      user.type === "hotel" ||
+      user.type === "combo"
+    ) {
       router.push("/pos");
     } else {
       router.push("/invoice");
@@ -166,7 +171,7 @@ function Login({ onSuccess }) {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg("");
-    
+
     // Clear old session ID to prevent race condition with UserContext
     localStorage.removeItem("activeSessionId");
 
@@ -178,15 +183,21 @@ function Login({ onSuccess }) {
       );
       if (userCredential.user) {
         const token = await userCredential.user.getIdToken(true);
-        
+
         // --- DEVICE LOCKING ---
-        const activeSessionId = window.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
-        
+        const activeSessionId =
+          window.crypto?.randomUUID?.() ||
+          Math.random().toString(36).substring(2) + Date.now();
+
         // 1. Update Firestore FIRST
-        await authFetch("/api/user/update-session", {
-          method: "POST",
-          body: JSON.stringify({ activeSessionId })
-        }, token);
+        await authFetch(
+          "/api/user/update-session",
+          {
+            method: "POST",
+            body: JSON.stringify({ activeSessionId }),
+          },
+          token,
+        );
 
         // 2. Set LocalStorage SECOND
         localStorage.setItem("activeSessionId", activeSessionId);

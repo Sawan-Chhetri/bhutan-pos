@@ -4,7 +4,7 @@ import Sidebar from "@/components/nav/Sidebar";
 import useAuthGuard from "@/hooks/useAuthGuard";
 
 export default function Page() {
-  const { isAuthorized, isLaoding } = useAuthGuard(["other"]);
+  const { isAuthorized, isLaoding } = useAuthGuard(["other", "combo"]);
   if (!isAuthorized) {
     return null;
   }

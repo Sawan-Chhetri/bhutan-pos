@@ -3,7 +3,13 @@ import Sidebar from "@/components/nav/Sidebar";
 import PurchaseLedger from "@/components/purchases/PurchaseLedger";
 import useAuthGuard from "@/hooks/useAuthGuard";
 function Page() {
-  const { isAuthorized, isLoading } = useAuthGuard(["pos", "other", "restaurants", "hotel"]);
+  const { isAuthorized, isLoading } = useAuthGuard([
+    "pos",
+    "other",
+    "restaurants",
+    "hotel",
+    "combo",
+  ]);
   if (!isAuthorized) {
     return null;
   }
