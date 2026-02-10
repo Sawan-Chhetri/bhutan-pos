@@ -464,14 +464,14 @@ const LandingPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* SERVICES - Nu. 399 */}
+          {/* SERVICES - Nu. 499 */}
           <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between hover:border-blue-500/30 transition-all">
             <div>
               <h4 className="font-black text-blue-500 uppercase tracking-[0.2em] text-[10px] mb-2">
-                Service (Micro)
+                Services
               </h4>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-950">399</span>
+                <span className="text-4xl font-black text-slate-950">499</span>
                 <span className="text-slate-400 font-bold text-sm">/mo</span>
               </div>
               <p className="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-tight">
@@ -541,7 +541,7 @@ const LandingPage = () => {
             </button>
           </div>
 
-          {/* HOTEL - Nu. 899 */}
+          {/* HOTEL - Nu. 799 */}
           <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between hover:border-blue-600/30 transition-all">
             <div>
               <h4 className="font-black text-blue-600 uppercase tracking-[0.2em] text-[10px] mb-2">
