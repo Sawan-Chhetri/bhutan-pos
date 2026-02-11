@@ -25,11 +25,15 @@ export async function GET(request) {
       return NextResponse.json({ error: "Store not linked" }, { status: 400 });
     }
 
-    // 3. Category filter from query param
+    // 3. Category & Pagination params
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category")?.trim();
-    // Allow client to send the timestamp of when they last fetched this category
     const clientTimestamp = searchParams.get("ts");
+
+    // Pagination
+    const limit = parseInt(searchParams.get("limit") || "15", 10);
+    const startAfterName = searchParams.get("startAfterName");
+    const startAfterId = searchParams.get("startAfterId");
 
     if (!category) {
       return NextResponse.json(
@@ -38,9 +42,9 @@ export async function GET(request) {
       );
     }
 
-    // 4. CHECK CACHE VALIDITY (Optimization)
-    // If client sent a timestamp, we check if the category has been updated since then.
-    if (clientTimestamp) {
+    // 4. CHECK CACHE VALIDITY
+    // Only check timestamp for the initial page load (no cursor)
+    if (clientTimestamp && !startAfterName) {
       const catQuery = await db
         .collection(`stores/${storeId}/categories`)
         .where("name", "==", category)
@@ -51,35 +55,49 @@ export async function GET(request) {
         const catData = catQuery.docs[0].data();
         const lastUpdated = catData.lastUpdated?.toMillis() || 0;
 
-        // If server data hasn't changed since client's timestamp, return 304
-        // (Note: Next.js API routes don't strictly support 304 via return,
-        // so we return specific JSON signal that client handles)
+        // If server data hasn't changed since client's timestamp, return 304 signal
         if (lastUpdated <= Number(clientTimestamp)) {
           return NextResponse.json({ notModified: true });
         }
       }
     }
 
-    const itemsRef = db
+    // 5. Query Items with Pagination
+    // Note: This requires a purely composite index if sorting by name.
+    // Ensure you have an index for collection 'items': [category (ASC), name (ASC), __name__ (ASC)]
+    let itemsRef = db
       .collection(`stores/${storeId}/items`)
-      .where("category", "==", category); // exact match
+      .where("category", "==", category)
+      .orderBy("name", "asc")
+      .orderBy("__name__", "asc"); // Stable sort
 
-    // OPTIONAL: Check category timestamp if 'lastFetch' param is provided
-    // const lastFetch = searchParams.get("lastFetch");
-    // const catRef = db.collection(`stores/${storeId}/categories`).where('name', '==', category).limit(1);
-    // ... logic to return 304 if not modified ...
+    if (startAfterName && startAfterId) {
+      itemsRef = itemsRef.startAfter(startAfterName, startAfterId);
+    }
 
-    const itemsSnap = await itemsRef.get();
+    const itemsSnap = await itemsRef.limit(limit).get();
 
     const items = itemsSnap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
+    // Calculate next cursor
+    let nextCursor = null;
+    if (items.length === limit) {
+      const lastItem = items[items.length - 1];
+      nextCursor = {
+        name: lastItem.name,
+        id: lastItem.id,
+      };
+    }
+
     // Return items along with current server timestamp for this fetch
     return NextResponse.json({
       items,
       timestamp: Date.now(),
+      nextCursor,
+      hasMore: !!nextCursor,
     });
   } catch (error) {
     console.error("read-items error:", error);

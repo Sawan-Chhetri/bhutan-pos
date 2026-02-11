@@ -1,213 +1,6 @@
-// "use client";
-
-// import { useEffect, useState, useContext } from "react";
-// import Search from "@/components/pos/Search";
-// import Menu from "@/components/pos/Menu";
-// import Checkout from "@/components/pos/Checkout";
-// import PosScreen from "@/components/pos/PosScreen";
-// import { UserContext } from "@/contexts/UserContext";
-// import useAuthStatus from "@/hooks/useAuthStatus";
-// import authFetch from "@/lib/authFetch";
-
-// const bhutanGST = 0.05; // 5% GST
-
-// function PosLayout() {
-//   const [cartItems, setCartItems] = useState([]);
-//   const [activeCategory, setActiveCategory] = useState(); // will be set by Menu
-//   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-//   const { idToken } = useAuthStatus();
-//   const { user } = useContext(UserContext);
-
-//   const [itemsByCategory, setItemsByCategory] = useState({});
-
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [searchResults, setSearchResults] = useState([]);
-//   const [isSearching, setIsSearching] = useState(false);
-
-//   // Display items for active category
-//   const displayedProducts = activeCategory
-//     ? itemsByCategory[activeCategory] || []
-//     : [];
-
-//   // Add to cart
-//   const handleAddToCart = (product) => {
-//     const existing = cartItems.find((item) => item.id === product.id);
-//     if (existing) {
-//       setCartItems((prev) =>
-//         prev.map((item) =>
-//           item.id === product.id ? { ...item, qty: item.qty + 1 } : item
-//         )
-//       );
-//     } else {
-//       setCartItems((prev) => [
-//         ...prev,
-//         {
-//           id: product.id,
-//           name: product.name,
-//           unitPrice: product.price,
-//           qty: 1,
-//           isGSTExempt: product.isGSTExempt || false,
-//         },
-//       ]);
-//     }
-//   };
-
-//   // Totals
-//   // Subtotal for all items (same as before)
-//   const subtotal = cartItems.reduce(
-//     (sum, item) => sum + item.qty * item.unitPrice,
-//     0
-//   );
-
-//   // GST only on items that are not GST exempt
-//   const gst = cartItems.reduce((sum, item) => {
-//     if (item.isGSTExempt) return sum; // skip exempt items
-//     return sum + item.qty * item.unitPrice * bhutanGST;
-//   }, 0);
-
-//   // Total = subtotal + GST
-//   const total = subtotal + gst;
-
-//   // Fetch items for the active category if not already fetched
-//   useEffect(() => {
-//     if (!activeCategory || !idToken) return;
-//     if (itemsByCategory[activeCategory]) return; // already fetched
-
-//     const fetchItemsForCategory = async () => {
-//       try {
-//         const res = await authFetch(
-//           `/api/readItemsByCategory?category=${encodeURIComponent(
-//             activeCategory
-//           )}`,
-//           {},
-//           idToken
-//         );
-
-//         if (!res.ok) return;
-
-//         const data = await res.json();
-//         setItemsByCategory((prev) => ({
-//           ...prev,
-//           [activeCategory]: data,
-//         }));
-//         console.log(data);
-//       } catch (err) {
-//         console.error("Fetch items error:", err);
-//       }
-//     };
-
-//     fetchItemsForCategory();
-//   }, [activeCategory, idToken, itemsByCategory]);
-
-//   // Update when searchQuery changes
-//   useEffect(() => {
-//     setIsSearching(searchQuery.trim().length > 0);
-//   }, [searchQuery]);
-
-//   return (
-//     <div className="h-screen flex flex-col dark:bg-gray-900 dark:text-white">
-//       {/* Search */}
-//       <div className="p-4 border-b dark:border-gray-700">
-//         <Search
-//           value={searchQuery}
-//           onChange={setSearchQuery}
-//           itemsByCategory={itemsByCategory}
-//           activeCategory={activeCategory}
-//           user={user}
-//           onSearchResult={(results) => {
-//             setSearchResults(results);
-//           }}
-//         />
-//       </div>
-
-//       {/* Mobile Menu */}
-//       <div className="lg:hidden p-2 border-b overflow-x-auto flex gap-2 dark:border-gray-700">
-//         <Menu active={activeCategory} onChange={setActiveCategory} />
-//       </div>
-
-//       {/* Main Content */}
-//       <div className="flex flex-1 overflow-hidden">
-//         {/* Desktop Menu */}
-//         <div className="hidden lg:block overflow-y-auto border-r w-48 p-4 dark:border-gray-700">
-//           <Menu
-//             active={activeCategory}
-//             onChange={setActiveCategory}
-//             isSearching={isSearching}
-//           />
-//         </div>
-
-//         {/* POS Screen */}
-//         <div className="flex-1 overflow-y-auto">
-//           <PosScreen
-//             products={
-//               searchQuery
-//                 ? searchResults
-//                 : itemsByCategory[activeCategory] || []
-//             }
-//             // products={displayedProducts}
-//             cartItems={cartItems}
-//             onAddToCart={handleAddToCart}
-//           />
-//         </div>
-
-//         {/* Desktop Checkout */}
-//         <div className="hidden lg:block w-96 border-l dark:border-gray-700">
-//           <Checkout
-//             cartItems={cartItems}
-//             subtotal={subtotal}
-//             gst={gst}
-//             total={total}
-//             setCartItems={setCartItems}
-//           />
-//         </div>
-//       </div>
-
-//       {/* Mobile Checkout Button */}
-//       <button
-//         onClick={() => setIsCheckoutOpen(true)}
-//         className="lg:hidden fixed bottom-4 left-4 right-4 btn-primary font-semibold py-3 rounded-xl shadow-lg flex justify-center items-center gap-2"
-//       >
-//         View Cart
-//         <span className="bg-white text-black rounded-full px-2 py-1 text-xs font-bold">
-//           {cartItems.length}
-//         </span>
-//       </button>
-
-//       {/* Mobile Checkout Modal */}
-//       {isCheckoutOpen && (
-//         <div className="lg:hidden fixed inset-0 z-50 bg-black/40">
-//           <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl h-[85%] flex flex-col animate-slideUp">
-//             <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 p-4 border-b flex justify-between items-center dark:border-gray-700">
-//               <h2 className="font-semibold text-lg">Checkout</h2>
-//               <button
-//                 onClick={() => setIsCheckoutOpen(false)}
-//                 className="text-gray-500 dark:text-gray-300 text-xl"
-//               >
-//                 ✕
-//               </button>
-//             </div>
-
-//             <div className="flex-1 overflow-y-auto">
-//               <Checkout
-//                 cartItems={cartItems}
-//                 subtotal={subtotal}
-//                 gst={gst}
-//                 total={total}
-//                 setCartItems={setCartItems}
-//                 hidePayButton
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default PosLayout;
-
 "use client";
-import { useEffect, useState, useContext } from "react";
+
+import { useEffect, useState, useContext, useCallback } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import Search from "@/components/pos/Search";
@@ -247,58 +40,18 @@ function PosLayout() {
     permissions.isHotelUser ? "rooms" : "restaurant",
   );
 
-  // SWR for items with Smart Timestamp Caching
-  // We use a custom fetcher wrapper to handle the "Not Modified" signal
-  const activeCategoryKey = activeCategory
-    ? `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}`
+  // Replaced useSWR with manual state for infinite scroll
+  const [itemsByCategory, setItemsByCategory] = useState({});
+
+  const displayedCategoryData = activeCategory
+    ? itemsByCategory[activeCategory]
     : null;
-
-  const { data: itemsData, error: itemsError } = useSWR(
-    activeCategoryKey,
-    async (url) => {
-      // 1. Get last fetch timestamp for this category from localStorage
-      const cacheKey = `cat_ts_${activeCategory}`;
-      const lastTs = localStorage.getItem(cacheKey);
-
-      // 2. Append timestamp to URL
-      const fullUrl = lastTs ? `${url}&ts=${lastTs}` : url;
-
-      const res = await (
-        await import("@/lib/authFetch")
-      ).default(fullUrl, {}, null); // authFetch will grab current user token automatically
-      if (!res.ok) throw new Error("Fetch failed");
-
-      const json = await res.json();
-
-      // 3. Handle 304 Not Modified
-      if (json.notModified) {
-        // Return cached data from localStorage
-        const cachedItems = localStorage.getItem(`cat_data_${activeCategory}`);
-        return cachedItems ? JSON.parse(cachedItems) : [];
-      }
-
-      // 4. Save new data and timestamp
-      if (json.items) {
-        try {
-          localStorage.setItem(
-            `cat_data_${activeCategory}`,
-            JSON.stringify(json.items),
-          );
-          localStorage.setItem(cacheKey, json.timestamp.toString());
-        } catch (error) {
-          console.warn("LocalStorage quota exceeded. Skipping cache.");
-        }
-        return json.items;
-      }
-
-      return [];
-    },
-  );
-
-  const itemsForCategory = itemsData || [];
+  const itemsForCategory = displayedCategoryData?.items || [];
+  const hasMore = displayedCategoryData?.hasMore || false;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [saleId, setSaleId] = useState(null);
@@ -483,6 +236,125 @@ function PosLayout() {
     }
   }, [posMode, activeCategory]);
 
+  // Unified fetcher for Initial Load & Load More
+  const fetchCategoryData = useCallback(
+    async (isInitial = true) => {
+      if (!activeCategory || !idToken) return;
+
+      let currentData = itemsByCategory[activeCategory];
+
+      // Recovery Step: If no state, try LocalStorage
+      if (!currentData && isInitial) {
+        try {
+          const cached = localStorage.getItem(`cat_data_v2_${activeCategory}`);
+          if (cached) {
+            currentData = JSON.parse(cached);
+            // Hydrate state immediately
+            setItemsByCategory((prev) => ({
+              ...prev,
+              [activeCategory]: currentData,
+            }));
+          }
+        } catch (e) {
+          console.error("Cache read error", e);
+        }
+      }
+
+      currentData = currentData || { items: [] };
+
+      // Prevent fetching if we are loading more but there's nothing more
+      if (!isInitial && !currentData.nextCursor) return;
+
+      try {
+        if (!isInitial) setIsLoadingMore(true);
+
+        let url = `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}&limit=15`;
+
+        // If Initial: Check timestamp
+        if (isInitial && currentData.timestamp) {
+          url += `&ts=${currentData.timestamp}`;
+        }
+
+        // If Load More: Add cursor
+        if (!isInitial && currentData.nextCursor) {
+          url += `&startAfterName=${encodeURIComponent(currentData.nextCursor.name)}&startAfterId=${currentData.nextCursor.id}`;
+        }
+
+        const res = await authFetch(url, {}, idToken);
+
+        if (!res.ok) {
+          setIsLoadingMore(false);
+          return;
+        }
+
+        const data = await res.json();
+
+        // Case 1: Not Modified (Server says our cache is good)
+        // Only happens on initial load check
+        if (data.notModified) {
+          setIsLoadingMore(false);
+          return;
+        }
+
+        // Case 2: New Data (Either fresh load, or appended)
+        setItemsByCategory((prev) => {
+          const prevData = prev[activeCategory] || { items: [] };
+
+          let newItems;
+          if (isInitial) {
+            newItems = data.items;
+          } else {
+            // Append (Filter out duplicates to avoid React key errors)
+            const existingIds = new Set(prevData.items.map((i) => i.id));
+            const uniqueNewItems = data.items.filter(
+              (i) => !existingIds.has(i.id),
+            );
+            newItems = [...prevData.items, ...uniqueNewItems];
+          }
+
+          const newStateData = {
+            items: newItems,
+            timestamp: data.timestamp,
+            nextCursor: data.nextCursor,
+            hasMore: data.hasMore,
+          };
+
+          // Persist to LocalStorage
+          try {
+            localStorage.setItem(
+              `cat_data_v2_${activeCategory}`,
+              JSON.stringify(newStateData),
+            );
+          } catch (e) {
+            console.warn("Cache write failed", e);
+          }
+
+          return {
+            ...prev,
+            [activeCategory]: newStateData,
+          };
+        });
+      } catch (err) {
+        console.error("Fetch items error:", err);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    },
+    [activeCategory, idToken, itemsByCategory],
+  );
+
+  // Effect: Fetch when category changes (Initial Load)
+  useEffect(() => {
+    fetchCategoryData(true);
+  }, [fetchCategoryData]);
+
+  // Handler for Load More
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchCategoryData(false);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white overflow-hidden">
       {/* --- TOP BAR: SEARCH & LOGO --- */}
@@ -581,6 +453,9 @@ function PosLayout() {
               }
               cartItems={cartItems}
               onAddToCart={handleAddToCart}
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore && !searchQuery} // Disable infinite scroll during search
+              isLoadingMore={isLoadingMore}
             />
           </div>
         </section>

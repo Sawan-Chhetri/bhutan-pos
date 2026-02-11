@@ -147,11 +147,12 @@ export default function Search({
     inputRef.current?.blur();
 
     // 1️⃣ Check local cache first
-    const localItems = itemsByCategory[activeCategory] || [];
-    // Ensure localItems is an array (itemsByCategory might be undefined initially)
-    const safeLocalItems = Array.isArray(localItems) ? localItems : [];
+    const categoryData = itemsByCategory[activeCategory];
+    const localItems = Array.isArray(categoryData)
+      ? categoryData
+      : categoryData?.items || [];
 
-    const filtered = safeLocalItems.filter((item) =>
+    const filtered = localItems.filter((item) =>
       item.name.toLowerCase().includes(value.toLowerCase()),
     );
 
