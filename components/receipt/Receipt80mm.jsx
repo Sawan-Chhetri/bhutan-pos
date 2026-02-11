@@ -130,6 +130,19 @@ export default function Receipt80mm({ invoice }) {
           <div style={{ fontWeight: "600" }}>
             CUST: {invoice.customerName || "Walk-in"}
           </div>
+          {(invoice.customerCID || invoice.contact) && (
+            <div
+              style={{
+                fontSize: "10px",
+                marginTop: "2px",
+                borderTop: "1px dotted #000",
+                paddingTop: "2px",
+              }}
+            >
+              {invoice.customerCID && <div>CID: {invoice.customerCID}</div>}
+              {invoice.contact && <div>Contact: {invoice.contact}</div>}
+            </div>
+          )}
         </div>
 
         <table
@@ -157,8 +170,8 @@ export default function Receipt80mm({ invoice }) {
               return (
                 <tr key={i}>
                   <td style={{ padding: "4px 0", fontWeight: "600" }}>
-                    {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)}{" "}
-                    <br />
+                    {item.name?.charAt(0).toUpperCase() + item.name?.slice(1)}
+                    {item.isGSTExempt ? " [E]" : ""} <br />
                     <span style={{ fontSize: "9px", fontWeight: "600" }}>
                       {item.qty}
                       {item.unitType !== "unit" ? item.unitType : ""} x{" "}

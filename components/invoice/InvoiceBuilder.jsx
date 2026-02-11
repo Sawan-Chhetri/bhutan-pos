@@ -278,7 +278,7 @@ export default function InvoiceBuilder() {
               />
             </div>
             <HorizonInput
-              label="Address"
+              label="Address/Contact"
               value={customerAddress}
               onChange={setCustomerAddress}
               placeholder="Physical Address"

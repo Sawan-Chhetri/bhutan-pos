@@ -202,6 +202,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const LandingPage = () => {
   const route = useRouter();
@@ -254,6 +255,50 @@ const LandingPage = () => {
         <p className="mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest">
           Quick setup • No payment required
         </p>
+      </section>
+
+      {/* TRUSTED PARTNER: BPS */}
+      <section className="w-full max-w-4xl mx-auto px-6 pb-20 -mt-10 relative z-20">
+        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-8 md:gap-12 relative overflow-hidden group hover:border-[#EE4B6A]/30 transition-all">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50 pointer-events-none"></div>
+
+          {/* Logo Placeholder */}
+          <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shrink-0 shadow-lg shadow-slate-900/10 relative z-10 border border-slate-100 overflow-hidden">
+            <Image
+              src="/BPS-logo.jpeg"
+              alt="Bhutan Professional Services"
+              fill
+              className="object-contain p-2"
+            />
+          </div>
+
+          <div className="text-left relative z-10">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-[#EE4B6A] animate-pulse"></span>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Trusted Flagship Partner
+              </p>
+            </div>
+
+            <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-4 leading-normal">
+              Partnered with{" "}
+              <span className="text-slate-900 border-b-4 border-[#EE4B6A]/20">
+                Bhutan Professional Services (BPS).
+              </span>
+            </h3>
+
+            <p className="text-slate-500 text-sm leading-relaxed font-medium">
+              &quot;As a leader in project management and a long-standing
+              advocate for a{" "}
+              <span className="font-bold text-slate-900 italic">
+                &apos;systems approach&apos;
+              </span>{" "}
+              to construction, BPS uses and trusts our platform to maintain the
+              highest standards of financial transparency and
+              productivity.&quot;
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* The Pain Wall: Re-engineered for Emotional Impact */}
@@ -449,7 +494,6 @@ const LandingPage = () => {
       </section>
 
       {/* Pricing: The "GST Simplifier" Section */}
-      {/* Pricing: The "Yeti-Killer" GST Section */}
       <section id="pricing" className="w-full max-w-6xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-black mb-4 italic tracking-tighter">
@@ -501,7 +545,7 @@ const LandingPage = () => {
             </button>
           </div>
 
-          {/* POS LITE - Nu. 599 */}
+          {/* POS LITE - Nu. 699 */}
           <div className="p-8 bg-white border-2 border-emerald-500 rounded-[3rem] flex flex-col justify-between relative shadow-2xl shadow-emerald-500/10 scale-105 z-10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase">
               Most Popular
@@ -511,7 +555,7 @@ const LandingPage = () => {
                 POS Lite
               </h4>
               <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-4xl font-black text-slate-950">599</span>
+                <span className="text-4xl font-black text-slate-950">699</span>
                 <span className="text-slate-400 font-bold text-sm">/mo</span>
               </div>
               <p className="text-[10px] font-bold text-emerald-600 mb-6 uppercase tracking-tight italic">
@@ -541,7 +585,7 @@ const LandingPage = () => {
             </button>
           </div>
 
-          {/* HOTEL - Nu. 799 */}
+          {/* HOTEL - Nu. 899 */}
           <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between hover:border-blue-600/30 transition-all">
             <div>
               <h4 className="font-black text-blue-600 uppercase tracking-[0.2em] text-[10px] mb-2">
@@ -625,7 +669,7 @@ const LandingPage = () => {
       </section>
 
       {/* Final "Zen" Hook */}
-      <footer className="w-full py-24 bg-slate-50 text-center px-6">
+      <section className="w-full py-24 bg-slate-50 text-center px-6">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl font-black mb-6 leading-tight text-slate-950">
             Stop letting your software <br /> dictate your stress.
@@ -634,13 +678,38 @@ const LandingPage = () => {
             Join 10+ local businesses that have simplified their GST, saved
             thousands in fees, and finally got their Friday nights back.
           </p>
-          <a
-            href="/get-started"
-            // className="inline-block px-12 py-5 rounded-2xl text-lg font-black bg-slate-950 text-white hover:bg-slate-800 transition shadow-2xl shadow-slate-900/40"
-            className="w-auto bg-gray-900 dark:bg-brand-pink text-white py-5 px-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-pink-500/10 mt-4 disabled:opacity-50 disabled:hover:scale-100"
-          >
-            Create Your Account — Free for 14 Days
-          </a>
+          <div className="flex justify-center">
+            <a
+              href="/get-started"
+              className="w-auto bg-gray-900 dark:bg-brand-pink text-white py-5 px-8 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-pink-500/10 disabled:opacity-50 disabled:hover:scale-100"
+            >
+              Create Your Account — Free for 14 Days
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full py-12 bg-white border-t border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <div className="text-xl font-black tracking-tighter text-slate-950 italic mb-2">
+              Swift<span className="text-[#A8DF8E]">GST.</span>
+            </div>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+              🇧🇹 Proudly Bhutanese Made
+            </p>
+          </div>
+
+          <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <a href="/terms" className="hover:text-slate-900 transition">
+              Terms of Service
+            </a>
+
+            <span>
+              © {new Date().getFullYear()} SwiftGST. All rights reserved.
+            </span>
+          </div>
         </div>
       </footer>
     </main>

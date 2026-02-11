@@ -128,7 +128,8 @@ export default function RefundReceipt80mm({ refund }) {
             {refund.items?.map((item, i) => (
               <tr key={i} style={{ verticalAlign: "top" }}>
                 <td style={{ padding: "6px 0", fontWeight: "600" }}>
-                  {item.name?.toUpperCase()} <br />
+                  {item.name?.toUpperCase()} {item.isGSTExempt ? "[E]" : ""}{" "}
+                  <br />
                   <span style={{ fontSize: "10px" }}>
                     Qty: -{item.qty}{" "}
                     {item.unitType === "default" ? "" : item.unitType} @{" "}

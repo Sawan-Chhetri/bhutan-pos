@@ -52,9 +52,36 @@ const pdfStyles = StyleSheet.create({
   },
   metaValue: { fontSize: 10, fontWeight: "bold", marginTop: 2 },
 
+  // Exempt Badge for PDF
+  exemptBadge: {
+    backgroundColor: "#F3F4F6",
+    color: "#6B7280",
+    fontSize: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 2,
+    marginTop: 2,
+    alignSelf: "flex-start", // Ensures it doesn't stretch
+    fontWeight: "bold",
+  },
+
   // Clean Customer Section
   customerBox: {
     marginBottom: 40,
+    backgroundColor: "#F9FAFB",
+    padding: 15,
+    borderRadius: 8,
+  },
+  customerMetaRow: {
+    flexDirection: "row",
+    gap: 40,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 10,
+  },
+  customerMetaGroup: {
+    flexDirection: "column",
   },
 
   // Industrial Table Styling
@@ -155,10 +182,52 @@ const InvoicePDF = ({ invoice }) => (
 
       {/* BILLING */}
       <View style={pdfStyles.customerBox}>
-        <Text style={pdfStyles.metaLabel}>Billed To:</Text>
-        <Text style={{ fontSize: 14, fontWeight: "bold", marginTop: 2 }}>
+        <Text
+          style={[
+            pdfStyles.metaLabel,
+            { color: "#EE4B6A", fontWeight: "bold" },
+          ]}
+        >
+          BILLED TO
+        </Text>
+        <Text style={{ fontSize: 14, fontWeight: "bold", marginTop: 4 }}>
           {invoice.customerName?.toUpperCase() || "WALK-IN CUSTOMER"}
         </Text>
+
+        {(invoice.customerCID || invoice.contact) && (
+          <View style={pdfStyles.customerMetaRow}>
+            {invoice.customerCID && (
+              <View style={pdfStyles.customerMetaGroup}>
+                <Text style={pdfStyles.metaLabel}>CID / LICENSE</Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Courier",
+                    fontWeight: "bold",
+                    marginTop: 2,
+                  }}
+                >
+                  {invoice.customerCID}
+                </Text>
+              </View>
+            )}
+            {invoice.contact && (
+              <View style={pdfStyles.customerMetaGroup}>
+                <Text style={pdfStyles.metaLabel}>CONTACT</Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Courier",
+                    fontWeight: "bold",
+                    marginTop: 2,
+                  }}
+                >
+                  {invoice.contact}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
 
       {/* TABLE */}
@@ -181,6 +250,9 @@ const InvoicePDF = ({ invoice }) => (
             <Text style={{ fontSize: 10, fontWeight: "bold" }}>
               {item.name.toUpperCase()}
             </Text>
+            {item.isGSTExempt && (
+              <Text style={pdfStyles.exemptBadge}>EXEMPT</Text>
+            )}
           </View>
           <Text style={[pdfStyles.td, { flex: 0.5, textAlign: "center" }]}>
             {item.qty}
@@ -237,7 +309,7 @@ const InvoicePDF = ({ invoice }) => (
       </View>
 
       <Text style={pdfStyles.footer}>
-        This is a computer-generated Tax Invoice. No signature required.
+        This is a computer-generated Tax Invoice. Powered by SwiftGST
       </Text>
     </Page>
   </Document>
@@ -439,6 +511,31 @@ export default function InvoicePage() {
             <h3 className="text-lg md:text-2xl font-black dark:text-white uppercase tracking-tight">
               {invoice.customerName || "Walk-in Customer"}
             </h3>
+
+            {(invoice.customerCID || invoice.contact) && (
+              <div className="mt-6 flex flex-wrap gap-8 md:gap-16 border-t border-dashed border-gray-200 dark:border-gray-700 pt-6">
+                {invoice.customerCID && (
+                  <div>
+                    <p className="text-[9px] font-black text-brand-pink uppercase tracking-widest mb-1">
+                      CID / License
+                    </p>
+                    <p className="text-sm md:text-lg font-mono font-bold dark:text-white text-gray-900">
+                      {invoice.customerCID}
+                    </p>
+                  </div>
+                )}
+                {invoice.contact && (
+                  <div>
+                    <p className="text-[9px] font-black text-brand-pink uppercase tracking-widest mb-1">
+                      Contact Info
+                    </p>
+                    <p className="text-sm md:text-lg font-mono font-bold dark:text-white text-gray-900">
+                      {invoice.contact}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Items Table - Simplified for Mobile */}
@@ -516,9 +613,26 @@ export default function InvoicePage() {
                       <td className="py-6 md:py-8">
                         <div className="flex items-start gap-3">
                           <div className="flex-1">
-                            <span className="text-xs md:text-sm font-black dark:text-gray-100 uppercase tracking-tighter block">
-                              {item.name}
-                            </span>
+                            {/* <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs md:text-sm font-black dark:text-gray-100 uppercase tracking-tighter leading-tight">
+                                {item.name}
+                              </span>
+                              {item.isGSTExempt && (
+                                <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[8px] font-black text-gray-400 uppercase tracking-widest shrink-0">
+                                  Exempt
+                                </span>
+                              )}
+                            </div> */}
+                            <div className="py-6">
+                              <p className="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-tighter">
+                                {item.name}
+                              </p>
+                              {item.isGSTExempt && (
+                                <span className="text-[8px] font-black text-gray-400 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-md mt-1 inline-block">
+                                  TAX EXEMPT
+                                </span>
+                              )}
+                            </div>
 
                             {item.discountPercent > 0 && (
                               <p className="text-[8px] md:text-[9px] font-bold text-brand-pink mt-1 italic uppercase">

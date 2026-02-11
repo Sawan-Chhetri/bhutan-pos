@@ -58,6 +58,25 @@ const cnStyles = StyleSheet.create({
   },
   metaValue: { fontSize: 10, fontWeight: "bold", marginBottom: 8 },
 
+  // Clean Customer Section (Same as Invoice)
+  customerBox: {
+    marginBottom: 30,
+    backgroundColor: "#F9FAFB",
+    padding: 15,
+    borderRadius: 8,
+  },
+  customerMetaRow: {
+    flexDirection: "row",
+    gap: 40,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 10,
+  },
+  customerMetaGroup: {
+    flexDirection: "column",
+  },
+
   // Reference Box (Linking to Original Invoice)
   refBox: {
     backgroundColor: "#FEF2F2",
@@ -151,6 +170,53 @@ const CreditNotePDF = ({ refund }) => (
           </Text>
         </View>
       </View>
+
+      {/* CUSTOMER INFO (New) */}
+      {(refund.customerName || refund.customerCID || refund.contact) && (
+        <View style={cnStyles.customerBox}>
+          <Text style={[cnStyles.metaLabel, { fontWeight: "bold" }]}>
+            REFUNDED TO
+          </Text>
+          <Text style={{ fontSize: 14, fontWeight: "bold", marginTop: 4 }}>
+            {refund.customerName?.toUpperCase() || "WALK-IN CUSTOMER"}
+          </Text>
+
+          {(refund.customerCID || refund.contact) && (
+            <View style={cnStyles.customerMetaRow}>
+              {refund.customerCID && (
+                <View style={cnStyles.customerMetaGroup}>
+                  <Text style={cnStyles.metaLabel}>CID / LICENSE</Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontFamily: "Courier",
+                      fontWeight: "bold",
+                      marginTop: 2,
+                    }}
+                  >
+                    {refund.customerCID}
+                  </Text>
+                </View>
+              )}
+              {refund.contact && (
+                <View style={cnStyles.customerMetaGroup}>
+                  <Text style={cnStyles.metaLabel}>CONTACT</Text>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontFamily: "Courier",
+                      fontWeight: "bold",
+                      marginTop: 2,
+                    }}
+                  >
+                    {refund.contact}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Reference Box */}
       <View style={cnStyles.refBox}>
