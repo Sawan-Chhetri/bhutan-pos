@@ -25,11 +25,18 @@ export async function POST(request) {
     /* =====================================================
      * 2️⃣ REQUEST BODY VALIDATION
      * ===================================================== */
-    const { items, supplierName, supplierTIN, billNumber } =
+    const { items, supplierName, supplierTIN, billNumber, date } =
       await request.json();
 
     if (!items?.length) {
       return NextResponse.json({ error: "Empty cart" }, { status: 400 });
+    }
+
+    if (!date) {
+      return NextResponse.json(
+        { error: "Purchase date is required" },
+        { status: 400 },
+      );
     }
 
     const db = admin.firestore();
@@ -48,7 +55,19 @@ export async function POST(request) {
      * 4️⃣ DATE HELPERS (FOR GST MONTH)
      * ===================================================== */
     const now = admin.firestore.Timestamp.now();
-    const dateObj = now.toDate();
+
+    // Ensure date is valid
+    const d = new Date(date);
+    if (isNaN(d.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid purchase date format" },
+        { status: 400 },
+      );
+    }
+
+    // Create timestamp from provided date
+    const purchaseDate = admin.firestore.Timestamp.fromDate(d);
+    const dateObj = purchaseDate.toDate();
 
     // Format: YYYY-MM → 2026-01
     const monthKey = `${dateObj.getFullYear()}-${String(
@@ -165,7 +184,7 @@ export async function POST(request) {
 
         supplierName: supplierName.toLowerCase() || null,
         supplierTIN: supplierTIN || null,
-        date: now,
+        date: purchaseDate,
         createdBy: uid,
       });
 
@@ -179,8 +198,17 @@ export async function POST(request) {
           itcClaimed: totalITC,
           purchaseCount: 1,
           lastUpdated: now,
+          // No files yet
         });
       } else {
+        // If report exists and has generated files, we must INVALIDATE them
+        // because we just changed the underlying data for this month.
+        if (gstSnap.data().files) {
+          tx.update(gstReportRef, {
+            files: admin.firestore.FieldValue.delete(),
+          });
+        }
+
         // tx.update(gstReportRef, {
         //   totalPurchases:
         //     // admin.firestore.FieldValue.increment(Number(totalPurchases || 0)),

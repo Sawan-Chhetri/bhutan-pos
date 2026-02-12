@@ -27,6 +27,7 @@ export default function PurchaseLedger() {
   const [supplierName, setSupplierName] = useState("");
   const [supplierTIN, setSupplierTIN] = useState("");
   const [billNumber, setBillNumber] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
   const [items, setItems] = useState([]);
 
   // --- MODAL STATE ---
@@ -90,6 +91,11 @@ export default function PurchaseLedger() {
     if (errors.billNumber && billNumber.trim())
       setErrors((e) => ({ ...e, billNumber: null }));
   }, [billNumber, errors.billNumber]);
+
+  useEffect(() => {
+    if (errors.purchaseDate && purchaseDate.trim())
+      setErrors((e) => ({ ...e, purchaseDate: null }));
+  }, [purchaseDate, errors.purchaseDate]);
 
   useEffect(() => {
     if (errors.items && items.length > 0)
@@ -211,6 +217,12 @@ export default function PurchaseLedger() {
       newErrors.billNumber = true;
       isValid = false;
     }
+
+    if (!purchaseDate) {
+      newErrors.purchaseDate = true;
+      isValid = false;
+    }
+
     if (items.length === 0) {
       newErrors.items = "Add items";
       isValid = false;
@@ -229,6 +241,7 @@ export default function PurchaseLedger() {
         supplierName,
         supplierTIN,
         billNumber,
+        date: purchaseDate, // Send the date
         // Purchase calculations all performed on the server side
       };
       const res = await authFetch(
@@ -247,6 +260,7 @@ export default function PurchaseLedger() {
         setSupplierName("");
         setSupplierTIN("");
         setBillNumber("");
+        setPurchaseDate("");
       } else {
         const json = await res.json();
         toast.error(json.message || "Failed to record purchase");
@@ -322,6 +336,14 @@ export default function PurchaseLedger() {
                 onChange={setBillNumber}
                 placeholder="Ref #"
                 error={errors.billNumber}
+              />
+              <BlueInput
+                label="Purchase Date"
+                value={purchaseDate}
+                onChange={setPurchaseDate}
+                placeholder="YYYY-MM-DD"
+                type="date"
+                error={errors.purchaseDate}
               />
             </div>
           </div>
@@ -613,7 +635,7 @@ function BlueInput({
         {...props}
       />
       <div
-        className={`h-[2px] w-full ${error ? "bg-red-500" : "bg-gray-100 group-focus-within:bg-blue-500"} transition-all`}
+        className={`h-0.5 w-full ${error ? "bg-red-500" : "bg-gray-100 group-focus-within:bg-blue-500"} transition-all`}
       />
     </div>
   );

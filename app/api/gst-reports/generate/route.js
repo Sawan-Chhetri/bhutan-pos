@@ -61,15 +61,15 @@ export async function GET(request) {
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth() + 1; // 1-indexed
 
-      // if (
-      //   tYear > currentYear ||
-      //   (tYear === currentYear && tMonth >= currentMonth)
-      // ) {
-      //   return NextResponse.json(
-      //     { error: "Reports can only be generated after the month has ended." },
-      //     { status: 400 },
-      //   );
-      // }
+      if (
+        tYear > currentYear ||
+        (tYear === currentYear && tMonth >= currentMonth)
+      ) {
+        return NextResponse.json(
+          { error: "Reports can only be generated after the month has ended." },
+          { status: 400 },
+        );
+      }
 
       startDate = new Date(tYear, tMonth - 1, 1);
       endDate = new Date(tYear, tMonth, 0, 23, 59, 59, 999);
