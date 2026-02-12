@@ -372,18 +372,16 @@ export default function Checkout({
         </div>
 
         {/* Total & Pay */}
-        <div className="flex justify-between items-end pb-2">
-          <div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Total Payable
-            </span>
-            <div className="text-3xl font-black text-gray-900 dark:text-white leading-none mt-1">
-              <span className="text-lg align-top opacity-50 mr-1">Nu.</span>
-              {total.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </div>
+        <div className="flex justify-between items-center pb-2 pt-2">
+          <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+            Total Payable
+          </span>
+          <div className="text-3xl font-black text-gray-900 dark:text-white leading-none">
+            <span className="text-lg align-top opacity-50 mr-1">Nu.</span>
+            {total.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </div>
         </div>
 

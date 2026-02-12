@@ -82,17 +82,57 @@
 // }
 
 "use client";
-import { useEffect } from "react";
-import useSWR from "swr";
-import { fetcher } from "@/lib/fetcher";
+import { useEffect, useState } from "react";
+// import useSWR from "swr"; // Removed in favor of manual dual-strategy
+// import { fetcher } from "@/lib/fetcher";
 import { FiLayers, FiChevronRight } from "react-icons/fi";
+import { getLocalCategories } from "@/lib/inventorySync";
+import authFetch from "@/lib/authFetch";
+import useAuthStatus from "@/hooks/useAuthStatus";
 
-export default function Menu({ active, onChange, isSearching }) {
-  const {
-    data: categories,
-    error,
-    isLoading,
-  } = useSWR("/api/categories", fetcher);
+export default function Menu({ active, onChange, isSearching, storeId }) {
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { idToken } = useAuthStatus();
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        // 1. Try Local First
+        if (storeId) {
+          const localCats = await getLocalCategories(storeId);
+
+          if (localCats && localCats.length > 0) {
+            setCategories(localCats);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback to API
+        if (!idToken) {
+          // If we don't have a token, we can't fetch.
+          // Only stop loading if we are sure we can't do anything else.
+          // But we might be waiting for token?
+          // If storeId was provided but local failed, we might want to wait for token.
+          return;
+        }
+
+        const res = await authFetch("/api/categories", {}, idToken);
+        if (!res.ok) throw new Error("API Failed");
+        const data = await res.json();
+        setCategories(data);
+      } catch (e) {
+        console.error("Category Load Error", e);
+        setError(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, [storeId, idToken]);
 
   useEffect(() => {
     if (categories && categories.length > 0 && !active) {

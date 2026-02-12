@@ -123,6 +123,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { FiSearch, FiX, FiCommand } from "react-icons/fi";
+import { searchLocalInventory } from "@/lib/inventorySync";
 
 export default function Search({
   value,
@@ -146,22 +147,29 @@ export default function Search({
     // Mobile UX: Blur to close keyboard
     inputRef.current?.blur();
 
-    // 1️⃣ Check local cache first
-    const categoryData = itemsByCategory[activeCategory];
-    const localItems = Array.isArray(categoryData)
-      ? categoryData
-      : categoryData?.items || [];
+    // 1️⃣ OPTIMIZED: Search Local IndexedDB (Zero Latency)
+    try {
+      console.log(`[Search] 🔍 Searching locally for "${value}" in ${storeId}`);
+      const results = await searchLocalInventory(storeId, value);
 
-    const filtered = localItems.filter((item) =>
-      item.name.toLowerCase().includes(value.toLowerCase()),
-    );
-
-    if (filtered.length > 0) {
-      onSearchResult(filtered);
-      return;
+      // COST-SAVING: If results is NOT null, it means the local DB is populated and searched.
+      // Even if results is [], we trust the local DB and avoid the API call.
+      // We only fallback if results is null (meaning cache is empty/not synced yet).
+      if (results !== null) {
+        console.log(
+          `[Search] ✅ Local search returned ${results.length} results`,
+        );
+        onSearchResult(results);
+        return;
+      }
+    } catch (err) {
+      console.warn("Local search failed, falling back to API", err);
     }
 
-    // 2️⃣ If not found locally, fetch from DB
+    // 2️⃣ Fallback: If local db empty or missed, try API (Safety Net)
+    console.log(
+      `[Search] 🌐 Local search skipped (DB empty?). Falling back to API.`,
+    );
     try {
       const res = await fetch(
         `/api/search-items?query=${encodeURIComponent(

@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useState, useContext, useCallback, useMemo } from "react";
+import {
+  useEffect,
+  useState,
+  useContext,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import Search from "@/components/pos/Search";
@@ -24,6 +31,11 @@ import KgModal from "@/components/pos/KgModal";
 import usePermissions from "@/hooks/usePermissions";
 
 import { addToScanCache, getFromScanCache } from "@/lib/scanCache";
+import {
+  syncInventory,
+  getLocalItemsByCategory,
+  getLocalItemByBarcode,
+} from "@/lib/inventorySync";
 
 const bhutanGST = 0.05;
 
@@ -35,6 +47,18 @@ function PosLayout() {
   const { idToken } = useAuthStatus(); // <--- Added this line
   const permissions = usePermissions(user);
 
+  // Background Sync for Offline Search
+  useEffect(() => {
+    if (user?.storeId && idToken) {
+      syncInventory(idToken, user.storeId)
+        .then((count) => {
+          if (count > 0)
+            toast.success("Offline Mode Ready", { autoClose: 2000 });
+        })
+        .catch((err) => console.warn("Inventory sync failed silently", err));
+    }
+  }, [user?.storeId, idToken]);
+
   // Dual-Mode State for Hotels
   const [posMode, setPosMode] = useState(
     permissions.isHotelUser ? "rooms" : "restaurant",
@@ -42,6 +66,10 @@ function PosLayout() {
 
   // Replaced useSWR with manual state for infinite scroll
   const [itemsByCategory, setItemsByCategory] = useState({});
+  const itemsByCategoryRef = useRef(itemsByCategory);
+  useEffect(() => {
+    itemsByCategoryRef.current = itemsByCategory;
+  }, [itemsByCategory]);
 
   const displayedCategoryData = activeCategory
     ? itemsByCategory[activeCategory]
@@ -198,6 +226,7 @@ function PosLayout() {
     // 1. O(1) Memory Lookup: Check ALL loaded categories instantly
     // We check the map instead of looping the current category array
     if (globalBarcodeMap.has(barcode)) {
+      console.log(`[Scanner] ✅ Found in Memory Map`);
       handleAddToCart(globalBarcodeMap.get(barcode));
       return;
     }
@@ -205,11 +234,39 @@ function PosLayout() {
     // 2. Search GLOBAL SCAN CACHE (Fast - 0 Reads)
     const cachedItem = getFromScanCache(barcode);
     if (cachedItem) {
+      console.log(`[Scanner] ✅ Found in Scan Cache`);
       handleAddToCart(cachedItem);
       return;
     }
 
-    // 3. Search GLOBAL database
+    // 2.5 Search Local IndexedDB (Offline-Ready / Zero Cost)
+    try {
+      const localMatch = await getLocalItemByBarcode(user?.storeId, barcode);
+
+      // Found locally
+      if (localMatch) {
+        console.log(`[Scanner] ✅ Found in IndexedDB`);
+        handleAddToCart(localMatch);
+        addToScanCache(barcode, localMatch);
+        return;
+      }
+
+      // DB was active but item not found (Strictly Local Mode)
+      // We trust the local DB if it's populated.
+      if (localMatch === false) {
+        console.log(`[Scanner] ❌ Not found in IndexedDB (DB Active)`);
+        console.error(`Product not found locally: ${barcode}`);
+        toast.error(`Product not found: ${barcode}`);
+        return;
+      }
+
+      // If localMatch === null, DB is empty, proceed to API fallback below...
+    } catch (e) {
+      console.warn("Local barcode check failed", e);
+    }
+
+    // 3. Search GLOBAL database (Fallback for fresh devices)
+    console.log(`[Scanner] 🌐 Falling back to API search`);
     try {
       const storeId = user?.storeId || "";
       const res = await authFetch(
@@ -261,25 +318,41 @@ function PosLayout() {
     async (isInitial = true) => {
       if (!activeCategory || !idToken) return;
 
-      let currentData = itemsByCategory[activeCategory];
+      console.log(`[PosLayout] Fetching data for category: ${activeCategory}`);
 
-      // Recovery Step: If no state, try LocalStorage
-      if (!currentData && isInitial) {
-        try {
-          const cached = localStorage.getItem(`cat_data_v2_${activeCategory}`);
-          if (cached) {
-            currentData = JSON.parse(cached);
-            // Hydrate state immediately
-            setItemsByCategory((prev) => ({
-              ...prev,
-              [activeCategory]: currentData,
-            }));
-          }
-        } catch (e) {
-          console.error("Cache read error", e);
+      // 1️⃣ Try Local IndexedDB First (Fastest, Offline-Ready)
+      try {
+        const localItems = await getLocalItemsByCategory(
+          user?.storeId,
+          activeCategory,
+        );
+
+        // If we have data (or confirm empty category), use it and skip API
+        if (localItems !== null) {
+          console.log(
+            `[PosLayout] ✅ Loaded ${localItems.length} items from IndexedDB for ${activeCategory}`,
+          );
+          setItemsByCategory((prev) => ({
+            ...prev,
+            [activeCategory]: {
+              items: localItems,
+              hasMore: false, // Local DB loads all items at once
+              timestamp: Date.now(),
+            },
+          }));
+          return;
+        } else {
+          console.log(
+            `[PosLayout] ⚠️ Local DB returned null (empty/unsynced). Falling back to API.`,
+          );
         }
+      } catch (err) {
+        console.warn("Local fetch failed, falling back to API", err);
       }
 
+      // 2️⃣ Fallback: API Fetch (Legacy/Safety Net)
+      console.log(`[PosLayout] 🌐 Fetching from API: ${activeCategory}`);
+      let currentData = itemsByCategoryRef.current[activeCategory];
       currentData = currentData || { items: [] };
 
       // Prevent fetching if we are loading more but there's nothing more
@@ -341,16 +414,6 @@ function PosLayout() {
             hasMore: data.hasMore,
           };
 
-          // Persist to LocalStorage
-          try {
-            localStorage.setItem(
-              `cat_data_v2_${activeCategory}`,
-              JSON.stringify(newStateData),
-            );
-          } catch (e) {
-            console.warn("Cache write failed", e);
-          }
-
           return {
             ...prev,
             [activeCategory]: newStateData,
@@ -362,7 +425,7 @@ function PosLayout() {
         setIsLoadingMore(false);
       }
     },
-    [activeCategory, idToken, itemsByCategory],
+    [activeCategory, idToken, user?.storeId],
   );
 
   // Effect: Fetch when category changes (Initial Load)
@@ -503,6 +566,7 @@ function PosLayout() {
             active={activeCategory}
             onChange={setActiveCategory}
             isSearching={isSearching}
+            storeId={user?.storeId}
           />
         </div>
       )}
@@ -515,6 +579,7 @@ function PosLayout() {
               active={activeCategory}
               onChange={setActiveCategory}
               isSearching={isSearching}
+              storeId={user?.storeId}
             />
           </aside>
         )}

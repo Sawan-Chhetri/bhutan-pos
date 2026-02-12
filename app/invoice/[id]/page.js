@@ -610,7 +610,7 @@ export default function InvoicePage() {
 
                   return (
                     <tr key={i} className={isFullyRefunded ? "opacity-50" : ""}>
-                      <td className="py-6 md:py-8">
+                      <td className="py-6 md:py-2">
                         <div className="flex items-start gap-3">
                           <div className="flex-1">
                             {/* <div className="flex flex-wrap items-center gap-2">
