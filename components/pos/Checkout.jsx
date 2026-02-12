@@ -419,13 +419,6 @@ export default function Checkout({
           setGlobalDiscount({ value: 0, type: "percent", reason: "" });
         }}
       />
-      {showPrintModal && (
-        <PrintReceiptModal
-          isOpen={showPrintModal}
-          onClose={() => setShowPrintModal(false)}
-          saleId={saleId}
-        />
-      )}
     </aside>
   );
 }
