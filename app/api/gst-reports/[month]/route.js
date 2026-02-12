@@ -166,6 +166,9 @@ export async function GET(request, { params }) {
       itcClaimed: gstData.itcClaimed || 0,
       purchaseCount: gstData.purchaseCount || 0,
 
+      // FILES
+      files: gstData.files || null,
+
       // BUSINESS INFO
       business: {
         name: storeData.name || "Bhutan POS Enterprise",
