@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useContext, useCallback } from "react";
+import { useEffect, useState, useContext, useCallback, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import Search from "@/components/pos/Search";
@@ -64,6 +64,10 @@ function PosLayout() {
     type: "percent",
     reason: "",
   });
+
+  // Search Pagination State
+  const [searchCursor, setSearchCursor] = useState(null); // Last Visible Name
+  const [hasMoreSearchResults, setHasMoreSearchResults] = useState(false);
 
   const addItemToCart = (product, qty) => {
     // Hotel Room Check: Do not stack rooms
@@ -166,19 +170,35 @@ function PosLayout() {
   const total = finalBeforeTax + gst;
 
   /* ---------------------------------------------
+   * ⚡ ULTRA-FAST BARCODE INDEX (O(1) Lookup)
+   * --------------------------------------------- */
+  // Create a Map of all loaded products by barcode for instant access
+  // This ensures checking 5000 items is instant, vs looping an array.
+  const globalBarcodeMap = useMemo(() => {
+    const map = new Map();
+    // Iterate over every category currently in memory
+    Object.values(itemsByCategory).forEach((categoryData) => {
+      if (Array.isArray(categoryData?.items)) {
+        categoryData.items.forEach((item) => {
+          if (item.barcode) {
+            map.set(item.barcode, item);
+          }
+        });
+      }
+    });
+    return map;
+  }, [itemsByCategory]);
+
+  /* ---------------------------------------------
    * 🛒 BARCODE SCANNER LOGIC
    * --------------------------------------------- */
   const handleScan = async (barcode) => {
     if (!barcode) return;
 
-    // 1. Key: Search LOCAL cache first (fastest)
-    const allLocalItems = itemsForCategory || [];
-    const localMatch = allLocalItems.find(
-      (item) => item.barcode === barcode || item.name === barcode,
-    );
-
-    if (localMatch) {
-      handleAddToCart(localMatch);
+    // 1. O(1) Memory Lookup: Check ALL loaded categories instantly
+    // We check the map instead of looping the current category array
+    if (globalBarcodeMap.has(barcode)) {
+      handleAddToCart(globalBarcodeMap.get(barcode));
       return;
     }
 
@@ -268,6 +288,8 @@ function PosLayout() {
       try {
         if (!isInitial) setIsLoadingMore(true);
 
+        const urlStart = isInitial ? "Initial Fetch" : "Load More";
+
         let url = `/api/readItemsByCategory?category=${encodeURIComponent(activeCategory)}&limit=15`;
 
         // If Initial: Check timestamp
@@ -348,10 +370,72 @@ function PosLayout() {
     fetchCategoryData(true);
   }, [fetchCategoryData]);
 
-  // Handler for Load More
+  // --- SEARCH HANDLER (LAZY LOADING) ---
+  const fetchSearchResults = async (query, isInitial = false) => {
+    if (!query) return;
+
+    try {
+      setIsLoadingMore(true);
+      const storeId = user?.storeId || "";
+      let url = `/api/search-items?query=${encodeURIComponent(query)}&storeId=${storeId}&limit=10`;
+
+      // Use the *last result's* name as the cursor for the next page
+      if (!isInitial && searchCursor) {
+        url += `&lastVisibleName=${encodeURIComponent(searchCursor)}`;
+      }
+
+      const res = await authFetch(url, {}, idToken);
+      if (!res.ok) throw new Error("Search failed");
+
+      const data = await res.json();
+
+      if (data.length < 10) {
+        setHasMoreSearchResults(false);
+      } else {
+        setHasMoreSearchResults(true);
+      }
+
+      if (data.length > 0) {
+        // Update Cursor (Last item name)
+        setSearchCursor(data[data.length - 1].name);
+
+        setSearchResults((prev) => (isInitial ? data : [...prev, ...data]));
+      } else {
+        if (isInitial) setSearchResults([]);
+      }
+    } catch (e) {
+      console.error("Search Error", e);
+      setHasMoreSearchResults(false);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleSearchSubmit = async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      setSearchCursor(null);
+      setHasMoreSearchResults(false);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchCursor(null); // Reset cursor
+    setHasMoreSearchResults(true); // Assume data exists initially
+
+    await fetchSearchResults(query, true);
+  };
+
   const handleLoadMore = () => {
-    if (!isLoadingMore && hasMore) {
-      fetchCategoryData(false);
+    if (isLoadingMore) return;
+
+    if (searchQuery) {
+      // If searching
+      if (hasMoreSearchResults) fetchSearchResults(searchQuery, false);
+    } else {
+      // If browsing category
+      if (hasMore) fetchCategoryData(false);
     }
   };
 
@@ -363,12 +447,21 @@ function PosLayout() {
           <Search
             value={searchQuery}
             onChange={setSearchQuery}
+            onSearchSubmit={handleSearchSubmit} // Pass the handler!
             itemsByCategory={
               itemsForCategory ? { [activeCategory]: itemsForCategory } : {}
             }
             activeCategory={activeCategory}
             user={user}
-            onSearchResult={(results) => setSearchResults(results)}
+            // onSearchResult={(results) => setSearchResults(results)} <-- REMOVED OLD PROP
+            onSearchResult={(results) => {
+              setSearchResults(results);
+              // If finding local/cached results, disable pagination fetch
+              setSearchCursor(null);
+              setHasMoreSearchResults(false);
+              setIsSearching(true);
+            }}
+            globalBarcodeMap={globalBarcodeMap}
           />
         </div>
       </header>
@@ -443,7 +536,7 @@ function PosLayout() {
 
             <PosScreen
               products={
-                searchQuery
+                isSearching
                   ? searchResults.filter((p) =>
                       posMode === "rooms"
                         ? p.category === "rooms"
@@ -454,7 +547,7 @@ function PosLayout() {
               cartItems={cartItems}
               onAddToCart={handleAddToCart}
               onLoadMore={handleLoadMore}
-              hasMore={hasMore && !searchQuery} // Disable infinite scroll during search
+              hasMore={isSearching ? hasMoreSearchResults : hasMore} // Dynamically check
               isLoadingMore={isLoadingMore}
             />
           </div>
@@ -474,6 +567,7 @@ function PosLayout() {
             setSaleId={setSaleId}
             globalDiscount={globalDiscount}
             setGlobalDiscount={setGlobalDiscount}
+            onSimulateScan={handleScan} // <--- Added prop for testing
           />
         </aside>
       </main>
@@ -532,6 +626,7 @@ function PosLayout() {
                 setSaleId={setSaleId}
                 globalDiscount={globalDiscount}
                 setGlobalDiscount={setGlobalDiscount}
+                onSimulateScan={handleScan} // <--- Added prop for testing
               />
             </div>
           </div>
