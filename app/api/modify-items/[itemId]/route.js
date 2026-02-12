@@ -63,8 +63,12 @@ export async function DELETE(request, { params }) {
         }
       }
 
-      // 2. Writes
-      tx.delete(itemRef);
+      // 2. Writes - SOFT DELETE
+      // tx.delete(itemRef); <-- OLD HARD DELETE
+      tx.update(itemRef, {
+        isDeleted: true,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
       // Decrement Inventory Valuation
       if (summarySnap.exists) {
@@ -80,6 +84,11 @@ export async function DELETE(request, { params }) {
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
+
+      // 🕒 UPDATE CATALOG TIMESTAMP (For Cache Invalidation)
+      tx.update(db.doc(`stores/${storeId}`), {
+        catalogLastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
     });
 
     return NextResponse.json({ success: true });

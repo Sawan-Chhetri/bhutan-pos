@@ -47,17 +47,35 @@ function PosLayout() {
   const { idToken } = useAuthStatus(); // <--- Added this line
   const permissions = usePermissions(user);
 
-  // Background Sync for Offline Search
+  // Track active category in ref for async callbacks
+  const activeCategoryRef = useRef(activeCategory);
+  useEffect(() => {
+    activeCategoryRef.current = activeCategory;
+  }, [activeCategory]);
+
+  // --- SYNC REFRESH LOGIC ---
+  const [shouldForceRefresh, setShouldForceRefresh] = useState(false);
+
+  // Background Sync (Runs on Mount + Periodic?)
+  // We use a ref to prevent spamming sync on every category change, 
+  // but we DO want to ensure we have fresh data on mount.
   useEffect(() => {
     if (user?.storeId && idToken) {
+      console.log("[PosLayout] Checking inventory sync...");
       syncInventory(idToken, user.storeId)
         .then((count) => {
-          if (count > 0)
-            toast.success("Offline Mode Ready", { autoClose: 2000 });
+          if (count > 0) {
+            // Only show toast if significant update
+            if (count > 5) toast.success(`Synced ${count} items`, { autoClose: 2000 });
+            
+            // Signal that we need a refresh
+            console.log("[PosLayout] Sync detected changes. Queueing refresh.");
+            setShouldForceRefresh(true);
+          }
         })
         .catch((err) => console.warn("Inventory sync failed silently", err));
     }
-  }, [user?.storeId, idToken]);
+  }, [user?.storeId, idToken]); 
 
   // Dual-Mode State for Hotels
   const [posMode, setPosMode] = useState(
@@ -83,7 +101,7 @@ function PosLayout() {
   const [isSearching, setIsSearching] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [saleId, setSaleId] = useState(null);
-  const [isKgModalOpen, setIsKgModalOpen] = useState(false);
+  const [isKgModalOpen, setIsKgModal] = useState(false);
   const [pendingWeightedItem, setPendingWeightedItem] = useState(null);
 
   // Global Discount State
@@ -432,6 +450,17 @@ function PosLayout() {
   useEffect(() => {
     fetchCategoryData(true);
   }, [fetchCategoryData]);
+
+  // Effect: Force Refresh when Sync Completes AND we have an active category
+  useEffect(() => {
+    if (shouldForceRefresh && activeCategory) {
+      // Re-fetching alone should update state with new timestamp
+      fetchCategoryData(true);
+      // Wait a moment before clearing the flag, or clear it immediately?
+      // Clearing immediately prevents loops if fetchCategoryData changes.
+      setShouldForceRefresh(false);
+    }
+  }, [shouldForceRefresh, activeCategory, fetchCategoryData]);
 
   // --- SEARCH HANDLER (LAZY LOADING) ---
   const fetchSearchResults = async (query, isInitial = false) => {

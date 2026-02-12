@@ -56,7 +56,10 @@ export async function GET(request) {
     addDocs(nameSnap);
     addDocs(barcodeSnap);
 
-    const items = Array.from(results.values());
+    // Filter Soft Deletes (Post-Query)
+    // Firestore OR queries (Name OR Barcode) are hard to combine with "isDeleted != true" natively/efficiently
+    // without composite indexes for every field. Filtering in memory for ~20 results is faster.
+    const items = Array.from(results.values()).filter(i => i.isDeleted !== true);
 
     return NextResponse.json(items);
   } catch (error) {

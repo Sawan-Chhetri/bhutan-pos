@@ -60,6 +60,7 @@ export async function POST(request) {
       tx.set(itemRef, {
         ...item,
         isActive: true,
+        isDeleted: false, // Explicitly set for new items
         stock,
         minStock,
         price,
@@ -67,6 +68,7 @@ export async function POST(request) {
         unitType,
         isLowStock: stock <= minStock,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(), // Crucial for Delta Sync
       });
 
       const retailDelta = stock * price;
@@ -89,6 +91,11 @@ export async function POST(request) {
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
         });
       }
+
+      // 🕒 UPDATE CATALOG TIMESTAMP (For Cache Invalidation)
+      tx.update(db.doc(`stores/${storeId}`), {
+        catalogLastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
     });
 
     return NextResponse.json({ id: itemRef.id });
@@ -240,6 +247,11 @@ export async function PATCH(request) {
           }
         }
       }
+
+      // 🕒 UPDATE CATALOG TIMESTAMP (For Cache Invalidation)
+      tx.update(db.doc(`stores/${storeId}`), {
+        catalogLastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
     });
 
     return NextResponse.json({ success: true });

@@ -68,6 +68,7 @@ export async function GET(request) {
     let itemsRef = db
       .collection(`stores/${storeId}/items`)
       .where("category", "==", category)
+      // .where("isDeleted", "!=", true) <-- REMOVED: Hides legacy items & causes OrderBy error
       .orderBy("name", "asc")
       .orderBy("__name__", "asc"); // Stable sort
 
@@ -75,16 +76,36 @@ export async function GET(request) {
       itemsRef = itemsRef.startAfter(startAfterName, startAfterId);
     }
 
-    const itemsSnap = await itemsRef.limit(limit).get();
+    // Fetch a few extra items to compensate for potential filtered deletes
+    const BUFFER_LIMIT = limit + 5;
+    const itemsSnap = await itemsRef.limit(BUFFER_LIMIT).get();
 
-    const items = itemsSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    let items = itemsSnap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((item) => item.isDeleted !== true); // In-memory filtering
 
-    // Calculate next cursor
+    // Trim back to requested limit if we fetched too many
     let nextCursor = null;
-    if (items.length === limit) {
+    let hasMore = false;
+
+    if (items.length > limit) {
+      items = items.slice(0, limit);
+      hasMore = true; // We definitely have more (we just sliced them off)
+    } else {
+      // If we fetched BUFFER_LIMIT (e.g. 20) and have 20 left, we likely have more.
+      // But typically we check if the SNAPSHOT length was full.
+      // Since filtering complication, let's rely on simple cursor logic from the *original* items if possible
+      // But wait, if we filter out items, our cursor logic gets tricky.
+      // Simplified: Set cursor to the last valid item we are returning.
+      if (itemsSnap.docs.length === BUFFER_LIMIT) {
+        hasMore = true;
+      }
+    }
+
+    if (items.length > 0) {
       const lastItem = items[items.length - 1];
       nextCursor = {
         name: lastItem.name,
@@ -97,7 +118,7 @@ export async function GET(request) {
       items,
       timestamp: Date.now(),
       nextCursor,
-      hasMore: !!nextCursor,
+      hasMore,
     });
   } catch (error) {
     console.error("read-items error:", error);
