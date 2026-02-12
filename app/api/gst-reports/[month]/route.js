@@ -168,6 +168,7 @@ export async function GET(request, { params }) {
 
       // FILES
       files: gstData.files || null,
+      status: gstData.status,
 
       // BUSINESS INFO
       business: {

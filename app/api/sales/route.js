@@ -102,14 +102,18 @@ export async function POST(request) {
         storeId &&
         ["pos", "restaurants", "other"].includes(userSnap.data()?.type)
       ) {
-        for (const item of cartItems) {
-          if (item.id) {
-            const itemRef = db.doc(`stores/${storeId}/items/${item.id}`);
-            const docSnap = await tx.get(itemRef);
-            if (docSnap.exists) {
-              loadedItems[item.id] = docSnap.data();
+        // OPTIMIZED: Fetch all items in parallel using getAll() to prevent transaction timeout
+        const itemsToFetch = cartItems
+          .filter((item) => item.id)
+          .map((item) => db.doc(`stores/${storeId}/items/${item.id}`));
+
+        if (itemsToFetch.length > 0) {
+          const itemSnaps = await tx.getAll(...itemsToFetch);
+          itemSnaps.forEach((snap) => {
+            if (snap.exists) {
+              loadedItems[snap.id] = snap.data();
             }
-          }
+          });
         }
       }
 

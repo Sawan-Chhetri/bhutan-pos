@@ -11,6 +11,7 @@ import {
   FiRefreshCcw,
   FiRefreshCw,
   FiDownload,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import Link from "next/link";
 
@@ -223,6 +224,42 @@ export default function GSTReport({ month }) {
               </p>
             </div>
           </div>
+
+          {/* WARNING: Outdated Report Banner */}
+          {report.status === "outdated" && (
+            <div className="mb-8 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 print:hidden animate-in fade-in slide-in-from-top-4">
+              <div className="flex items-center gap-4 w-full">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl shrink-0">
+                  <FiAlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-amber-800 dark:text-amber-200 uppercase tracking-widest mb-1">
+                    Compliance Alert: Data Changed
+                  </h3>
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
+                    New backdated transactions were detected after this report
+                    was generated.{" "}
+                    <span className="hidden md:inline">
+                      {" "}
+                      These changes are not yet reflected in your downloadable
+                      files.
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleGenerateReports}
+                disabled={generating}
+                className="w-full md:w-auto shrink-0 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex justify-center items-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <FiRefreshCw
+                  className={generating ? "animate-spin" : ""}
+                  size={14}
+                />
+                {generating ? "Smart Syncing..." : "Update Report"}
+              </button>
+            </div>
+          )}
 
           {/* GST Pack Downloads */}
           <div className="mb-8 print:hidden">

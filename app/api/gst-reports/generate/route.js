@@ -109,110 +109,51 @@ export async function GET(request) {
       );
     }
 
+    // Check existing report state for partial regeneration
+    const reportRef = db.doc(`stores/${storeId}/gstReports/${monthKey}`);
+    const reportSnap = await reportRef.get();
+    const existingData = reportSnap.data() || {};
+    const existingFiles = existingData.files || {};
+
+    // Determine what needs regeneration
+    // 1. Force regen if file missing
+    // 2. Force regen if explicitly marked dirty (e.g. backdated entry)
+    const needSales = !existingFiles.outputGst;
+    const needPurchases =
+      !existingFiles.inputGst || existingData.purchasesDirty;
+    const needRefunds = !existingFiles.refunds;
+
     // ----------------------------------------------------------------
-    // 5. Fetch Data (Single Store)
+    // 5. Fetch Data (Single Store) - OPTIMIZED PARTIAL FETCH
     // ----------------------------------------------------------------
     const [salesSnap, purchasesSnap, refundsSnap] = await Promise.all([
-      db
-        .collection(`stores/${storeId}/sales`)
-        .where("date", ">=", startDate)
-        .where("date", "<=", endDate)
-        .get(),
-      db
-        .collection(`stores/${storeId}/purchases`)
-        .where("date", ">=", startDate)
-        .where("date", "<=", endDate)
-        .get(),
-      db
-        .collection(`stores/${storeId}/refunds`)
-        .where("date", ">=", startDate)
-        .where("date", "<=", endDate)
-        .get(),
+      needSales
+        ? db
+            .collection(`stores/${storeId}/sales`)
+            .where("date", ">=", startDate)
+            .where("date", "<=", endDate)
+            .get()
+        : Promise.resolve({ docs: [], empty: true }), // Mock empty snap
+      needPurchases
+        ? db
+            .collection(`stores/${storeId}/purchases`)
+            .where("date", ">=", startDate)
+            .where("date", "<=", endDate)
+            .get()
+        : Promise.resolve({ docs: [], empty: true }),
+      needRefunds
+        ? db
+            .collection(`stores/${storeId}/refunds`)
+            .where("date", ">=", startDate)
+            .where("date", "<=", endDate)
+            .get()
+        : Promise.resolve({ docs: [], empty: true }),
     ]);
 
     // ----------------------------------------------------------------
     // 6. Generate CSVs
     // ----------------------------------------------------------------
 
-    // B. Output GST (Sales)
-    const salesFields = [
-      "Invoice ID",
-      "Date",
-      "Customer Name",
-      "Customer CID/TPN",
-      "Total Amount",
-      "Taxable Amount",
-      "GST Amount",
-    ];
-    const salesData = salesSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        "Invoice ID": data.invoiceNumber,
-        Date: formatDate(data.date),
-        "Customer Name": data.customerName || "N/A",
-        "Customer CID/TPN": data.customerCID || "N/A",
-        "Total Amount": data.total || 0,
-        "Taxable Amount": data.subtotal || 0,
-        "GST Amount": data.gst || 0,
-      };
-    });
-    const outputGstCsv = Papa.unparse({ fields: salesFields, data: salesData });
-
-    // C. Input GST (Purchases)
-    const purchaseFields = [
-      "Bill Number",
-      "Date",
-      "Supplier Name",
-      "Supplier TIN",
-      "Total Purchase",
-      "Taxable Amount",
-      "Input Tax Claimed",
-    ];
-    const purchasesData = purchasesSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        "Bill Number": data.billNumber || "N/A",
-        Date: formatDate(data.date),
-        "Supplier Name": data.supplierName || "N/A",
-        "Supplier TIN": data.supplierTIN || "N/A",
-        "Total Purchase": data.grossPurchases || 0,
-        "Taxable Amount": data.taxablePurchases || 0,
-        "Input Tax Claimed": data.itc || 0,
-      };
-    });
-    const inputGstCsv = Papa.unparse({
-      fields: purchaseFields,
-      data: purchasesData,
-    });
-
-    // D. Refunds
-    const refundFields = [
-      "Refund ID",
-      "Date",
-      "Original Invoice",
-      "Refund Amount",
-      "GST Reversed",
-      "Reason",
-    ];
-    const refundsData = refundsSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        "Refund ID": data.refundInvoiceNumber,
-        Date: formatDate(data.date),
-        "Original Invoice": data.originalInvoiceNumber || "N/A",
-        "Refund Amount": data.totalAmount || 0,
-        "GST Reversed": data.gstAmount || 0,
-        Reason: data.reason || "N/A",
-      };
-    });
-    const refundsCsv = Papa.unparse({
-      fields: refundFields,
-      data: refundsData,
-    });
-
-    // ----------------------------------------------------------------
-    // 7. Upload to Storage
-    // ----------------------------------------------------------------
     const uploadAndGetUrl = async (content, filename) => {
       const filePath = `GSTReports/${storeId}/${filename}`;
       const file = storage.file(filePath);
@@ -226,25 +167,115 @@ export async function GET(request) {
       return { url, path: filePath };
     };
 
-    const outputGstFile = await uploadAndGetUrl(
-      outputGstCsv,
-      `OutputGST_${monthKey}.csv`,
-    );
-    const inputGstFile = await uploadAndGetUrl(
-      inputGstCsv,
-      `InputGST_${monthKey}.csv`,
-    );
-    const refundsFile = await uploadAndGetUrl(
-      refundsCsv,
-      `Refunds_${monthKey}.csv`,
-    );
+    // B. Output GST (Sales)
+    let outputGstFile = existingFiles.outputGst;
+    if (needSales) {
+      const salesFields = [
+        "Invoice ID",
+        "Date",
+        "Customer Name",
+        "Customer CID/TPN",
+        "Total Amount",
+        "Taxable Amount",
+        "GST Amount",
+      ];
+      const salesData = salesSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          "Invoice ID": data.invoiceNumber,
+          Date: formatDate(data.date),
+          "Customer Name": data.customerName || "N/A",
+          "Customer CID/TPN": data.customerCID || "N/A",
+          "Total Amount": data.total || 0,
+          "Taxable Amount": data.subtotal || 0,
+          "GST Amount": data.gst || 0,
+        };
+      });
+      const outputGstCsv = Papa.unparse({
+        fields: salesFields,
+        data: salesData,
+      });
+      outputGstFile = await uploadAndGetUrl(
+        outputGstCsv,
+        `OutputGST_${monthKey}.csv`,
+      );
+    }
+
+    // C. Input GST (Purchases)
+    let inputGstFile = existingFiles.inputGst;
+    if (needPurchases) {
+      const purchaseFields = [
+        "Bill Number",
+        "Date",
+        "Supplier Name",
+        "Supplier TIN",
+        "Total Purchase",
+        "Taxable Amount",
+        "Input Tax Claimed",
+      ];
+      const purchasesData = purchasesSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          "Bill Number": data.billNumber || "N/A",
+          Date: formatDate(data.date),
+          "Supplier Name": data.supplierName || "N/A",
+          "Supplier TIN": data.supplierTIN || "N/A",
+          "Total Purchase": data.grossPurchases || 0,
+          "Taxable Amount": data.taxablePurchases || 0,
+          "Input Tax Claimed": data.itc || 0,
+        };
+      });
+      const inputGstCsv = Papa.unparse({
+        fields: purchaseFields,
+        data: purchasesData,
+      });
+      inputGstFile = await uploadAndGetUrl(
+        inputGstCsv,
+        `InputGST_${monthKey}.csv`,
+      );
+    }
+
+    // D. Refunds
+    let refundsFile = existingFiles.refunds;
+    if (needRefunds) {
+      const refundFields = [
+        "Refund ID",
+        "Date",
+        "Original Invoice",
+        "Refund Amount",
+        "GST Reversed",
+        "Reason",
+      ];
+      const refundsData = refundsSnap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          "Refund ID": data.refundInvoiceNumber,
+          Date: formatDate(data.date),
+          "Original Invoice": data.originalInvoiceNumber || "N/A",
+          "Refund Amount": data.totalAmount || 0,
+          "GST Reversed": data.gstAmount || 0,
+          Reason: data.reason || "N/A",
+        };
+      });
+      const refundsCsv = Papa.unparse({
+        fields: refundFields,
+        data: refundsData,
+      });
+      refundsFile = await uploadAndGetUrl(
+        refundsCsv,
+        `Refunds_${monthKey}.csv`,
+      );
+    }
 
     // ----------------------------------------------------------------
-    // 8. Update Firestore & Return
+    // 7. Update Firestore & Return
     // ----------------------------------------------------------------
-    await db.doc(`stores/${storeId}/gstReports/${monthKey}`).set(
+    await reportRef.set(
       {
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        // Clear dirty flags
+        purchasesDirty: false,
+        status: "active", // Reset general status
         files: {
           outputGst: outputGstFile,
           inputGst: inputGstFile,
@@ -257,6 +288,11 @@ export async function GET(request) {
     return NextResponse.json({
       message: `Generated reports for ${monthKey}`,
       files: { outputGstFile, inputGstFile, refundsFile },
+      regenerated: {
+        sales: needSales,
+        purchases: needPurchases,
+        refunds: needRefunds,
+      },
     });
   } catch (error) {
     console.error("Report Generation Error:", error);

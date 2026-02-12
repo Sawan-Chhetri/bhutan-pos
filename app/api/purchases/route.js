@@ -19,7 +19,16 @@ export async function POST(request) {
     }
 
     const idToken = authHeader.split("Bearer ")[1];
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    let decoded;
+    try {
+      decoded = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+      console.error("Token verification failed:", error);
+      return NextResponse.json(
+        { error: "Unauthorized", details: error.message },
+        { status: 401 },
+      );
+    }
     const uid = decoded.uid;
 
     /* =====================================================
@@ -92,6 +101,10 @@ export async function POST(request) {
       const gstSnap = await tx.get(gstReportRef);
       const summaryRef = db.doc(`stores/${storeId}/inventory_metadata/summary`);
       const summarySnap = await tx.get(summaryRef);
+
+      // Check for backdated entry (anything not in current month)
+      const currentMonthKey = `${now.toDate().getFullYear()}-${String(now.toDate().getMonth() + 1).padStart(2, "0")}`;
+      const isBackdated = monthKey !== currentMonthKey;
 
       /* ---------------------------------------------
        * A2) READ INVENTORY ITEMS (FOR STOCK CHECK)
@@ -189,46 +202,36 @@ export async function POST(request) {
       });
 
       // Update GST monthly report
+      // STRATEGY:
+      // 1. If current month -> Increment Aggregates (Fast)
+      // 2. If backdated -> Mark as "outdated" to force regeneration (Safe)
+
       if (!gstSnap.exists) {
         tx.set(gstReportRef, {
           month: monthKey,
-          // totalPurchases: Number(totalPurchases || 0),
           totalPurchases: grossPurchases,
-          taxablePurchases,
+          taxablePurchases: taxablePurchases,
           itcClaimed: totalITC,
           purchaseCount: 1,
           lastUpdated: now,
-          // No files yet
+          status: "active", // active | outdated
         });
       } else {
-        // If report exists and has generated files, we must INVALIDATE them
-        // because we just changed the underlying data for this month.
-        if (gstSnap.data().files) {
-          tx.update(gstReportRef, {
-            files: admin.firestore.FieldValue.delete(),
-          });
-        }
-
-        // tx.update(gstReportRef, {
-        //   totalPurchases:
-        //     // admin.firestore.FieldValue.increment(Number(totalPurchases || 0)),
-        //     admin.firestore.FieldValue.increment(grossPurchases),
-        //   taxablePurchases:
-        //     admin.firestore.FieldValue.increment(taxablePurchases),
-        //   itcClaimed: admin.firestore.FieldValue.increment(totalITC),
-        //   purchaseCount: admin.firestore.FieldValue.increment(1),
-        //   lastUpdated: now,
-        // });
-        tx.update(gstReportRef, {
+        const updates = {
+          totalPurchases: admin.firestore.FieldValue.increment(grossPurchases),
           taxablePurchases:
             admin.firestore.FieldValue.increment(taxablePurchases),
-          nonTaxablePurchases:
-            admin.firestore.FieldValue.increment(nonTaxablePurchases),
           itcClaimed: admin.firestore.FieldValue.increment(totalITC),
-          grossPurchases: admin.firestore.FieldValue.increment(grossPurchases),
           purchaseCount: admin.firestore.FieldValue.increment(1),
           lastUpdated: now,
-        });
+        };
+
+        if (isBackdated) {
+          updates.purchasesDirty = true; // Specific flag for partial regeneration
+          updates.status = "outdated"; // General flag for UI warnings
+        }
+
+        tx.update(gstReportRef, updates);
       }
 
       // 8️⃣ STOCK UPDATES & VALUATION
@@ -302,7 +305,16 @@ export async function GET(request) {
     }
 
     const idToken = authHeader.split("Bearer ")[1];
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    let decoded;
+    try {
+      decoded = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+      console.error("Token verification failed:", error);
+      return NextResponse.json(
+        { error: "Unauthorized", details: error.message },
+        { status: 401 },
+      );
+    }
     const uid = decoded.uid;
 
     const db = admin.firestore();
