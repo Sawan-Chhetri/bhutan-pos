@@ -3,34 +3,41 @@
 ## 1. Project Overview
 
 - **Type**: Next.js 16 (App Router) application.
-- **Core Stack**: React 19, Tailwind CSS 4, DaisyUI, Firebase (Auth, Firestore, Storage).
-- **Purpose**: Point of Sale (POS) system for Bhutanese businesses, handling inventory, sales, invoicing, and GST reporting.
+- **Core Stack**: React 19, Tailwind CSS 4, DaisyUI 5, Firebase (Auth, Firestore, Storage).
+- **Purpose**: Point of Sale (POS) system for Bhutanese businesses (Sales, Inventory, GST Reporting).
+- **Key Feature**: Offline-capable POS with IndexedDB caching (`idb`).
 
 ## 2. Architectural Patterns
 
 ### Frontend Architecture
 
 - **State Management**:
-  - Global user state via `UserContext` (`contexts/UserContext.js`).
-  - Server state/caching via `SWR` (`swr`).
-  - Local state for complex forms (e.g., POS cart).
+  - **Global User**: `UserContext` (`contexts/UserContext.js`) wraps the app.
+  - **Server Data**: `SWR` is the standard for fetching. Use `stablePosOptions` from `lib/swrConfig.js` for POS stability (aggressive deduping, revalidate on focus).
+  - **Authorization**: `useAuthGuard` hooks protect pages (e.g., `app/pos/page.js`).
+- **Offline Inventory**:
+  - **Pattern**: `lib/inventorySync.js` syncs Firestore items to local IndexedDB (`idb`).
+  - **Logic**: `initDB` creates `SwiftGST_[storeId]`. Sync checks `swiftgst_catalog_version_[storeId]`.
+  - **Usage**: POS reads from IndexedDB for speed/offline support; writes go to API.
 - **Component Pattern**:
-  - Prefer "Container/Presenter" pattern. Logic/Fetching in `page.js` or custom hooks; UI in `components/**`.
-  - Example: `app/pos/page.js` manages logic, passing props to `components/pos/PosScreen.jsx`.
-- **Styling**:
-  - Tailwind CSS 4 with DaisyUI.
-  - Use `h-screen`, `flex-col` for layout structures.
-  - "Brand Pink" is a primary accent color.
+  - Container/Presenter separation (e.g., `app/pos/page.js` -> `components/pos/PosLayout.jsx`).
+  - **Styling**: Tailwind 4 + DaisyUI.
+    - Global colors in `globals.css`: `--brand-pink`, `--brand-blue`, `--brand-cream`.
+    - Use `@theme inline` for custom theme variables.
 
 ### Backend Architecture (API Routes)
 
 - **Location**: `app/api/**/route.js`.
-- **Database Access**: Uses `firebase-admin` initialized in `lib/firebaseAdmin.js`. NEVER use the client SDK (`firebase/firestore`) in API routes; always use `admin.firestore()`.
+- **Database Access**: **Admin SDK Only**. Initialize via `lib/firebaseAdmin.js`.
+  - ❌ NEVER use client `firebase/firestore` in API routes.
+  - ✅ ALWAYS use `admin.firestore()`.
+  - **Env Vars**: `FIREBASE_PRIVATE_KEY` handles newline replacement in `lib/firebaseAdmin.js`.
 - **Authentication**:
   - Manual verification of Bearer tokens.
   - Pattern:
     ```javascript
     const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const idToken = authHeader.split("Bearer ")[1];
     const decoded = await admin.auth().verifyIdToken(idToken);
     ```
@@ -40,33 +47,42 @@
 ### Authentication & API Security
 
 - **Client-Side**:
-  - ALWAYS use `authFetch` from `lib/authFetch.js` instead of native `fetch`.
-  - usage: `await authFetch('/api/endpoint', options, idToken)`.
-  - This handles token refreshing and attaching the Authorization header automatically.
+  - ❌ NEVER use native `fetch`.
+  - ✅ ALWAYS use `authFetch` (`lib/authFetch.js`).
+  - **Why**: Handles token rotation, retries on 401s, and header injection.
+  - **Fetcher**: `lib/fetcher.js` wraps `authFetch` for SWR.
 - **Server-Side**:
   - API routes must validate the ID token before processing sensitive actions.
 
-### Data Fetching
+### Hardware Integration
 
-- Use **SWR** for reading data on the client.
-- Configuration is in `lib/swrConfig.js`.
-- Standard fetcher: `import { fetcher } from "@/lib/fetcher"`.
+- **Barcode Scanning**:
+  - Hook: `useBarcodeScanner.js`.
+  - **Logic**: Intercepts global keyboard events.
+  - **Refinement**: 
+    - Ignores inputs into `<input>`/`<textarea>`.
+    - Detects scanner vs typing via timing (<100ms inter-key delay).
 
-### Business Logic Rules
+### Domain Logic Rules
 
-- **GST Rate**: Hardcoded as `0.05` (5%) in API routes (e.g., `app/api/sales/route.js`). Ensure this consistency when calculating totals.
-- **High Value Transactions**: Sales > 50,000 require a Customer CID/Passport Number.
-- **Inventory**: Items have `costPrice` (buying) and `sellingPrice`. Margins and GST logic rely on these fields.
+- **GST Rate**: Hardcoded `0.05` (5%) in API calculations (e.g., `app/api/sales/route.js`).
+- **High Value Transactions**: Sales > 50,000 NU require Customer CID/Passport.
+- **Inventory Model**: Items have `costPrice` (buying) and `sellingPrice`.
 
-## 4. Key Developer Workflows
+## 4. Developer Workflows
 
-- **Environment**: Requires `ServiceAccountKey.json` for Firebase Admin (server-side) and standard Firebase config for client.
-- **PDF Generation**: Uses `@react-pdf/renderer` or `jspdf` for generating invoices/receipts.
-- **Barcode Scanning**: Handled via `useBarcodeScanner.js` hook, listening for global keyboard events (typical for USB scanners).
+- **Environment**: 
+  - Server-side: `ServiceAccountKey.json` or env vars for Firebase Admin.
+  - Client-side: standard Firebase config.
+- **PDF Generation**: `@react-pdf/renderer` or `jspdf` for invoices.
+- **Debugging**:
+  - Check `Application > IndexedDB` in dev tools to verify inventory sync (`SwiftGST_[storeId]`).
+  - Use `console.debug` in hooks for non-critical flow tracing.
 
-## 5. Directory Structure
+## 5. Directory Highlights
 
-- `app/api/`: Backend endpoints (Purchase, Sales, Inventory, User management).
-- `components/pos/`: Core POS interface components.
-- `lib/`: Shared utilities (`authFetch`, `firebaseAdmin`, `scanCache`).
-- `hooks/`: Custom hooks for Auth (`useAuthGuard`, `useAuthStatus`) and Hardware (`useBarcodeScanner`).
+- `lib/inventorySync.js`: Core offline sync logic using `idb`.
+- `lib/authFetch.js`: The mandatory fetch wrapper.
+- `hooks/useBarcodeScanner.js`: Hardware integration logic.
+- `app/api/sales/route.js`: Canonical example of transaction processing & GST logic.
+- `lib/swrConfig.js`: SWR configuration for stable POS data.

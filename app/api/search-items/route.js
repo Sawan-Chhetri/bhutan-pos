@@ -16,7 +16,7 @@ export async function GET(request) {
     if (!queryName) {
       return NextResponse.json(
         { error: "Missing search query" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,14 +59,16 @@ export async function GET(request) {
     // Filter Soft Deletes (Post-Query)
     // Firestore OR queries (Name OR Barcode) are hard to combine with "isDeleted != true" natively/efficiently
     // without composite indexes for every field. Filtering in memory for ~20 results is faster.
-    const items = Array.from(results.values()).filter(i => i.isDeleted !== true);
+    const items = Array.from(results.values()).filter(
+      (i) => i.isDeleted !== true,
+    );
 
     return NextResponse.json(items);
   } catch (error) {
     console.error("search-items error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

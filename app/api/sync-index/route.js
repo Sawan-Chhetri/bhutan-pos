@@ -35,21 +35,21 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const sinceParam = searchParams.get("since");
     const sinceTimestamp = sinceParam ? parseInt(sinceParam) : 0;
-    
+
     let query = db.collection(`stores/${storeId}/items`);
 
     // MODE A: Delta Sync (Only changed items)
     if (sinceTimestamp > 0) {
-       const sinceDate = admin.firestore.Timestamp.fromMillis(sinceTimestamp);
-       query = query.where("updatedAt", ">", sinceDate);
-    } 
+      const sinceDate = admin.firestore.Timestamp.fromMillis(sinceTimestamp);
+      query = query.where("updatedAt", ">", sinceDate);
+    }
     // MODE B: Full Sync (Only Active Items)
     else {
-       // CRITICAL FIX: Do NOT use .where("isDeleted", "!=", true) because
-       // Firestore excludes documents where the field "isDeleted" does not exist.
-       // Legacy items (created before today) do not have this field, so they vanish.
-       // Use client-side filtering (or map-side filtering) instead.
-       // query = query; // Fetch all
+      // CRITICAL FIX: Do NOT use .where("isDeleted", "!=", true) because
+      // Firestore excludes documents where the field "isDeleted" does not exist.
+      // Legacy items (created before today) do not have this field, so they vanish.
+      // Use client-side filtering (or map-side filtering) instead.
+      // query = query; // Fetch all
     }
 
     // Select fields + essential metadata for sync
@@ -66,7 +66,7 @@ export async function GET(request) {
         "stock",
         "minStock",
         "isDeleted", // New: Needed for delta sync
-        "updatedAt"  // New: Needed for next cursor
+        "updatedAt", // New: Needed for next cursor
       )
       .get();
 
@@ -75,26 +75,26 @@ export async function GET(request) {
         const d = doc.data();
         return {
           id: doc.id,
-          n: d.name, 
+          n: d.name,
           b: d.barcode || "",
           p: d.price || 0,
           c: (d.category || "general").trim(),
           u: d.unitType || "default",
-          x: d.isGSTExempt ? 1 : 0, 
+          x: d.isGSTExempt ? 1 : 0,
           d: d.discountPercent || 0,
           s: d.stock || 0,
-          del: d.isDeleted ? 1 : 0 // Boolean -> Int
+          del: d.isDeleted ? 1 : 0, // Boolean -> Int
         };
       })
       // If Full Sync, we filter out deleted items here to save bandwidth/client processing
       // Legacy items (d.isDeleted undefined) will have del=0, so kept.
       // Explicitly deleted items (d.isDeleted=true) will have del=1, so filtered out.
-      .filter(item => sinceTimestamp > 0 || item.del === 0);
+      .filter((item) => sinceTimestamp > 0 || item.del === 0);
 
     return NextResponse.json({
       timestamp: Date.now(),
       count: items.length,
-      mode: sinceTimestamp > 0 ? 'delta' : 'full',
+      mode: sinceTimestamp > 0 ? "delta" : "full",
       items,
     });
   } catch (error) {

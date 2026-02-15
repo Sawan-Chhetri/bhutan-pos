@@ -57,7 +57,7 @@ function PosLayout() {
   const [shouldForceRefresh, setShouldForceRefresh] = useState(false);
 
   // Background Sync (Runs on Mount + Periodic?)
-  // We use a ref to prevent spamming sync on every category change, 
+  // We use a ref to prevent spamming sync on every category change,
   // but we DO want to ensure we have fresh data on mount.
   useEffect(() => {
     if (user?.storeId && idToken) {
@@ -66,8 +66,9 @@ function PosLayout() {
         .then((count) => {
           if (count > 0) {
             // Only show toast if significant update
-            if (count > 5) toast.success(`Synced ${count} items`, { autoClose: 2000 });
-            
+            if (count > 5)
+              toast.success(`Synced ${count} items`, { autoClose: 2000 });
+
             // Signal that we need a refresh
             console.log("[PosLayout] Sync detected changes. Queueing refresh.");
             setShouldForceRefresh(true);
@@ -75,7 +76,7 @@ function PosLayout() {
         })
         .catch((err) => console.warn("Inventory sync failed silently", err));
     }
-  }, [user?.storeId, idToken]); 
+  }, [user?.storeId, idToken]);
 
   // Dual-Mode State for Hotels
   const [posMode, setPosMode] = useState(
@@ -174,7 +175,7 @@ function PosLayout() {
   const handleAddToCart = (product) => {
     if (product.unitType && product.unitType !== "default") {
       setPendingWeightedItem(product);
-      setIsKgModalOpen(true);
+      setIsKgModal(true);
       return;
     }
     addItemToCart(product, 1);
@@ -736,7 +737,7 @@ function PosLayout() {
       <KgModal
         isOpen={isKgModalOpen}
         onClose={() => {
-          setIsKgModalOpen(false);
+          setIsKgModal(false);
           setPendingWeightedItem(null);
         }}
         product={pendingWeightedItem}

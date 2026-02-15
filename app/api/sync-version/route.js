@@ -28,23 +28,25 @@ export async function GET(request) {
     // Light-weight read: Only fetching the single store document
     // This document should ideally be small.
     const storeSnap = await db.collection("stores").doc(storeId).get();
-    
+
     if (!storeSnap.exists) {
-        return NextResponse.json({ error: "Store doc not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Store doc not found" },
+        { status: 404 },
+      );
     }
 
     const data = storeSnap.data();
-    
+
     // Convert Firestore Timestamp to millis
-    const lastUpdated = data.catalogLastUpdated 
-        ? data.catalogLastUpdated.toMillis() 
-        : 0;
+    const lastUpdated = data.catalogLastUpdated
+      ? data.catalogLastUpdated.toMillis()
+      : 0;
 
-    return NextResponse.json({ 
-        version: lastUpdated,
-        storeId 
+    return NextResponse.json({
+      version: lastUpdated,
+      storeId,
     });
-
   } catch (err) {
     console.error("Sync Version Error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

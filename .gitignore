@@ -43,3 +43,5 @@ next-env.d.ts
 #Remove admin credentials
 ServiceAccountKey.json
 setAdminClaim.js
+
+*.md
